@@ -1,0 +1,2 @@
+# firefight-mod-editor-open
+An open-source third-party mod editor compatible with the game Firefight by Sean O'Connor, with more powerful and complete features and greater robustness
