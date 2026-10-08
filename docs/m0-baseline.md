@@ -261,8 +261,22 @@ ZIP 内 **1712 项，全部位于 `.Mod/` 前缀下**：
 
 1. **模组是「部分覆盖」而非完整副本**：样本 mod **没有** `Data/AT Guns/`、没有 `Data/Aircraft/`。所以打包/加载必须能与原版基线**合并**。
 2. **`equipment_*.txt` 命名不带时代后缀**：原版是 `equipment_american_WW2.txt`，样本 mod 是 `equipment_american.txt`；mod.txt 用 `<equipment>` 逐个列出（`news_main.txt` 也被列为一个 equipment）。
-3. **README/许可证在 `.Mod/` **内部**，ZIP 根目录没有文件** —— 与目前约定的「zip 里一个 Mod 文件夹，外面放 README 和许可证」**不一致**。此项列为待裁决（§7）。
-4. `mod.txt` 的 `<nationality>` 里除已列字段外还有两个样本特有标签：`<units>NATIONALITY_TAIWANESE</units>` 与 `<filename>Taiwanese-</filename>`（共各 1 次）。它们像是「该国籍对应的单位文件前缀过滤器」，**需要用户确认语义**（§7）。
+3. **README/许可证在 `.Mod/` **内部**，ZIP 根目录没有文件** —— 这与「zip 里一个 `Mod/` 文件夹，外面放 README 和许可证」**不一致**。已裁决（§7 D1）：以 **`Mod/` + 文档在 zip 根** 为准；`.Mod/` 只是这一个工程的**文件夹命名习惯**，不是游戏读取的根名。佐证见下方「补充实证」。
+4. `mod.txt` 的 `<nationality>` 里除已列字段外还有两个样本特有标签：`<units>NATIONALITY_TAIWANESE</units>` 与 `<filename>Taiwanese-</filename>`（共各 1 次）。它们像是「该国籍对应的单位文件前缀过滤器」。已裁决（§7 D2）：判定为**原版编辑器自身功能**，先挂 TODO，v1 原样透传。
+
+### 补充实证：游戏真正的 MOD 根名（M0 后补，读打包工具源码）
+
+来源：`C:\Users\BC_aw\Downloads\FirefightModPackager.zip` → `FirefightModPackager/ffpack.py`。
+
+| 位置 | 事实 |
+|---|---|
+| `ffpack.py` 第 9 行注释 | 「游戏 MOD 根为 `assets/Mod/`，`mod.txt` 定义阵营/装备清单」 |
+| `ffpack.py` 第 1098 行 | `mod_files.append((p, "assets/Mod/" + os.path.relpath(p, mod_dir)…))` —— 打包时工程内容整体写进 `assets/Mod/` |
+| `ffpack.py` 第 1351–1366 行 `pack_mod_zip()` | 独立 zip 任务**不套任何前缀**，`Data/`、`mod.txt` 平铺在 zip 根 |
+| `ffpack.py` 第 56–68 行 `find_mod_root()` | 导入时只认「**最浅的含 `mod.txt` 的目录**」，`Data/` 之类的路径无关 |
+| `Firefight.exe` 字符串扫描（9464 条 ASCII 串） | **没有**硬编码的 `Mod/` 或 `.Mod/` 路径；只有 `Data/Aircraft/`、`Data/AT Guns/`、`Data/Infantry/`、`Data/Vehicles/`、`BData/Weapons/`、`%sData/Surnames/`、`Data/%s` 这类「基目录 + `Data/…`」模板 |
+
+结论：**安卓侧 MOD 根已实证为 `Mod/`**；PC 侧根名未能从二进制里实证（基目录在运行时计算）。因此导出用 `Mod/`，导入端必须兼容任意前缀。
 
 ## 6. 由本次勘察直接确定的实现决策
 
@@ -275,19 +289,26 @@ ZIP 内 **1712 项，全部位于 `.Mod/` 前缀下**：
 | 导出验收 = XML 语义等价（非逐字节） | §3.1 原版兄弟元素压行 + 已确认口径 |
 | `mod.txt` → `mod_setting.toml` 必须独立实现（不复用 XML 解析器） | §2.4 |
 | 打包前必须能与原版基线合并（模组是部分覆盖） | §5-1 |
+| 导出统一 CRLF；安装包根前缀 `Mod/` + 文档在 zip 根；导入端兼容任意前缀 | §2.2、§5 补充实证、用户裁决 D1/D3 |
 
 ## 7. 待用户裁决 / M1 待实测
 
-**待裁决**
+**已裁决（2026-10-09，详见 [project-layout.md](project-layout.md) §11）**
 
-1. 打包 ZIP 的目录布局：`Mod/`（当前约定）还是 `.Mod/`（WW3 实物）？README/许可证放在 ZIP 根还是 `Mod/` 内？
-2. `mod.txt` 的 `<units>` / `<filename>` 语义是什么？导出时是否需要生成？
-3. 16 个文件的换行从 LF 变为 CRLF（统一导出）是否可接受？
+1. 打包 ZIP 布局 → **`Mod/` 前缀 + README/LICENSE 在 ZIP 根**；导入端兼容任意前缀（D1）。
+2. `mod.txt` 的 `<units>` / `<filename>` → 判定为**原版编辑器自身功能**，先挂 TODO，v1 **原样透传不解释**（D2）。
+3. 16 个文件的换行由 LF 统一为 CRLF → **接受**（D3）。后果：这 16 个文件导出后与原版不字节相同，但不影响语义等价口径。
+4. 日志分段 → **每段一个文件**，5 分钟无新事件即封口（D4）。
+5. 缓存位置 → 工程根下的 `.editor/`（D5）。
 
 **M1 待实测**
 
-4. 兄弟块顺序交换后游戏是否仍正常加载（本期只用统计证据推断「顺序无语义」，需实机确认）。
-5. `mod.txt` 的 `<ranks>` 是否必须恰好 7 档；样本 12 个国家中只有 11 个带 `<ranks>`，缺档时的游戏行为未知。
+6. 兄弟块顺序交换后游戏是否仍正常加载（本期只用统计证据推断「顺序无语义」，需实机确认）。
+7. `mod.txt` 的 `<ranks>` 是否必须恰好 7 档；样本 12 个国家中只有 11 个带 `<ranks>`，缺档时的游戏行为未知。
+
+**遗留 TODO（来自 D2）**
+
+8. 逆向 `<nationality>` 下 `<units>` / `<filename>` 的真实语义，并在 UI 里暴露为可编辑项。
 
 ## 8. 复现命令
 
