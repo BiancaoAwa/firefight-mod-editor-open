@@ -1,0 +1,923 @@
+{
+  "data_dir": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\Firefight\\Data",
+  "file_count": 1840,
+  "by_extension": {
+    ".txt": 1840
+  },
+  "by_top_dir": {
+    "Weapons": 716,
+    "Vehicles": 599,
+    "Infantry": 307,
+    "AT Guns": 111,
+    "Aircraft": 59,
+    "Surnames": 36,
+    "<root>": 12
+  },
+  "by_dir": {
+    "": 12,
+    "AT Guns": 111,
+    "Aircraft": 59,
+    "Infantry": 307,
+    "Surnames": 36,
+    "Vehicles": 599,
+    "Weapons": 716
+  },
+  "first_root": {
+    "squad": 1017,
+    "weapon": 716,
+    "aircraft": 59
+  },
+  "encoding": {
+    "name": "cp1252",
+    "bom_files": 0,
+    "undecodable_files": 0,
+    "crlf_files": 1824,
+    "lf_only_files": 16
+  },
+  "indent": {
+    "unit": "tab",
+    "max_depth": 4,
+    "depth_histogram": {
+      "0": 43963,
+      "1": 19332,
+      "2": 35910,
+      "3": 27943,
+      "4": 20050
+    }
+  },
+  "strict_xml": {
+    "parsable": 1776,
+    "unparsable": 64,
+    "unparsable_files": [
+      {
+        "file": "Surnames\\surnames_afghan.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_american.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_argentinian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_armenian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_australian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_austrian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_azerbaijani.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_british.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_canadian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_chinese.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_croatian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_dutch.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_egyptian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_finnish.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_french.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_georgian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_german.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_greek.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_hungarian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_indian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_iranian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_iraqi.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_israeli.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_italian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_japanese.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_korean.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_pakistani.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_polish.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_romanian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_russian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_serbian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_spanish.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_syrian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_turkish.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_ukrainian.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Surnames\\surnames_vietnamese.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf A.txt",
+        "error": "not well-formed (invalid token): line 44, column 43"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf B.txt",
+        "error": "not well-formed (invalid token): line 47, column 43"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf D.txt",
+        "error": "not well-formed (invalid token): line 47, column 43"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf E.txt",
+        "error": "not well-formed (invalid token): line 48, column 43"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf F (early).txt",
+        "error": "not well-formed (invalid token): line 48, column 44"
+      },
+      {
+        "file": "Vehicles\\German-Panzer IV Ausf F2.txt",
+        "error": "not well-formed (invalid token): line 48, column 44"
+      },
+      {
+        "file": "Vehicles\\German-StuG III Ausf A.txt",
+        "error": "not well-formed (invalid token): line 20, column 47"
+      },
+      {
+        "file": "Vehicles\\German-StuG III Ausf B.txt",
+        "error": "not well-formed (invalid token): line 21, column 47"
+      },
+      {
+        "file": "Vehicles\\German-StuG III Ausf C.txt",
+        "error": "not well-formed (invalid token): line 21, column 47"
+      },
+      {
+        "file": "Vehicles\\German-StuG III Ausf D.txt",
+        "error": "not well-formed (invalid token): line 21, column 47"
+      },
+      {
+        "file": "Vehicles\\German-StuG III Ausf E.txt",
+        "error": "not well-formed (invalid token): line 45, column 38"
+      },
+      {
+        "file": "Vehicles\\Hungarian-Panzer IV Ausf F.txt",
+        "error": "not well-formed (invalid token): line 44, column 44"
+      },
+      {
+        "file": "Vehicles\\Hungarian-Panzer IV Ausf F2.txt",
+        "error": "not well-formed (invalid token): line 44, column 44"
+      },
+      {
+        "file": "Vehicles\\Romanian-T4 G (early).txt",
+        "error": "not well-formed (invalid token): line 47, column 43"
+      },
+      {
+        "file": "Vehicles\\Romanian-T4 G.txt",
+        "error": "not well-formed (invalid token): line 46, column 43"
+      },
+      {
+        "file": "Vehicles\\Romanian-T4 J.txt",
+        "error": "not well-formed (invalid token): line 45, column 43"
+      },
+      {
+        "file": "equipment_american_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_british_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_chinese_WW2.txt",
+        "error": "syntax error: line 1, column 0"
+      },
+      {
+        "file": "equipment_finnish_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_french_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_german_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_hungarian_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_italian_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_japanese_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_polish_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_romanian_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      },
+      {
+        "file": "equipment_russian_WW2.txt",
+        "error": "not well-formed (invalid token): line 1, column 0"
+      }
+    ],
+    "bare_ampersand_files": [
+      "Vehicles\\German-Panzer IV Ausf A.txt",
+      "Vehicles\\German-Panzer IV Ausf B.txt",
+      "Vehicles\\German-Panzer IV Ausf D.txt",
+      "Vehicles\\German-Panzer IV Ausf E.txt",
+      "Vehicles\\German-Panzer IV Ausf F (early).txt",
+      "Vehicles\\German-Panzer IV Ausf F2.txt",
+      "Vehicles\\German-StuG III Ausf A.txt",
+      "Vehicles\\German-StuG III Ausf B.txt",
+      "Vehicles\\German-StuG III Ausf C.txt",
+      "Vehicles\\German-StuG III Ausf D.txt",
+      "Vehicles\\German-StuG III Ausf E.txt",
+      "Vehicles\\Hungarian-Panzer IV Ausf F.txt",
+      "Vehicles\\Hungarian-Panzer IV Ausf F2.txt",
+      "Vehicles\\Romanian-T4 G (early).txt",
+      "Vehicles\\Romanian-T4 G.txt",
+      "Vehicles\\Romanian-T4 J.txt"
+    ]
+  },
+  "tag_inventory": {
+    "aircraft": {
+      "aircraft": [
+        59,
+        59
+      ],
+      "ammo": [
+        141,
+        141
+      ],
+      "armament": [
+        59,
+        59
+      ],
+      "availability": [
+        59,
+        59
+      ],
+      "comment": [
+        59,
+        59
+      ],
+      "data": [
+        119,
+        119
+      ],
+      "description": [
+        59,
+        59
+      ],
+      "flavour": [
+        24,
+        24
+      ],
+      "for": [
+        141,
+        141
+      ],
+      "image": [
+        59,
+        59
+      ],
+      "long_name": [
+        59,
+        59
+      ],
+      "month": [
+        119,
+        119
+      ],
+      "nationality": [
+        59,
+        59
+      ],
+      "number": [
+        119,
+        119
+      ],
+      "offsetX": [
+        297,
+        297
+      ],
+      "offsetY": [
+        241,
+        241
+      ],
+      "rounds": [
+        141,
+        141
+      ],
+      "short_name": [
+        59,
+        59
+      ],
+      "sound": [
+        59,
+        59
+      ],
+      "speed": [
+        59,
+        59
+      ],
+      "type": [
+        563,
+        563
+      ],
+      "weapon": [
+        504,
+        504
+      ],
+      "year": [
+        119,
+        119
+      ]
+    },
+    "squad": {
+      "AA": [
+        42,
+        42
+      ],
+      "ammo": [
+        10485,
+        10485
+      ],
+      "angle": [
+        333,
+        333
+      ],
+      "armour": [
+        1621,
+        1621
+      ],
+      "atgun": [
+        111,
+        111
+      ],
+      "attributes": [
+        599,
+        599
+      ],
+      "availability": [
+        1017,
+        1017
+      ],
+      "body_armour": [
+        32,
+        32
+      ],
+      "bottom": [
+        599,
+        599
+      ],
+      "can_make_smoke_screen": [
+        10,
+        10
+      ],
+      "can_mount_infantry": [
+        27,
+        27
+      ],
+      "comment": [
+        1017,
+        1017
+      ],
+      "data": [
+        2726,
+        2726
+      ],
+      "description": [
+        1017,
+        1017
+      ],
+      "diameter": [
+        467,
+        467
+      ],
+      "drive": [
+        599,
+        599
+      ],
+      "elevation": [
+        220,
+        220
+      ],
+      "engine": [
+        599,
+        599
+      ],
+      "exhaust_pipe": [
+        928,
+        928
+      ],
+      "fixed_weapon": [
+        480,
+        480
+      ],
+      "flavour": [
+        1607,
+        1607
+      ],
+      "for": [
+        10265,
+        10265
+      ],
+      "forwards": [
+        599,
+        599
+      ],
+      "front": [
+        1026,
+        1026
+      ],
+      "gears": [
+        599,
+        599
+      ],
+      "height": [
+        1621,
+        1621
+      ],
+      "hmg": [
+        38,
+        38
+      ],
+      "horsepower": [
+        599,
+        599
+      ],
+      "hull": [
+        599,
+        599
+      ],
+      "image_profile": [
+        791,
+        791
+      ],
+      "image_view": [
+        1272,
+        1272
+      ],
+      "image_view_base": [
+        192,
+        192
+      ],
+      "image_view_gun": [
+        150,
+        150
+      ],
+      "is_amphibious": [
+        14,
+        14
+      ],
+      "job": [
+        3124,
+        3124
+      ],
+      "language": [
+        2,
+        2
+      ],
+      "length": [
+        1154,
+        1154
+      ],
+      "long_name": [
+        1017,
+        1017
+      ],
+      "lower_front": [
+        595,
+        595
+      ],
+      "lower_rear": [
+        363,
+        363
+      ],
+      "lower_side": [
+        123,
+        123
+      ],
+      "man": [
+        5074,
+        5074
+      ],
+      "mantlet": [
+        467,
+        467
+      ],
+      "mass": [
+        111,
+        111
+      ],
+      "month": [
+        2726,
+        2726
+      ],
+      "mortar": [
+        42,
+        42
+      ],
+      "mount": [
+        349,
+        349
+      ],
+      "moveable": [
+        11,
+        11
+      ],
+      "name": [
+        599,
+        599
+      ],
+      "nationality": [
+        1017,
+        1017
+      ],
+      "number": [
+        2726,
+        2726
+      ],
+      "offsetX": [
+        3319,
+        3319
+      ],
+      "offsetY": [
+        3325,
+        3325
+      ],
+      "offsetZ": [
+        480,
+        480
+      ],
+      "offset_angle": [
+        76,
+        76
+      ],
+      "quality": [
+        418,
+        418
+      ],
+      "rear": [
+        1258,
+        1258
+      ],
+      "rear_spaced": [
+        8,
+        8
+      ],
+      "recoilless_rifle": [
+        1,
+        1
+      ],
+      "reliability": [
+        599,
+        599
+      ],
+      "reload": [
+        220,
+        220
+      ],
+      "reverse": [
+        599,
+        599
+      ],
+      "rotate_left": [
+        680,
+        680
+      ],
+      "rotate_right": [
+        680,
+        680
+      ],
+      "rotate_time": [
+        947,
+        947
+      ],
+      "rounds": [
+        10265,
+        10265
+      ],
+      "rpm_idle": [
+        599,
+        599
+      ],
+      "rpm_limit": [
+        599,
+        599
+      ],
+      "short_name": [
+        1017,
+        1017
+      ],
+      "side": [
+        1498,
+        1498
+      ],
+      "side_spaced": [
+        37,
+        37
+      ],
+      "smoke_discharger": [
+        220,
+        220
+      ],
+      "speed": [
+        220,
+        220
+      ],
+      "squad": [
+        1017,
+        1017
+      ],
+      "steering": [
+        599,
+        599
+      ],
+      "superstructure": [
+        555,
+        555
+      ],
+      "top": [
+        1621,
+        1621
+      ],
+      "trail_length": [
+        111,
+        111
+      ],
+      "turret": [
+        467,
+        467
+      ],
+      "type": [
+        9563,
+        9563
+      ],
+      "uniform": [
+        1017,
+        1017
+      ],
+      "uniform_ranks": [
+        28,
+        28
+      ],
+      "upper_front": [
+        595,
+        595
+      ],
+      "upper_rear": [
+        363,
+        363
+      ],
+      "upper_side": [
+        123,
+        123
+      ],
+      "vehicle": [
+        599,
+        599
+      ],
+      "vertical_angle": [
+        56,
+        56
+      ],
+      "weapon": [
+        8546,
+        8546
+      ],
+      "weight": [
+        599,
+        599
+      ],
+      "width": [
+        1154,
+        1154
+      ],
+      "year": [
+        2726,
+        2726
+      ]
+    },
+    "weapon": {
+      "HE": [
+        583,
+        583
+      ],
+      "ammo": [
+        716,
+        716
+      ],
+      "barrel_length": [
+        670,
+        670
+      ],
+      "calibre": [
+        670,
+        670
+      ],
+      "capacity": [
+        338,
+        338
+      ],
+      "comments": [
+        16,
+        16
+      ],
+      "countries": [
+        716,
+        716
+      ],
+      "dimensions": [
+        703,
+        703
+      ],
+      "era": [
+        91,
+        91
+      ],
+      "explode_in": [
+        26,
+        26
+      ],
+      "flavour": [
+        1487,
+        1487
+      ],
+      "guided": [
+        7,
+        7
+      ],
+      "magazine": [
+        369,
+        369
+      ],
+      "mass": [
+        1487,
+        1487
+      ],
+      "muzzle_flash": [
+        102,
+        102
+      ],
+      "name": [
+        2203,
+        2203
+      ],
+      "number_barrels": [
+        15,
+        15
+      ],
+      "period": [
+        232,
+        232
+      ],
+      "range": [
+        44,
+        44
+      ],
+      "reload": [
+        307,
+        307
+      ],
+      "rof": [
+        633,
+        633
+      ],
+      "shoot": [
+        706,
+        706
+      ],
+      "single_shot": [
+        27,
+        27
+      ],
+      "smoke_trail": [
+        56,
+        56
+      ],
+      "sound_eject_clip": [
+        1,
+        1
+      ],
+      "sound_reload": [
+        285,
+        285
+      ],
+      "sound_shoot": [
+        668,
+        668
+      ],
+      "speed": [
+        1451,
+        1451
+      ],
+      "type": [
+        2203,
+        2203
+      ],
+      "usage": [
+        716,
+        716
+      ],
+      "weapon": [
+        716,
+        716
+      ]
+    }
+  },
+  "mixed_case_tags": {
+    "offsetX": 3616,
+    "offsetY": 3566,
+    "HE": 583,
+    "offsetZ": 480,
+    "AA": 42
+  }
+}

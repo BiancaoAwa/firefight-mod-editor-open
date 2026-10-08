@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器产物（工程目录内的生成物，不进仓库）
+dist/
+*.7z
+
+# 本地临时
+*.tmp
