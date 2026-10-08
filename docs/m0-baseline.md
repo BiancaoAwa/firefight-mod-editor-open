@@ -1,7 +1,7 @@
 # M0 Baseline Survey — Firefight stock data structures (13.2.0.0)
 
 > Status: merged into `main`. This report records measured results obtained from **read-only** samples and the conclusions drawn from them. It contains no assertion that was not measured.
-> Reproduction is described under "Reproduction commands" below. Raw data is in [baseline/summary.json](baseline/summary.json) and [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv).
+> Reproduction is described under "Reproduction" below. Raw data is in [baseline/summary.json](baseline/summary.json) and [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv).
 
 ## 0. Summary of findings (implementation-relevant items first)
 
@@ -318,10 +318,16 @@ Conclusion: **the root name is `Mod/` on both PC and Android** (PC confirmed by 
 
 9. Reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` and expose them as editable fields in the UI.
 
-## 8. Reproduction commands
+## 8. Reproduction
 
-```powershell
-python tools/recon/baseline_stats.py --data "D:\Program Files (x86)\Steam\steamapps\common\Firefight\Data" --out docs/baseline
-```
+The measurements below were taken by a **read-only** local research script that walks the game's `Data/` directory with `os.walk` and `open(path, "rb")` and never writes into the game directory. Following the project owner's rule, that script is **not committed**: the numbers are the record, and the committed artifacts are the evidence.
 
-The script is **read-only** (`open(path, "rb")` plus the standard-library `os.walk`) and never writes into the game directory. Two runs must produce identical `summary.json` and `tag-inventory.tsv`.
+Committed artifacts (all regenerated from the corpus, never hand-edited):
+
+| File | Contents |
+|---|---|
+| `docs/baseline/summary.json` | Per-file and per-directory counts: file totals, encodings, line endings, bare `&`, comments |
+| `docs/baseline/tag-inventory.tsv` | Every tag with its occurrence and file counts, grouped by root element |
+| `docs/baseline/path-inventory.tsv` | Every distinct parent path with its shape (leaf / branch / mixed) and its maximum occurrences per parent instance; the input to the schema in [m1-design.md](m1-design.md) §3.8 |
+
+To re-derive them, apply the predicates stated in [m1-design.md](m1-design.md) §2 to the same corpus; each measurement names its predicate so an independent implementation can be compared against the committed tables. Two runs over the same corpus must produce byte-identical tables, which is why they are committed rather than quoted.
