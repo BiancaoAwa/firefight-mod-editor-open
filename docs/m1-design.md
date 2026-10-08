@@ -8,13 +8,14 @@ M1 delivers the data layer only: reading stock XML, writing TOML, reading TOML, 
 
 Acceptance is [toml-mapping.md](toml-mapping.md) §8, with the revision in §3.6 below.
 
-## 2. New measurements (all read-only, reproducible)
+## 2. New measurements (all read-only)
 
-Reproduction:
+The probe that produced these numbers is a local research script and is deliberately **not committed to this repository**; the numbers below are the record, and every one of them can be re-derived from the corpus. Each measurement states the predicate it applies, so it can be re-checked independently:
 
-```powershell
-python tools/recon/order_probe.py --data "D:\Program Files (x86)\Steam\steamapps\common\Firefight\Data"
-```
+* §2.1 counts files where, within one parent element, a child that has children appears before a later sibling that has none.
+* §2.2 counts files where a child name that already appeared with children reappears after a different child name.
+* §2.3 groups every tag by the parent path it occurs under and compares the shapes (leaf, single table, array of tables) it takes in each group.
+* §2.4 reads the maximum occurrence count of a tag per parent instance.
 
 ### 2.1 The source sibling order cannot be written as literal TOML order (807 of 1792 files)
 
@@ -235,18 +236,22 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 
 ## 5. Task order
 
-| # | Task | Depends on | Rough size |
-|---|---|---|---|
-| T1 | `errors.py`, `textio.py` and their tests | — | ~150 lines |
-| T2 | `xmlmodel.py`, `xmlread.py` and their tests | T1 | ~250 lines |
-| T3 | `tomlmodel.py`, `tomlread.py`, `tomlwrite.py` and their tests | T1 | ~450 lines |
-| T4 | `schema.py` for `squad` and `weapon` | T2, T3 | ~250 lines |
-| T5 | `schema.py` for `aircraft` and `mod` | T4 | ~120 lines |
-| T6 | `convert.py` and its tests | T4 | ~250 lines |
-| T7 | `tools/m1_roundtrip.py` and the corpus run | T6 | ~180 lines |
-| T8 | Golden fixtures and `docs/m1-report.md` | T7 | ~100 lines |
+The project owner confirmed that the schema is reviewed **first, on its own**, before any conversion code exists, so the schema module is written as a standalone declarative artifact that depends on nothing but `errors.py`.
 
-T1 and T3 share no files with T2, so T2 and T3 can proceed in parallel if the work is split; T4 onward is sequential.
+| # | Task | PR | Depends on | Rough size |
+|---|---|---|---|---|
+| T1 | `errors.py` and its tests | PR 1 (schema) | — | ~60 lines |
+| T4 | `schema.py` for `squad` and `weapon` | PR 1 (schema) | T1 | ~250 lines |
+| T5 | `schema.py` for `aircraft` and `mod` | PR 1 (schema) | T1 | ~120 lines |
+| T2 | `textio.py`, `xmlmodel.py`, `xmlread.py` and their tests | PR 2 | T1 | ~300 lines |
+| T3 | `tomlmodel.py`, `tomlread.py`, `tomlwrite.py` and their tests | PR 2 | T1 | ~450 lines |
+| T6 | `convert.py` and its tests | PR 2 | T2, T3, T4 | ~250 lines |
+| T7 | `tools/m1_roundtrip.py` and the corpus run | PR 3 | T6 | ~180 lines |
+| T8 | Golden fixtures and `docs/m1-report.md` | PR 3 | T7 | ~100 lines |
+
+PR 1 lands `errors.py` plus the full schema, and is reviewable without any parser: the schema is a table of parent paths, shapes and value types, derived from §2 and [m0-baseline.md](m0-baseline.md) §3. PR 2 lands the parsers and the conversion. PR 3 lands the corpus harness and its report.
+
+T2 and T3 share no files, so they can proceed in parallel if the work is split; T6 onward is sequential.
 
 ## 6. Risks
 
@@ -258,8 +263,8 @@ T1 and T3 share no files with T2, so T2 and T3 can proceed in parallel if the wo
 | Numeric fidelity of floats | Never re-render an unedited value; assert in tests that `raw` survives `parse` → `render` |
 | The 5-minute log segments and `.editor/` layout are irrelevant to M1 | Nothing in M1 writes `.editor/` |
 
-## 7. Open questions for the project owner
+## 7. Decisions confirmed by the project owner
 
-1. `docs/toml-mapping.md` §8.1 is revised by §3.6 of this document. Confirm the revised comparison (order-insensitive between different sibling names, order-sensitive within repeated blocks) is acceptable as the M1 gate.
-2. Whether the two order-probe scripts should be committed as measurement tooling (this draft commits `tools/recon/order_probe.py` alongside the design).
-3. Whether to start with T1–T3 as one pull request or to land the schema (`T4`, `T5`) separately for review before any conversion code exists.
+1. The revised acceptance comparison in §3.6 is **accepted** as the M1 gate: siblings with different names compare as an unordered multiset, repeated blocks of the same name compare as an ordered sequence. The 807-file finding in §2.1 means source order cannot be reproduced as literal TOML text, and sibling order was verified in-game to carry no semantics.
+2. The measurement probe stays **outside** this repository; the numbers are recorded in §2 and the document is the reference.
+3. The schema lands **first, on its own**, in a reviewable pull request before any parser or conversion code exists. This is reflected in the PR column of §5.
