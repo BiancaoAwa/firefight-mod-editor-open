@@ -1,110 +1,106 @@
-# XML ↔ TOML 映射规范（草案 v0）
+# XML ↔ TOML mapping specification (draft v0)
 
-> 状态：**待用户审阅**。本文定义 M1 要实现的双向映射。
-> 前置事实来自 [m0-baseline.md](m0-baseline.md)（全部实测）。
+> Status: merged into `main`, with the M1 refinements noted in [m1-design.md](m1-design.md). This document defines the bidirectional mapping that M1 implements.
+> The underlying facts come from [m0-baseline.md](m0-baseline.md) and are all measured.
 
-## 1. 总则
+## 1. General principles
 
-1. **TOML 是唯一真源**：工程内的实体数据只以 TOML 存在，XML 只在「导出原版标准」时渲染。
-2. **验收口径**（已确认）：`XML → TOML → XML` 与原版 **XML 语义等价**，不要求逐字节一致；
-   `TOML → XML → TOML` 要求字段无损。
-3. **不引第三方依赖**：按用户指示「TOML 自己写一个对本编辑器特化优化的代码」，
-   自研实现（见 §6），不引入 `tomlkit` / `tomli`。
-4. **保真优先**：未编辑的实体必须能原样导出。为实现这点，工程内为每个实体保存一份
-   「原版源快照」（见 [project-layout.md](project-layout.md)），导出未编辑实体时直接回吐快照。
-5. **导出保守、导入宽容**（裁决 D6）：导出端尽量贴合原版；读取端鲁棒性可更强。
-   具体见 §4、§5。
+1. **TOML is the single source of truth**: entity data exists inside a project only as TOML; XML is rendered only for "export to the stock standard".
+2. **Acceptance criteria** (agreed): `XML → TOML → XML` must be **semantically equivalent** to stock, not byte-identical; `TOML → XML → TOML` must be lossless at field level.
+3. **No third-party dependencies**: following the project owner's instruction to write a TOML implementation specialised for this editor, the code is written in-house (see §6) with no `tomlkit` or `tomli`.
+4. **Fidelity first**: an unedited entity must be exportable exactly as it was. To achieve this, the project stores a **stock source snapshot** per entity (see [project-layout.md](project-layout.md)) and echoes the snapshot back when an unedited entity is exported.
+5. **Conservative export, tolerant import** (decision D6): the export side follows stock as closely as possible, while the import side may be more robust. Details in §4 and §5.
 
-## 2. 元素 → TOML 的映射规则
+## 2. Element → TOML mapping rules
 
-原版 XML **没有属性、没有命名空间、没有混合内容**（实测），因此映射规则可以只有 5 条：
+Stock XML has **no attributes, no namespaces and no mixed content** (measured), so five rules suffice:
 
-| # | XML | TOML | 例 |
+| # | XML | TOML | Example |
 |---|---|---|---|
-| R1 | 根元素 | 顶层表，表名 = 元素名 | `<squad>` → `[squad]` |
-| R2 | 单实例子元素 | 同名键（表 / 标量） | `<description><type>X</type></description>` → `[squad.description]` + `type = "X"` |
-| R3 | 多实例子元素 | 数组表 `[[...]]` | `<man>…</man><man>…</man>` → `[[squad.man]]` 两条 |
-| R4 | 叶子元素 | 标量键，值按 §3 定型 | `<speed>200</speed>` → `speed = 200` |
-| R5 | 元素名不是合法裸键 | 用基本字符串键 | `<1>Pvt</1>` → `"1" = "Pvt"` |
+| R1 | Root element | Top-level table named after the element | `<squad>` → `[squad]` |
+| R2 | Single-instance child element | Key of the same name (table or scalar) | `<description><type>X</type></description>` → `[squad.description]` plus `type = "X"` |
+| R3 | Multiple-instance child element | Array of tables `[[...]]` | `<man>…</man><man>…</man>` → two `[[squad.man]]` entries |
+| R4 | Leaf element | Scalar key typed per §3 | `<speed>200</speed>` → `speed = 200` |
+| R5 | Element name is not a legal bare key | Basic string key | `<1>Pvt</1>` → `"1" = "Pvt"` |
 
-叶子/分支的判定：该元素有子元素 → 表；无子元素 → 标量。
-**判定结果按 schema 固定**（不依赖单次数据），以避免同一字段在不同文件里形态不一致。
+Leaf or branch is decided by whether the element has children: children mean a table, no children mean a scalar.
+**That decision is fixed by the schema**, not by a single file's data, so that one field cannot take different shapes in different files.
+**The schema is keyed by parent path, never by tag name alone**: `type` is a leaf directly under `weapon` and under `description`, but an array of tables under `ammo` (up to 7 per instance), and `weapon` is an array of tables under `man`/`turret`/`fixed_weapon` yet a single table under `atgun`/`hmg`/`mortar`/`recoilless_rifle`. A tag-name-keyed schema would assign at least one of those the wrong shape. Measurements are in [m1-design.md](m1-design.md) §2.3 and §2.4.
 
-### 2.1 键名规则
+### 2.1 Key name rules
 
-| 情况 | 处理 | 例 |
+| Case | Treatment | Example |
 |---|---|---|
-| `[A-Za-z0-9_-]+`（TOML 裸键字符集） | 直接用裸键 | `type = …`、`offsetX = …`、`for = …` |
-| 以数字开头 | 用基本字符串键 | `"1" = "Pvt"` |
-| 其他（目前原版不存在） | 基本字符串键 + 转义 | — |
+| `[A-Za-z0-9_-]+` (the TOML bare-key character set) | Bare key as-is | `type = …`, `offsetX = …`, `for = …` |
+| Starts with a digit | Basic string key | `"1" = "Pvt"` |
+| Anything else (absent from stock) | Basic string key with escaping | — |
 
-camelCase 标签（`offsetX`/`offsetY`/`offsetZ`）**保持原样**，不做 snake_case 化——避免引入无法回转的改名。
+camelCase tags (`offsetX`/`offsetY`/`offsetZ`) **keep their original spelling** and are not converted to snake_case, which avoids introducing a rename that cannot be reversed.
 
-## 3. 值类型定型
+## 3. Value typing
 
-导出原版标准时，**按值的内容重新渲染**，所以类型推断必须可逆。
+Export to the stock standard **re-renders from the value's content**, so type inference must be reversible.
 
-| 类型 | 判据 | TOML | 例 |
+| Type | Test | TOML | Example |
 |---|---|---|---|
-| 整数 | `^-?\d+$` | 整数 | `<width>284</width>` → `284` |
-| 小数 | `^-?\d+\.\d+$` | 浮点 | `<mass>0.12</mass>` → `0.12` |
-| 布尔 | `yes` / `no` | 布尔 | `<AA>yes</AA>` → `true` |
-| 字符串 | 其他一切 | 字符串 | `<type>TYPE_TANK</type>` → `"TYPE_TANK"` |
+| Integer | `^-?\d+$` | Integer | `<width>284</width>` → `284` |
+| Decimal | `^-?\d+\.\d+$` | Float | `<mass>0.12</mass>` → `0.12` |
+| Boolean | `yes` / `no` | Boolean | `<AA>yes</AA>` → `true` |
+| String | everything else | String | `<type>TYPE_TANK</type>` → `"TYPE_TANK"` |
 
-定点风险：`<mass>0.12</mass>` 这类小数**必须原样回吐**（不能变成 `0.12000000000000001`）。
-实现上用「原始字符串保留 + 解析值并存」的方式（编辑过才重渲染），这是 M1 的核心保真点之一。
+Fixed-point risk: decimals such as `<mass>0.12</mass>` **must be echoed back verbatim** and must never become `0.12000000000000001`.
+The implementation keeps the original string alongside the parsed value and re-renders only after an edit; this is one of the core fidelity points of M1.
 
-> 尺寸/质量单位：数据文件里的长度单位是 **cm**、质量是 **kg**（沿用既有资料，未在 M0 复核）。
+> Dimensions and mass: length units in the data files are **cm** and mass is in **kg** (taken from the pre-existing reference material; not re-verified in M0).
 
-## 4. 顺序
+## 4. Ordering
 
-统计证据：同一父元素下**同一子元素集合存在多种排列**（`<vehicle>` 28 种集合 / 109 种排列），
-说明兄弟块顺序不承载语义。该推断已由项目方实机验证：交换同一父元素下兄弟块的顺序后，游戏加载仍然正常。
+Statistical evidence: within one parent element the **same child-element set occurs in several orders** (`<vehicle>` shows 28 sets over 109 orderings), which indicates that sibling order carries no semantics. The project owner has verified this on a running installation: exchanging the order of sibling blocks under the same parent still loads correctly.
 
-约定（裁决 D6：导出保守、导入宽容）：
+Conventions (decision D6: conservative export, tolerant import):
 
-* **同名重复块之间**（`[[man]]`、`[[turret]]`、`[[ammo]]`…）：**顺序严格保留**，数组顺序即原顺序。
-  这是零成本的安全选择。
-* **不同名兄弟块之间**：导出时按**原版顺序**渲染（原版为好），不主动重排。
-  未编辑实体走快照回吐，天然保持原顺序。
-* **读取端不校验顺序**：任意兄弟块排列都必须能解析成功。
+* **Between repeated blocks of the same name** (`[[man]]`, `[[turret]]`, `[[ammo]]` …): order is **strictly preserved**, and array order is the original order. This is a zero-cost safe choice.
+* **Between siblings of different names**: export renders in **stock order** and never rearranges on its own. An unedited entity goes through snapshot echo and therefore keeps its original order naturally.
+* **The import side does not validate order**: any arrangement of sibling blocks must parse successfully.
 
-## 5. 注释与不合法字符
+**TOML text order is a canonical order chosen by the writer, not a copy of the source order.** Measured: in **807 of 1792** files the source order places a leaf after a branch, and TOML does not allow a bare key after a sub-table header (see [m1-design.md](m1-design.md) §2.1). The canonical order is leaves first, then single-instance sub-tables, then arrays of tables, each group following schema order. The difference is safe because sibling order carries no semantics; the comparison used to verify it is defined in §8 item 1.
 
-| 情况 | 处理 |
+## 5. Comments and illegal characters
+
+| Case | Treatment |
 |---|---|
-| `//` 注释 | **丢弃**（不参与语义等价）；可选：首次导入时把注释收进 `.editor/notes.toml` 供人查看 |
-| 裸 `&`（16 个原版文件） | 解析时当普通字符读入；导出时**原样写出裸 `&`**（转成 `&amp;` 会改变游戏实际读到的字符串，属于语义不等价） |
-| `mod.txt` 的数字标签 `<1>` | 见 §2.1；`mod_setting.toml` 单独实现 |
-| 换行 | 读入时归一化；导出**统一 CRLF**（用户裁决 D3）。原版 1824/1840 为 CRLF，**16 个纯 LF 文件导出后行尾与原版不同**——不影响语义等价口径，但不会字节相同 |
-| 缩进 | 导出统一制表符，深度 = 元素嵌套深度 |
-| `mod.txt` 的 `<nationality><units>` / `<filename>` | **原样保留透传**，不解释语义（用户判定为原版编辑器自身功能，挂 TODO，见 [project-layout.md](project-layout.md) §11 D2） |
+| `//` comments | **Discarded** (they do not participate in semantic equivalence); optionally collected into `.editor/notes.toml` on first import for human inspection |
+| Bare `&` (16 stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
+| Numeric tags `<1>` in `mod.txt` | See §2.1; `mod_setting.toml` is implemented separately |
+| Line endings | Normalised on import; export **always uses CRLF** (decision D3). Stock is CRLF in 1824 of 1840 files, so **the 16 bare-LF files differ from stock after export**; this does not affect the semantic-equivalence criterion but does prevent byte identity |
+| Indentation | Export always uses tabs, with depth equal to element nesting depth |
+| `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO, see [project-layout.md](project-layout.md) §11 D2) |
 
-## 6. 自研 TOML 实现的范围（`core/toml`）
+## 6. Scope of the in-house TOML implementation (`core/toml`)
 
-按「本编辑器特化优化」的要求，只实现本编辑器实际需要的子集，换取**可控的往返保真**与**零依赖**：
+Following the "specialised for this editor" requirement, only the subset this editor actually needs is implemented, in exchange for **controllable round-trip fidelity** and **zero dependencies**:
 
-**必须支持**
+**Required**
 
-* 顶层表 `[a]`、嵌套表 `[a.b]`、数组表 `[[a.b]]`
-* 基本字符串（含转义）、字面字符串、带引号键
-* 整数、浮点、布尔
-* 注释 `#`、空行、CRLF/LF 混合输入
-* **保序**：解析结果保留键的书写顺序（写回 diff 友好）
-* **保字面**：数值/字符串保留原始书写形式（`0.12` 不变成 `0.120000`）
-* 定位信息：每个键附带源文件行号（供 UI 报错与 AI 定位）
+* Top-level tables `[a]`, nested tables `[a.b]`, arrays of tables `[[a.b]]`
+* Basic strings (with escapes), literal strings, quoted keys
+* Integers, floats, booleans
+* `#` comments, blank lines, mixed CRLF/LF input
+* **Order preservation**: the parse result keeps key order as written, which keeps writes diff-friendly
+* **Literal preservation**: numbers and strings keep their original written form (`0.12` never becomes `0.120000`)
+* Location information: every key carries its source line number for UI error reporting and AI targeting
 
-**明确不支持**（遇到即报错，不做静默降级）
+**Explicitly unsupported** (raises an error instead of degrading silently)
 
-* 内联表 `{ }`、数组 `[ ]`、日期时间、多行字符串、点号裸键跨层跳转
+* Inline tables `{ }`, arrays `[ ]`, dates and times, multi-line strings, dotted bare keys that jump levels
 
-理由：这些在原版数据结构里没有对应形态；不支持就报错，比「支持一半」造成的静默损坏安全。
+Rationale: none of these has a counterpart in the stock data structures, and raising an error is safer than the silent corruption that half-support would cause.
 
-## 7. 映射样例
+## 7. Mapping examples
 
-### 7.1 `<aircraft>` 完整样例
+### 7.1 Complete `<aircraft>` example
 
-源（`Aircraft/German-Junkers Ju 87 Stuka G.txt`，见 [m0-baseline.md](m0-baseline.md) §3.1）：
+Source (`Aircraft/German-Junkers Ju 87 Stuka G.txt`, see [m0-baseline.md](m0-baseline.md) §3.1):
 
 ```toml
 # Mod/Data/Aircraft/German-Junkers Ju 87 Stuka G.toml
@@ -145,11 +141,11 @@ flavour = "FLAVOUR_HE"
 rounds = 750
 ```
 
-注意 `<availability>` 本身是单实例（表），其下 `<data>` 才是重复块，所以是 `[[aircraft.availability.data]]`。
+`<availability>` is itself a single instance (a table) and only `<data>` beneath it repeats, which is why the array header is `[[aircraft.availability.data]]`.
 
-### 7.2 `<squad>` + `<vehicle>` 片段（值全部取自原版实测）
+### 7.2 `<squad>` plus `<vehicle>` excerpt (all values taken from measured stock data)
 
-源：`Vehicles/German-Panzer IV Ausf D.txt`（151 行）。原文关键片段：
+Source: `Vehicles/German-Panzer IV Ausf D.txt` (151 lines). Key excerpt:
 
 ```xml
 	<vehicle>
@@ -192,7 +188,7 @@ rounds = 750
 			</armour>
 ```
 
-映射结果：
+Mapping result:
 
 ```toml
 [squad.description]
@@ -208,7 +204,7 @@ month = 11
 year = 1939
 number = 50
 
-# …另有 4 条：1940-01/100、1941-06/100、1941-09/50、1941-12/30
+# …four more entries: 1940-01/100, 1941-06/100, 1941-09/50, 1941-12/30
 
 [squad.vehicle.attributes]
 image_profile = "Profile-Panzer IV Ausf D.png"
@@ -235,7 +231,7 @@ angle = 260
 vertical_angle = 80
 
 [squad.vehicle.hull]
-image_view = "Image-Panzer IV Ausf D&E.png"   # 原版此处为裸 &
+image_view = "Image-Panzer IV Ausf D&E.png"   # bare & in stock
 width = 284
 length = 592
 height = 126
@@ -250,16 +246,15 @@ top = "10"
 bottom = "10"
 ```
 
-来源片段同时证实了两件事：
+The source excerpt also establishes two facts:
 
-* **`//` 注释会出现在元素内部**（`<armour>` 那一行行尾），且它是元素文本的一部分 → 解析后丢弃，导出时可选重放。
-* **`armour` 的角度可省略**（`<side>20</side>` 没有 `@`）。因此 `armour` 的叶子值一律作为**字符串**原样处理，不做数值拆解——导出零风险。
+* **`//` comments occur inside elements** (at the end of the `<armour>` line) and form part of that element's text → discarded on import, optionally replayed on export.
+* **The angle in `armour` may be omitted** (`<side>20</side>` has no `@`). Every `armour` leaf value is therefore handled **as a string**, with no numeric decomposition, which makes export risk-free.
 
-## 8. M1 验收标准
+## 8. M1 acceptance criteria
 
-1. **XML → TOML → XML**：对**全部 1840 个文件**跑一遍，产出 XML 与原版**语义等价**
-   （判定：宽松解析成有序元素树后逐节点比较标签与文本；裸 `&` 与 `&amp;` 视为不同）。
-2. **TOML → XML → TOML**：字段无损（含 `0.12` 这类定点小数、`yes/no`、大小写混合键）。
-3. **往返必须覆盖 16 个含裸 `&` 的文件、59 个 aircraft、1 个 `recoilless_rifle`**（边界样本）。
-4. 全程 cp1252：导出后每个文件都必须能 `cp1252` 编码（原来 0 个失败，导出也不允许出现失败）。
-5. 自研 TOML 实现对不支持的语法**必须报错而非静默降级**（附单元测试）。
+1. **XML → TOML → XML**: run over **all 1840 files** and produce XML that is **semantically equivalent** to stock. The comparison is defined as: parse both sides permissively into element trees, compare **siblings of different names as an unordered multiset** and **repeated blocks of the same name as an ordered sequence**; compare tag names, nesting and leaf text exactly, with a bare `&` never equal to `&amp;`. The count of files whose rendered order happens to equal the source order is reported as information, not as a gate. Rationale for the refinement in [m1-design.md](m1-design.md) §3.6.
+2. **TOML → XML → TOML**: lossless at field level, including fixed-point decimals such as `0.12`, `yes/no` values and mixed-case keys.
+3. The round trip must **cover the 16 files containing a bare `&`, the 59 aircraft and the single `recoilless_rifle`** (boundary samples).
+4. cp1252 throughout: every exported file must encode as `cp1252` (0 failures originally, and export may not introduce any).
+5. The in-house TOML implementation **must raise an error rather than degrade silently** on unsupported syntax (with unit tests).

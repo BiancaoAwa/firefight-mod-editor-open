@@ -1,99 +1,101 @@
-# M0 基线勘察报告 —《交战》原版数据结构（13.2.0.0）
+# M0 Baseline Survey — Firefight stock data structures (13.2.0.0)
 
-> 状态：**待用户审阅**。本文只记录对**只读**样本的实测结果与由此得出的结论，不含任何未经实测的断言。
-> 复现方式见文末「复现命令」，原始数据见 [baseline/summary.json](baseline/summary.json) 与 [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv)。
+> Status: merged into `main`. This report records measured results obtained from **read-only** samples and the conclusions drawn from them. It contains no assertion that was not measured.
+> Reproduction is described under "Reproduction commands" below. Raw data is in [baseline/summary.json](baseline/summary.json) and [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv).
 
-## 0. 结论摘要（先说会影响实现的）
+## 0. Summary of findings (implementation-relevant items first)
 
-| # | 实测结论 | 对实现的影响 |
+| # | Measured result | Effect on the implementation |
 |---|---|---|
-| 1 | 原版数据目录共 **1840** 个 `.txt`，全部是 XML（除 48 个纯文本清单） | 解析规模很小，可全量内存处理，无需流式 |
-| 2 | 根元素**有三种**：`<squad>`（1017）、`<weapon>`（716）、`<aircraft>`（59） | 既有资料（针对 12.2.0 的 SKILL 文档）只写了 `squad`/`weapon` 两种，**aircraft 被漏掉**，必须补齐第三套 schema |
-| 3 | 全部 1792 个 XML 文件**没有任何 XML 属性**，纯元素嵌套 | 映射到 TOML 时无需处理属性/命名空间，规则可以极简 |
-| 4 | 严格 XML 解析有 **64/1840 失败**：48 个是纯文本清单，**16 个是含裸 `&` 的真 XML**（如 `Image-Panzer IV Ausf D&E.png`） | **不能**用 `xml.etree` 之类严格解析器读原版；必须自研容错解析器（裸 `&` 当普通字符） |
-| 5 | `mod.txt` **不是合法 XML**：`<ranks>` 下用 `<1>`..`<7>` 作标签名，数字不能作 XML 标签名 | `mod_setting.toml` 的解析同样不能复用严格 XML 解析器 |
-| 6 | 编码 **cp1252 无 BOM、0 个无法解码**；换行 CRLF 1824 / 纯 LF 16；缩进制表符，最大深度 4 | 文本 I/O 必须走单一出口；导出时可统一 CRLF，代价是 16 个文件从 LF 变 CRLF（XML 语义等价，符合已确认的验收口径） |
-| 7 | 同一父元素下**同一子元素集合存在多种排列**（如 `<vehicle>` 109 种排列 / 28 种子元素集合） | 兄弟块顺序不承载语义，可安全地按固定 schema 顺序导出；**但仍列为 M1 的实测验收项**（见 §7） |
+| 1 | The stock data directory holds **1840** `.txt` files, all XML except 48 plain-text lists | The corpus is small enough to be held in memory; no streaming parser is required |
+| 2 | There are **three** root elements: `<squad>` (1017), `<weapon>` (716), `<aircraft>` (59) | The pre-existing reference material (a SKILL document written against 12.2.0) describes only `squad`/`weapon`; **`aircraft` is missing** and a third schema must be added |
+| 3 | None of the 1792 XML files contains **any XML attribute**; the format is pure element nesting | TOML mapping needs no attribute or namespace handling and the rules stay minimal |
+| 4 | Strict XML parsing fails on **64 of 1840** files: 48 are plain-text lists and **16 are real XML containing a bare `&`** (for example `Image-Panzer IV Ausf D&E.png`) | A strict parser such as `xml.etree` **cannot** be used to read stock data; a tolerant parser that treats a bare `&` as an ordinary character is required |
+| 5 | `mod.txt` **is not well-formed XML**: `<ranks>` uses `<1>`..`<7>` as tag names, and a digit is not a legal XML tag name | `mod_setting.toml` likewise cannot be produced by reusing a strict XML parser |
+| 6 | Encoding is **cp1252 with no BOM** and **0 files fail to decode**; line endings are CRLF in 1824 files and bare LF in 16; indentation is tabs, maximum depth 4 | Text I/O must pass through a single exit point; export may normalise to CRLF at the cost of 16 files changing from LF to CRLF, which stays within the agreed acceptance criterion of XML semantic equivalence |
+| 7 | Within one parent element the **same set of child elements occurs in many different orders** (for example `<vehicle>` shows 109 orderings over 28 child-element sets) | Sibling order carries no semantics, so export in a fixed schema order is safe; the item remains listed as an M1 acceptance check (see §7) |
+| 8 | The source sibling order cannot be written as literal TOML order in **807 of 1792** files, because a leaf follows a branch while TOML forbids a bare key after a sub-table header | Export uses a canonical TOML order; the acceptance comparison is refined to be order-insensitive between siblings of different names ([m1-design.md](m1-design.md) §2.1, §3.6) |
+| 9 | One tag name carries different shapes in different contexts: `type` is a leaf under `weapon` and `description` but an array of tables under `ammo`; `weapon` is an array under `man`/`turret`/`fixed_weapon` but a single table under `atgun`/`hmg`/`mortar`/`recoilless_rifle` | The schema is keyed by parent path, never by tag name alone ([m1-design.md](m1-design.md) §2.3) |
 
-## 1. 勘察对象与环境
+## 1. Subject and environment
 
-| 项 | 值 |
+| Item | Value |
 |---|---|
-| 游戏 | Firefight（Sean O'Connor 二战即时战术），Steam 版 |
-| 游戏根目录 | `D:\Program Files (x86)\Steam\steamapps\common\Firefight` |
-| 版本 | `version.txt` = `13.2.0.0`（10 字节，含 CRLF） |
-| 数据目录 | `<游戏>/Data` |
-| 模组实物样本 | `C:\Users\BC_aw\Downloads\WW3-模组工程文件-发行版2030007-20261001.zip`（43.8 MB / 1712 项，**不入本仓库**） |
-| 既有资料（参考） | `C:\Users\BC_aw\Downloads\firefight-modding-SKILL.md`（470 行，基线 12.2.0） |
-| 勘察工具 | Python 3（dsh 运行时），仅标准库 |
+| Game | Firefight (Sean O'Connor, WW2 real-time tactics), Steam release |
+| Game root | `D:\Program Files (x86)\Steam\steamapps\common\Firefight` |
+| Version | `version.txt` = `13.2.0.0` (10 bytes including CRLF) |
+| Data directory | `<game>/Data` |
+| Mod sample | `C:\Users\BC_aw\Downloads\WW3-模组工程文件-发行版2030007-20261001.zip` (43.8 MB / 1712 entries, **not stored in this repository**) |
+| Pre-existing reference | `C:\Users\BC_aw\Downloads\firefight-modding-SKILL.md` (470 lines, baseline 12.2.0) |
+| Survey tooling | Python 3 (dsh runtime), standard library only |
 
-## 2. 原版数据基线（13.2.0.0）
+## 2. Stock data baseline (13.2.0.0)
 
-### 2.1 文件分布
+### 2.1 File distribution
 
 ```
-Data/                          1840 个文件，扩展名全部为 .txt
-├── Weapons/     716   → 根元素 <weapon>
+Data/                          1840 files, every extension .txt
+├── Weapons/     716   → root element <weapon>
 ├── Vehicles/    599   ┐
-├── Infantry/    307   ├→ 根元素 <squad>
+├── Infantry/    307   ├→ root element <squad>
 ├── AT Guns/     111   ┘
-├── Aircraft/     59   → 根元素 <aircraft>
-├── Surnames/     36   → 纯文本（每行一个姓氏），非 XML
-└── (根)          12   → equipment_<国>_WW2.txt，纯文本（每行一个单位名，可带 // 注释）
+├── Aircraft/     59   → root element <aircraft>
+├── Surnames/     36   → plain text (one surname per line), not XML
+└── (root)        12   → equipment_<nation>_WW2.txt, plain text (one unit name per line, may carry // comments)
 ```
 
-**目录 → 根元素**是一一对应的确定性映射，每个文件恰好一个根文档：
+The **directory → root element** mapping is a deterministic one-to-one correspondence, with exactly one root document per file:
 
-| 目录 | 根元素 | 文件数 |
+| Directory | Root element | File count |
 |---|---|---|
-| `Infantry/`、`Vehicles/`、`AT Guns/` | `<squad>` | 307 + 599 + 111 = **1017** |
+| `Infantry/`, `Vehicles/`, `AT Guns/` | `<squad>` | 307 + 599 + 111 = **1017** |
 | `Weapons/` | `<weapon>` | **716** |
 | `Aircraft/` | `<aircraft>` | **59** |
-| `Surnames/` | 无（纯文本） | 36 |
-| `Data/` 根 | 无（纯文本） | 12 |
+| `Surnames/` | none (plain text) | 36 |
+| `Data/` root | none (plain text) | 12 |
 
-### 2.2 文本层铁律（实测）
+### 2.2 Text-layer invariants (measured)
 
-| 属性 | 实测结果 |
+| Property | Measured result |
 |---|---|
-| 编码 | Windows-1252 (cp1252)，**0 个 BOM**，**0 个无法用 cp1252 解码** |
-| 换行 | CRLF **1824** 个 / 纯 LF **16** 个（两者游戏都能读） |
-| 缩进 | 制表符，深度 1–4（最大深度 4；行首无缩进 43963 行） |
-| 注释 | 611 个文件含 `//`；纯文本清单里注释可跟在一行末尾（`Chinese-GEID Infantry Section 1<TAB><TAB>// Central Army Infantry`） |
-| XML 属性 | **0 个文件**出现属性 |
-| 根元素前文本 | 0 个文件（XML 文件首字符即根标签） |
+| Encoding | Windows-1252 (cp1252), **0 BOMs**, **0 files undecodable as cp1252** |
+| Line endings | CRLF in **1824** files, bare LF in **16** (the game reads both) |
+| Indentation | Tabs, depth 1–4 (maximum depth 4; 43963 lines carry no leading indentation) |
+| Comments | 611 files contain `//`; in plain-text lists a comment may follow content on the same line (`Chinese-GEID Infantry Section 1<TAB><TAB>// Central Army Infantry`) |
+| XML attributes | **0 files** contain an attribute |
+| Text before the root element | 0 files (an XML file begins with its root tag) |
 
-### 2.3 可解析性（决定解析器选型）
+### 2.3 Parseability (this determines parser selection)
 
-对 1840 个文件逐一做 `xml.etree.ElementTree` 严格解析：
+Each of the 1840 files was parsed with the strict `xml.etree.ElementTree` parser:
 
-- **可解析 1776 / 1840**
-- **不可解析 64**，分成两类：
-  - **48 个纯文本清单**（12 个 `equipment_*.txt` + 36 个 `Surnames/surnames_*.txt`）——本来就不是 XML。
-  - **16 个真 XML 文件含裸 `&`**，全部在 `Vehicles/`：
+- **Parsed successfully: 1776 / 1840**
+- **Parse failures: 64**, in two groups:
+  - **48 plain-text lists** (12 `equipment_*.txt` plus 36 `Surnames/surnames_*.txt`) — these were never XML.
+  - **16 real XML files containing a bare `&`**, all under `Vehicles/`:
 
     ```
     Vehicles/German-Panzer IV Ausf A.txt      <image_view>Image-Panzer IV Ausf A&B.png</image_view>
-    Vehicles/German-Panzer IV Ausf B.txt      同上
+    Vehicles/German-Panzer IV Ausf B.txt      same
     Vehicles/German-Panzer IV Ausf D.txt      <image_view>Image-Panzer IV Ausf D&E.png</image_view>
-    Vehicles/German-Panzer IV Ausf E.txt      同上
+    Vehicles/German-Panzer IV Ausf E.txt      same
     Vehicles/German-Panzer IV Ausf F (early).txt  <image_view>Image-Panzer IV Ausf F&F2.png</image_view>
-    Vehicles/German-Panzer IV Ausf F2.txt     同上
+    Vehicles/German-Panzer IV Ausf F2.txt     same
     Vehicles/German-StuG III Ausf A.txt       <image_profile>Profile-Stug III Ausf A&B.png</image_profile>
-    Vehicles/German-StuG III Ausf B.txt       同上
+    Vehicles/German-StuG III Ausf B.txt       same
     Vehicles/German-StuG III Ausf C.txt       <image_profile>Profile-Stug III Ausf C&D.png</image_profile>
-    Vehicles/German-StuG III Ausf D.txt       同上
+    Vehicles/German-StuG III Ausf D.txt       same
     Vehicles/German-StuG III Ausf E.txt       <image_view>Image-Stug III Ausf C&D&E.png</image_view>
     Vehicles/Hungarian-Panzer IV Ausf F.txt   <image_view>Image-Panzer IV Ausf F&F2.png</image_view>
-    Vehicles/Hungarian-Panzer IV Ausf F2.txt  同上
+    Vehicles/Hungarian-Panzer IV Ausf F2.txt  same
     Vehicles/Romanian-T4 G (early).txt        <image_view>Image-Panzer IV Ausf D&E.png</image_view>
-    Vehicles/Romanian-T4 G.txt                同上
-    Vehicles/Romanian-T4 J.txt                同上
+    Vehicles/Romanian-T4 G.txt                same
+    Vehicles/Romanian-T4 J.txt                same
     ```
 
-  游戏能正常加载这些文件 → **游戏的解析器不把 `&` 当实体转义**，本编辑器的解析器须同样宽松。
+  The game loads these files normally, so **the game's parser does not treat `&` as an entity escape**, and this editor's parser must be equally permissive.
 
-### 2.4 `mod.txt` 不是合法 XML（实测）
+### 2.4 `mod.txt` is not well-formed XML (measured)
 
 ```xml
 <mod>
@@ -113,33 +115,33 @@ Data/                          1840 个文件，扩展名全部为 .txt
 			...
 ```
 
-`ElementTree` 报 `not well-formed (invalid token): line 63, column 4`（即 `<1>`）。
-→ **数字标签名**必须被解析器接受，映射到 TOML 时键要加引号（`"1" = "Pvt"`）。
+`ElementTree` reports `not well-formed (invalid token): line 63, column 4`, which is the `<1>` line.
+→ **Numeric tag names** must be accepted by the parser, and when mapped to TOML the key requires quoting (`"1" = "Pvt"`).
 
-## 3. 三套 schema 的完整标签清单
+## 3. Complete tag inventory for the three schemas
 
-原版 13.2.0.0 共出现 **118 个不同标签**。完整计数见 [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv)，摘要：
+Stock 13.2.0.0 uses **118 distinct tags**. Full counts are in [baseline/tag-inventory.tsv](baseline/tag-inventory.tsv); a summary follows:
 
-| 根元素 | 不同标签数 | 标签总出现次数 |
+| Root element | Distinct tags | Total tag occurrences |
 |---|---|---|
 | `<squad>` | 91 | 118605 |
 | `<weapon>` | 31 | 18244 |
 | `<aircraft>` | 23 | 3177 |
 
-### 3.1 `<aircraft>`（既有资料完全缺失，需逆向）
+### 3.1 `<aircraft>` (absent from the pre-existing reference material; reverse-engineered here)
 
-每文件恰好 1 个 `<aircraft>`，其下三段：
+Every file contains exactly one `<aircraft>` with three sections beneath it:
 
 ```
 <aircraft>
-├── <description>     必填：type/nationality/long_name/short_name/comment/image/sound/speed
-├── <availability>    <data>* 每项 = month/year/number
+├── <description>     required: type/nationality/long_name/short_name/comment/image/sound/speed
+├── <availability>    <data>* where each entry = month/year/number
 └── <armament>
-    ├── <weapon>*     type[+offsetX][+offsetY]（挂点偏移；有的挂点无偏移）
+    ├── <weapon>*     type[+offsetX][+offsetY] (hardpoint offsets; some hardpoints carry none)
     └── <ammo>*       for/flavour/rounds
 ```
 
-实测样例（`Aircraft/German-Junkers Ju 87 Stuka G.txt`，856 字节；为便于阅读，下面省去了原文件中的空行，元素内容与缩进原样保留）：
+Measured sample (`Aircraft/German-Junkers Ju 87 Stuka G.txt`, 856 bytes; blank lines of the original are omitted below for readability, while element content and indentation are preserved):
 
 ```xml
 <aircraft>
@@ -169,42 +171,42 @@ Data/                          1840 个文件，扩展名全部为 .txt
 </aircraft>
 ```
 
-注意：原版会把兄弟元素**压在同一行**，所以「XML 语义等价」而非逐字节一致是唯一可行的验收口径（与已确认的验收标准一致）。
+Note that the stock data frequently packs sibling elements **onto a single line**, which makes "XML semantic equivalence" rather than byte-for-byte identity the only workable acceptance criterion, consistent with the agreed acceptance standard.
 
-### 3.2 车辆架构（`<squad>` 内的 `<vehicle>`，599 个）
+### 3.2 Vehicle structure (`<vehicle>` inside `<squad>`, 599 instances)
 
 ```
 <squad>
-├── <description>            1017 个文件全有
-├── <availability>           1017 个文件全有；<data> 平均 2.7 条
-├── <man>*                   <job>+<weapon>+<ammo>+可选 <body_armour>
+├── <description>            present in all 1017 files
+├── <availability>           present in all 1017 files; 2.7 <data> entries on average
+├── <man>*                   <job>+<weapon>+<ammo>+ optional <body_armour>
 └── <vehicle>  (599)
     ├── <attributes>   image_profile / weight / [can_mount_infantry] / [is_amphibious]
     ├── <drive>        exhaust_pipe{offsetX,offsetY,[angle],[vertical_angle]} / engine / gears / steering
     ├── <hull>         man* / image_view / width / length / height / armour / [smoke_discharger]
-    ├── <superstructure>*  (537 个文件有 1 个，9 个文件有 2 个)
-    ├── <turret>*      (427 文件 1 个 / 10 个 2 个 / 5 个 3 个 / 1 个 5 个)
-    └── <fixed_weapon>* (319 文件 1 个 / 64 个 2 个 / … / 最多 5 个)
+    ├── <superstructure>*  (1 in 537 files, 2 in 9 files)
+    ├── <turret>*      (1 in 427 files, 2 in 10, 3 in 5, 5 in 1)
+    └── <fixed_weapon>* (1 in 319 files, 2 in 64, … up to 5)
 ```
 
-`<armour>` 子标签集合固定（`top/side/rear/front/bottom/upper_front/lower_front/upper_rear/lower_rear/upper_side/lower_side/side_spaced/rear_spaced`），值为 `厚度@角度`。
+The `<armour>` child tag set is fixed (`top/side/rear/front/bottom/upper_front/lower_front/upper_rear/lower_rear/upper_side/lower_side/side_spaced/rear_spaced`), and values have the form `thickness@angle`.
 
-### 3.3 牵引炮/步兵支援武器（`<squad>` 内的独立块）
+### 3.3 Towed guns and infantry support weapons (standalone blocks inside `<squad>`)
 
-| 块 | 数量 | 说明 |
+| Block | Count | Note |
 |---|---|---|
-| `<atgun>` | 111 | 与 `AT Guns/` 111 个文件一致；含 `<AA>yes</AA>`（42 个 squad 文件含 `AA`） |
+| `<atgun>` | 111 | Matches the 111 files in `AT Guns/`; carries `<AA>yes</AA>` (42 squad files contain `AA`) |
 | `<mortar>` | 42 | |
 | `<hmg>` | 38 | |
-| `<recoilless_rifle>` | **1** | 极罕见，但仍要建模 |
+| `<recoilless_rifle>` | **1** | Very rare, but it must still be modelled |
 
-### 3.4 `<weapon>`（716 个文件）
+### 3.4 `<weapon>` (716 files)
 
 ```
 <weapon>
-├── <type>            2203 次 —— **一个文件里 <type> 会重复**（每个弹药型号一个），
-│                             且 `<type>` 内的 <name> 与文件名对应
-│   └── flavour / mass / speed / [HE(高爆装药质量 kg)] / [era] / [smoke_trail] / [explode_in] / [guided] / name
+├── <type>            2203 occurrences — **<type> repeats within one file** (one per ammunition type),
+│                              and the <name> inside <type> corresponds to the file name
+│   └── flavour / mass / speed / [HE (high-explosive charge mass in kg)] / [era] / [smoke_trail] / [explode_in] / [guided] / name
 ├── <usage>  → countries / [period]
 ├── <shoot>  → sound_shoot / rof / [reload] / [muzzle_flash] / [range]
 ├── <dimensions> → calibre / barrel_length / [number_barrels]
@@ -212,114 +214,114 @@ Data/                          1840 个文件，扩展名全部为 .txt
 └── <mass> / <speed> / <flavour>
 ```
 
-### 3.5 需要特别处理的标签
+### 3.5 Tags requiring special handling
 
-| 标签 | 出现次数 | 特点 |
+| Tag | Occurrences | Property |
 |---|---|---|
-| `offsetX` / `offsetY` / `offsetZ` | 3319 / 3325 / 480（squad）、297 / 241 / 0（aircraft） | **大小写混合**（camelCase），不能用「小写标签名」的假设去扫 |
-| `HE` | 583（weapon） | `<ammo><type>` 内的高爆装药质量，与相邻 `<mass>` 同形但语义不同 |
-| `AA` | 42（squad） | 布尔 `yes`/`no`，出现在 `atgun`/`turret`/`fixed_weapon` |
-| `<1>`..`<7>` | 只出现在 `mod.txt` | 数字标签名，非合法 XML |
-| `language` | 2 | 极罕见可选字段（`French-Infantry Section (Colonial).txt` 等） |
-| `comments`（复数） | 16 | 与 `<comment>`（单数，squad 用）**不是**同一个标签，别合并 |
+| `offsetX` / `offsetY` / `offsetZ` | 3319 / 3325 / 480 (squad), 297 / 241 / 0 (aircraft) | **Mixed case** (camelCase); a scan cannot assume lowercase tag names |
+| `HE` | 583 (weapon) | High-explosive charge mass inside `<ammo><type>`; same shape as the adjacent `<mass>` but different semantics |
+| `AA` | 42 (squad) | Boolean `yes`/`no`, appearing in `atgun`/`turret`/`fixed_weapon` |
+| `<1>`..`<7>` | only in `mod.txt` | Numeric tag names, not legal XML |
+| `language` | 2 | Very rare optional field (`French-Infantry Section (Colonial).txt` and similar) |
+| `comments` (plural) | 16 | **Not** the same tag as `<comment>` (singular, used by squad); the two must not be merged |
 
-## 4. 与既有 SKILL 文档（12.2.0 基线）的差异
+## 4. Differences from the pre-existing SKILL document (12.2.0 baseline)
 
-| 项 | SKILL 文档（12.2.0） | 实测（13.2.0.0） | 处置 |
+| Item | SKILL document (12.2.0) | Measured (13.2.0.0) | Disposition |
 |---|---|---|---|
-| 根元素 | 仅 `<squad>` 与 `<weapon>` | 多出 **`<aircraft>`（59 个文件，23 个标签）** | 补齐第三套 schema |
-| 文件总数 | 「Data 下 1740 个数据 txt」，分目录 308/111/597/676 | **1840**；307/111/599/716/59(Aircraft)/36(Surnames) | 一切以本仓库实测脚本为准，不再引用旧数字 |
-| 可解析性 | 未提及 | 16 个文件含裸 `&`，非法 XML | 自研容错解析器 |
-| `mantlet` | 「炮塔必填 439/439」 | 467 个 `<turret>`，467 个 `<mantlet>` | 与「必填」结论一致 |
-| 英式拼写 | 「铁律：`<armour>` 而非 armor」 | 实测确实是 `armour` | 仅作数据事实记录；**用户已确认不强制** |
-| 比例 | 单位 1 m=16 px、地图 1 m=8 px、数据里尺寸 cm | 未复核（M0 只做文本层勘察） | 归入 M2 校验器的待复核项 |
-| 枚举基线 | 提供 `enums_ext.txt` | 未重建 | 按已确认口径：沿用旧枚举表，未知枚举只 warning |
+| Root elements | Only `<squad>` and `<weapon>` | Adds **`<aircraft>` (59 files, 23 tags)** | Add the third schema |
+| File count | "1740 data txt files under Data", split 308/111/597/676 | **1840**; 307/111/599/716/59 (Aircraft)/36 (Surnames) | All numbers come from this repository's measurement script; the older figures are no longer cited |
+| Parseability | Not mentioned | 16 files contain a bare `&` and are not well-formed XML | Tolerant parser written in-house |
+| `mantlet` | "required on turrets, 439/439" | 467 `<turret>` and 467 `<mantlet>` | Consistent with the "required" conclusion |
+| British spelling | "invariant: `<armour>`, not armor" | Measured data does use `armour` | Recorded as a data fact only; **the project owner has confirmed it is not enforced** |
+| Scale | Units 1 m = 16 px, map 1 m = 8 px, dimensions in data are cm | Not re-verified (M0 covers only the text layer) | Deferred to the M2 validator's re-verification list |
+| Enumeration baseline | Ships `enums_ext.txt` | Not rebuilt | Per the agreed position: reuse the existing enum table and warn, never error, on an unknown enum |
 
-## 5. 模组侧实物结构（WW3 样本，用于定型打包与工程布局）
+## 5. Mod-side structure (WW3 sample, used to settle packaging and project layout)
 
-ZIP 内 **1712 项，全部位于 `.Mod/` 前缀下**：
+The ZIP holds **1712 entries, all under the `.Mod/` prefix**:
 
 ```
 .Mod/
-├── mod.txt                     10170 字节 / 428 行 / 12 个国家
+├── mod.txt                     10170 bytes / 428 lines / 12 nations
 ├── ABOUT.md  Changelog_en.md  Changelog_zh.md  Credits.md  ...
 ├── CC BY-SA 4.0.txt  ThirdPartyNotices.md  ...
-├── Data/                       768 个 .txt
-│   ├── (根) 13 个              equipment_american.txt … equipment_Israel.txt … news_main.txt
+├── Data/                       768 .txt files
+│   ├── (root) 13               equipment_american.txt … equipment_Israel.txt … news_main.txt
 │   ├── Weapons/    510
 │   ├── Vehicles/   179
 │   └── Infantry/    63
-├── Images/                     861 个 .png + 1 .jpg
+├── Images/                     861 .png + 1 .jpg
 │   ├── Chooser/{Buttons}
 │   ├── Game/{Control Panel, Flags, Map, Toolbar}
-│   ├── Uniforms/uniform_<部队名>/...
+│   ├── Uniforms/uniform_<unit name>/...
 │   └── Units/{HMGs, Mortars, Vehicles/{Hulls, Turrets, Profiles}}
-└── Sounds/                     68 项 + Voices/CN
+└── Sounds/                     68 entries + Voices/CN
 ```
 
-**四项实测事实：**
+**Four measured facts:**
 
-1. **模组是「部分覆盖」而非完整副本**：样本 mod **没有** `Data/AT Guns/`、没有 `Data/Aircraft/`。所以打包/加载必须能与原版基线**合并**。
-2. **`equipment_*.txt` 命名不带时代后缀**：原版是 `equipment_american_WW2.txt`，样本 mod 是 `equipment_american.txt`；mod.txt 用 `<equipment>` 逐个列出（`news_main.txt` 也被列为一个 equipment）。
-3. **README/许可证在 `.Mod/` **内部**，ZIP 根目录没有文件** —— 这与「zip 里一个 `Mod/` 文件夹，外面放 README 和许可证」**不一致**。已裁决（§7 D1）：以 **`Mod/` + 文档在 zip 根** 为准；`.Mod/` 只是这一个工程的**文件夹命名习惯**，不是游戏读取的根名。佐证见下方「补充实证」。
-4. `mod.txt` 的 `<nationality>` 里除已列字段外还有两个样本特有标签：`<units>NATIONALITY_TAIWANESE</units>` 与 `<filename>Taiwanese-</filename>`（共各 1 次）。它们像是「该国籍对应的单位文件前缀过滤器」。已裁决（§7 D2）：判定为**原版编辑器自身功能**，先挂 TODO，v1 原样透传。
+1. **A mod is a partial overlay, not a complete copy**: the sample mod has **no** `Data/AT Guns/` and no `Data/Aircraft/`. Packaging and loading must therefore be able to **merge** with the stock baseline.
+2. **`equipment_*.txt` names omit the era suffix**: stock uses `equipment_american_WW2.txt` while the sample mod uses `equipment_american.txt`; `mod.txt` lists each one individually with `<equipment>` (`news_main.txt` is listed as an equipment too).
+3. **README and licence files sit *inside* `.Mod/`, and the ZIP root holds no files** — which is **inconsistent** with "a `Mod/` folder inside the zip with README and licence outside it". Decision D1 settles this in favour of **`Mod/` prefix with the documents at the zip root**; `.Mod/` is a folder-naming convention of that one project, not the root name the game reads. Supporting evidence appears under "Supplementary evidence" below.
+4. Beyond the fields listed above, `<nationality>` in `mod.txt` carries two sample-specific tags: `<units>NATIONALITY_TAIWANESE</units>` and `<filename>Taiwanese-</filename>` (one occurrence each). They appear to be a unit-file prefix filter for that nationality. Decision D2 classifies them as **a feature of the stock editor itself**, defers them as a TODO, and passes them through unchanged in v1.
 
-### 补充实证：游戏真正的 MOD 根名（M0 后补，读打包工具源码）
+### Supplementary evidence: the game's actual MOD root name (added after M0, from the packager source)
 
-来源：`C:\Users\BC_aw\Downloads\FirefightModPackager.zip` → `FirefightModPackager/ffpack.py`。
+Source: `C:\Users\BC_aw\Downloads\FirefightModPackager.zip` → `FirefightModPackager/ffpack.py`.
 
-| 位置 | 事实 |
+| Location | Fact |
 |---|---|
-| `ffpack.py` 第 9 行注释 | 「游戏 MOD 根为 `assets/Mod/`，`mod.txt` 定义阵营/装备清单」 |
-| `ffpack.py` 第 1098 行 | `mod_files.append((p, "assets/Mod/" + os.path.relpath(p, mod_dir)…))` —— 打包时工程内容整体写进 `assets/Mod/` |
-| `ffpack.py` 第 1351–1366 行 `pack_mod_zip()` | 独立 zip 任务**不套任何前缀**，`Data/`、`mod.txt` 平铺在 zip 根 |
-| `ffpack.py` 第 56–68 行 `find_mod_root()` | 导入时只认「**最浅的含 `mod.txt` 的目录**」，`Data/` 之类的路径无关 |
-| `Firefight.exe` 字符串扫描（9464 条 ASCII 串） | **没有**硬编码的 `Mod/` 或 `.Mod/` 路径；只有 `Data/Aircraft/`、`Data/AT Guns/`、`Data/Infantry/`、`Data/Vehicles/`、`BData/Weapons/`、`%sData/Surnames/`、`Data/%s` 这类「基目录 + `Data/…`」模板 |
-| PC 侧实机验证（项目方） | MOD 根名为 **`Mod/`**，即相对游戏 exe 所在目录（`Firefight/`）下的 `Mod/` |
+| `ffpack.py` line 9 (comment) | "the game MOD root is `assets/Mod/`; `mod.txt` defines the faction and equipment list" |
+| `ffpack.py` line 1098 | `mod_files.append((p, "assets/Mod/" + os.path.relpath(p, mod_dir)…))` — packaging writes the whole project under `assets/Mod/` |
+| `ffpack.py` lines 1351–1366, `pack_mod_zip()` | A standalone zip task applies **no prefix**; `Data/` and `mod.txt` sit at the zip root |
+| `ffpack.py` lines 56–68, `find_mod_root()` | Import accepts only "the **shallowest directory containing `mod.txt`**"; paths such as `Data/` are irrelevant |
+| `Firefight.exe` string scan (9464 ASCII strings) | **No** hard-coded `Mod/` or `.Mod/` path; only templates of the form base directory + `Data/…`, such as `Data/Aircraft/`, `Data/AT Guns/`, `Data/Infantry/`, `Data/Vehicles/`, `BData/Weapons/`, `%sData/Surnames/`, `Data/%s` |
+| PC-side runtime check (project owner) | The MOD root name is **`Mod/`**, that is, `Mod/` relative to the directory holding the game executable (`Firefight/`) |
 
-结论：**PC 侧与安卓侧根名一致，均为 `Mod/`**（PC 侧由项目方实机验证，安卓侧由 `assets/Mod/` 打包路径实证）。导出用 `Mod/`；导入端仍须兼容任意前缀，因第三方发行包存在 `.Mod/` 等命名习惯。
+Conclusion: **the root name is `Mod/` on both PC and Android** (PC confirmed by the project owner on a running installation, Android evidenced by the `assets/Mod/` packaging path). Export uses `Mod/`; the import path must still accept an arbitrary prefix, because third-party distributions use conventions such as `.Mod/`.
 
-## 6. 由本次勘察直接确定的实现决策
+## 6. Implementation decisions taken directly from this survey
 
-| 决策 | 依据 |
+| Decision | Basis |
 |---|---|
-| 自研**容错** XML 解析器（裸 `&`、数字标签名、大小写混合标签都能读） | §2.3、§2.4、§3.5 |
-| 文本 I/O 单一出口：cp1252 / 无 BOM / 制表符缩进 | §2.2 |
-| 三套 schema 平级建模，`<aircraft>` 独立规则 | §3.1 |
-| 兄弟元素顺序按固定 schema 顺序导出，组内重复块顺序保留 | §0-7 |
-| 导出验收 = XML 语义等价（非逐字节） | §3.1 原版兄弟元素压行 + 已确认口径 |
-| `mod.txt` → `mod_setting.toml` 必须独立实现（不复用 XML 解析器） | §2.4 |
-| 打包前必须能与原版基线合并（模组是部分覆盖） | §5-1 |
-| 导出统一 CRLF；安装包根前缀 `Mod/` + 文档在 zip 根；导入端兼容任意前缀 | §2.2、§5 补充实证、用户裁决 D1/D3 |
-| 导出保守、读取宽容：导出按原版顺序渲染，读取不校验顺序 | §0-7、用户实机验证、裁决 D6 |
+| Write a **tolerant** XML parser in-house (it reads bare `&`, numeric tag names and mixed-case tags) | §2.3, §2.4, §3.5 |
+| Single text I/O exit point: cp1252 / no BOM / tab indentation | §2.2 |
+| Model the three schemas as peers, with independent rules for `<aircraft>` | §3.1 |
+| Export siblings in a fixed schema order while preserving the order of repeated blocks within a group | §0-7 |
+| Export acceptance is XML semantic equivalence, not byte identity | §3.1 packed sibling lines plus the agreed standard |
+| `mod.txt` → `mod_setting.toml` must be implemented separately, without reusing the XML parser | §2.4 |
+| Packaging must be able to merge with the stock baseline, because a mod is a partial overlay | §5-1 |
+| Normalise exported line endings to CRLF; install-package root prefix `Mod/` with documents at the zip root; accept any prefix on import | §2.2, §5 supplementary evidence, decisions D1/D3 |
+| Conservative export, tolerant import: render in stock order on export and do not validate order on import | §0-7, project owner's runtime verification, decision D6 |
 
-## 7. 待用户裁决 / M1 待实测
+## 7. Decisions taken, pending measurements and open items
 
-**已裁决（2026-10-09，详见 [project-layout.md](project-layout.md) §11）**
+**Decided (2026-10-09, details in [project-layout.md](project-layout.md) §11)**
 
-1. 打包 ZIP 布局 → **`Mod/` 前缀 + README/LICENSE 在 ZIP 根**；导入端兼容任意前缀（D1）。
-2. `mod.txt` 的 `<units>` / `<filename>` → 判定为**原版编辑器自身功能**，先挂 TODO，v1 **原样透传不解释**（D2）。
-3. 16 个文件的换行由 LF 统一为 CRLF → **接受**（D3）。后果：这 16 个文件导出后与原版不字节相同，但不影响语义等价口径。
-4. 日志分段 → **每段一个文件**，5 分钟无新事件即封口（D4）。
-5. 缓存位置 → 工程根下的 `.editor/`（D5）。
+1. Packaged ZIP layout → **`Mod/` prefix with README/LICENSE at the ZIP root**; import accepts any prefix (D1).
+2. `<units>` / `<filename>` in `mod.txt` → classified as **a feature of the stock editor itself**, deferred as a TODO, **passed through unchanged and uninterpreted** in v1 (D2).
+3. Line endings of 16 files normalised from LF to CRLF → **accepted** (D3). Consequence: those 16 files are not byte-identical to stock after export, which does not affect the semantic-equivalence criterion.
+4. Log segmentation → **one file per segment**, sealed after 5 minutes without a new event (D4).
+5. Cache location → `.editor/` under the project root (D5).
 
-**已确认（项目方实机验证）**
+**Confirmed by the project owner on a running installation**
 
-6. **兄弟块顺序不承载语义**：交换同一父元素下兄弟块的顺序后，游戏加载仍然正常。§0-7 的统计推断由此转为实证结论。
-7. **PC 侧 MOD 根名为 `Mod/`**：相对游戏 exe 所在目录（`Firefight/`）。见 §5「补充实证」。
+6. **Sibling order carries no semantics**: exchanging the order of sibling blocks under the same parent still loads correctly in the game, turning the statistical inference in §0-7 into a verified result.
+7. **The PC-side MOD root name is `Mod/`**, relative to the directory holding the game executable (`Firefight/`). See §5, "Supplementary evidence".
 
-**M1 待实测**
+**Pending M1 measurement**
 
-8. `mod.txt` 的 `<ranks>` 是否必须恰好 7 档；样本 12 个国家中只有 11 个带 `<ranks>`，缺档时的游戏行为未知。
+8. Whether `<ranks>` in `mod.txt` must contain exactly 7 entries; only 11 of the sample's 12 nations carry `<ranks>`, and the game's behaviour with a missing entry is unknown.
 
-**遗留 TODO（来自 D2）**
+**Open TODO (from D2)**
 
-9. 逆向 `<nationality>` 下 `<units>` / `<filename>` 的真实语义，并在 UI 里暴露为可编辑项。
+9. Reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` and expose them as editable fields in the UI.
 
-## 8. 复现命令
+## 8. Reproduction commands
 
 ```powershell
 python tools/recon/baseline_stats.py --data "D:\Program Files (x86)\Steam\steamapps\common\Firefight\Data" --out docs/baseline
 ```
 
-脚本**只读**（`open(path, "rb")` + 标准库 `os.walk`），不写入游戏目录。两次运行应产出完全相同的 `summary.json` / `tag-inventory.tsv`。
+The script is **read-only** (`open(path, "rb")` plus the standard-library `os.walk`) and never writes into the game directory. Two runs must produce identical `summary.json` and `tag-inventory.tsv`.
