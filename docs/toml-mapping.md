@@ -27,6 +27,10 @@ Leaf or branch is decided by whether the element has children: children mean a t
 **That decision is fixed by the schema**, not by a single file's data, so that one field cannot take different shapes in different files.
 **The schema is keyed by parent path, never by tag name alone**: `type` is a leaf directly under `weapon` and under `description`, but an array of tables under `ammo` (up to 7 per instance), and `weapon` is an array of tables under `man`/`turret`/`fixed_weapon` yet a single table under `atgun`/`hmg`/`mortar`/`recoilless_rifle`. A tag-name-keyed schema would assign at least one of those the wrong shape. Measurements are in [m1-design.md](m1-design.md) §2.3 and §2.4.
 
+**Empty elements** (measured: 70 in the corpus, `<name></name>` 37 and `<dimensions></dimensions>` 33) are the empty string as a scalar when the schema calls the field a leaf, and an empty table when the schema calls it a table. `weapon/dimensions` is the one field that is written both ways, and it is declared a table, so its 33 empty instances render back as `<dimensions></dimensions>` ([m1-design.md](m1-design.md) §2.6).
+
+**Arrays of tables are the only array form M1 needs**: no leaf repeats inside one parent instance anywhere in the corpus ([m1-design.md](m1-design.md) §2.5), so the subset in §6 needs no scalar arrays.
+
 ### 2.1 Key name rules
 
 | Case | Treatment | Example |
@@ -50,6 +54,8 @@ Export to the stock standard **re-renders from the value's content**, so type in
 
 Fixed-point risk: decimals such as `<mass>0.12</mass>` **must be echoed back verbatim** and must never become `0.12000000000000001`.
 The implementation keeps the original string alongside the parsed value and re-renders only after an edit; this is one of the core fidelity points of M1.
+
+The table above describes what the syntax would allow. **The schema overrides it for the fields where the generic test would corrupt the source** ([m1-design.md](m1-design.md) §3.8): a pinned `str` field keeps its text even when it looks numeric (`armour` values like `30@12` and `20`), a pinned `bool` field is exactly the `yes`/`no` set, and every other field is `auto`, meaning the original literal is kept and re-rendered verbatim. A field may therefore hold `RELOAD_AUTOMATIC` in one file and `0` in another without either being rewritten.
 
 > Dimensions and mass: length units in the data files are **cm** and mass is in **kg** (taken from the pre-existing reference material; not re-verified in M0).
 
@@ -95,6 +101,8 @@ Following the "specialised for this editor" requirement, only the subset this ed
 * Inline tables `{ }`, arrays `[ ]`, dates and times, multi-line strings, dotted bare keys that jump levels
 
 Rationale: none of these has a counterpart in the stock data structures, and raising an error is safer than the silent corruption that half-support would cause.
+
+The exclusions are measured, not assumed: no stock file repeats a leaf inside one parent instance ([m1-design.md](m1-design.md) §2.5), so a scalar array is never needed to represent stock data. `mod.txt` is the one file that would need it, and its schema is deferred to M5 for exactly this reason ([m1-design.md](m1-design.md) §2.7).
 
 ## 7. Mapping examples
 

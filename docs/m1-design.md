@@ -1,6 +1,6 @@
 # M1 detailed design — tolerant XML ↔ in-house TOML, both directions
 
-> Status: **awaiting review**. No M1 code has been written. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records four measurements that changed it.
+> Status: **PR 1 in review**. The error model and the schema are implemented on `m1/pr1-schema`; no parser exists yet. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records the measurements that changed it.
 
 ## 1. Scope
 
@@ -16,6 +16,9 @@ The probe that produced these numbers is a local research script and is delibera
 * §2.2 counts files where a child name that already appeared with children reappears after a different child name.
 * §2.3 groups every tag by the parent path it occurs under and compares the shapes (leaf, single table, array of tables) it takes in each group.
 * §2.4 reads the maximum occurrence count of a tag per parent instance.
+* §2.5 counts, within one parent instance, child names that occur more than once **as leaves** (as opposed to branch elements).
+* §2.6 counts elements that have neither children nor non-whitespace text.
+* §2.7 reads the `mod.txt` of a published mod project, which is not stock data.
 
 ### 2.1 The source sibling order cannot be written as literal TOML order (807 of 1792 files)
 
@@ -79,6 +82,32 @@ The probe prints the full table; the entries that decide array-versus-table are:
 | `ammo` | `type` 7 | `for`, `rounds`, `flavour` |
 | `weapon` (root) | — | `name`, `type`, `usage`, `shoot`, `dimensions`, `magazine`, `ammo`, `offsetX`, `offsetY`, `offset_angle`, `mount`, `comments` |
 
+The per-path form of this table is committed as `docs/baseline/path-inventory.tsv` (289 paths: 227 leaf, 61 branch, 1 mixed), so the schema in `core/schema.py` is reviewable against the measurement rather than against prose.
+
+### 2.5 No leaf repeats anywhere, so M1 needs only arrays of tables
+
+Applying §2.4's predicate to leaves only: across 1792 files there are **26 (parent path, tag) combinations that repeat, and all 26 are branch elements**; no leaf name ever occurs twice inside one parent instance.
+
+Consequence: the TOML subset needs arrays of tables (`[[squad.man]]`) but never a scalar array (`[ "a", "b" ]`), so [toml-mapping.md](toml-mapping.md) §6 stays as narrow as it is. This is what makes §2.7 below a genuine scope boundary rather than a detail.
+
+### 2.6 Empty elements: 70 in the corpus, all of them `<name>` or `<dimensions>`
+
+An element with neither children nor non-whitespace text occurs **70** times: `<name></name>` 37, `<dimensions></dimensions>` 33. The source writes them across two lines (`<dimensions>` newline `</dimensions>`), for example in `Data\Weapons\WEAPON_GRENADE_1914.txt`.
+
+The bare `<dimensions>` form occurs **703** times in total (670 with children, 33 empty), which makes `weapon/dimensions` the one mixed path in §2.4's inventory. It is declared as a `table`: the empty instances become empty tables, and the writer renders an empty table back as `<dimensions></dimensions>`. No dual-shape mechanism is needed.
+
+### 2.7 `mod.txt` repeats a leaf, so it is out of M1
+
+`mod.txt` in the released WW3 mod project (release 2030007 / 2026-10-01) repeats a leaf inside one parent:
+
+```xml
+<nationality>
+  <equipment>news_main.txt</equipment>
+  <equipment>equipment_american.txt</equipment>
+```
+
+Expressing that needs a scalar array, which §2.5 shows no stock file requires. Consequence: the `mod` schema moves **out of M1 and into M5** (project files), so M1 covers exactly the three stock roots `squad`, `weapon` and `aircraft`, and `schema_for("mod")` returns `None`. The rest of `mod.txt` is otherwise ordinary: `years`, `credits`, `minimum_commonness`, `text_colours` (hex strings that must stay strings), `flags`, `voice`, `ranks`, `default_images`, and yes/no leaves.
+
 ## 3. Design
 
 ### 3.1 Module layout
@@ -93,11 +122,13 @@ core/
 ├── tomlmodel.py   TOML document model (ordered)
 ├── tomlread.py    in-house TOML reader (documented subset only)
 ├── tomlwrite.py   in-house TOML writer
-├── schema.py      path-keyed schema for squad / weapon / aircraft / mod.txt
+├── schema.py      path-keyed schema for squad / weapon / aircraft
 └── convert.py     xml_to_toml / toml_to_xml
 tools/
 └── m1_roundtrip.py   corpus-wide round-trip harness
 tests/
+├── test_errors.py
+├── test_schema.py
 ├── test_textio.py
 ├── test_xmlread.py
 ├── test_tomlread.py
@@ -207,7 +238,27 @@ class Node:
     required: bool = False
 ```
 
-Four schemas: `squad`, `weapon`, `aircraft` (from the measured tag inventory) and `mod` for `mod.txt`, whose `<ranks>` children are numeric tags.
+Three schemas: `squad`, `weapon` and `aircraft`, all derived from the measured path inventory. `mod` is deferred to M5 (§2.7), so `SCHEMAS` has exactly these three keys and `schema_for("mod")` returns `None`.
+
+The declaration is queried by path:
+
+```python
+SCHEMAS: dict[str, Schema]                       # "squad" | "weapon" | "aircraft"
+def schema_for(root_tag: str) -> Schema | None
+Schema.lookup(path: tuple[str, ...]) -> Node | None   # path includes the root name
+Schema.children(path: tuple[str, ...]) -> tuple[Node, ...]
+```
+
+A path that the schema does not know resolves to `None` rather than raising; deciding what to do about it is the converter's job.
+
+Shapes come from §2.4/§2.5: a child is `array` exactly when it repeats inside one parent instance, otherwise `table`. The comparison is always made on the parent **path**, never on the tag name, per §2.3 — `type` is a `leaf` under `weapon` and an `array` under `ammo`.
+
+Value types stay `auto` (raw text preserved, per §3.7) except where a measurement shows coercion would corrupt the source:
+
+* `bool` for leaves whose observed value set is only `yes`/`no` (`AA`, `body_armour`, `can_make_smoke_screen`, `can_mount_infantry`, `is_amphibious`, `moveable`, `muzzle_flash`, `single_shot`, `smoke_trail`);
+* `str` for the whole `armour` subtree, whose values look like `30@12` or `20` and must not become numbers.
+
+Mixed-typed fields are deliberately left `auto`, so the field that stock writes as `RELOAD_AUTOMATIC` in one file and `0` in another keeps what each file had (§3.7). `required` stays `false` everywhere; M1 does not consume it.
 
 Unknown tags encountered during import are **not** an error in M1: they are preserved as a table of leaves and reported as a warning, because the enumeration tables and the exact tag set are explicitly not frozen (unknown enums warn, never error). Export renders anything the TOML holds, so an unknown tag still round-trips.
 
@@ -228,6 +279,10 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 
 **Unit tests** (no corpus needed): text I/O round trip including the 16 LF files and a cp1252-only character; the reader against hand-written snippets for a bare `&`, a numeric tag, mixed case, a `//` comment inside an element, an unmatched close tag, and a leaf after a branch; the TOML reader rejecting each unsupported construct with a line number; the writer's canonical order; `0.12` fidelity; `yes`/`no` to boolean.
 
+**Schema tests** (no corpus needed, and no parser): every row of `docs/baseline/path-inventory.tsv` resolves in its root schema with the shape the row implies, the set of `array` nodes equals the set of rows whose `max_per_instance` exceeds 1, and the structural invariants hold (unique child names, `leaf` has no children, canonical child order, `required` unused). These are the tests that keep the committed declaration tied to the committed measurement.
+
+**Failure to keep in mind**: a `mixed` row (`weapon/dimensions`) resolves to `table`, because §2.6 fixes one shape for the field and renders the empty instances as empty tables.
+
 **Corpus harness** (`tools/m1_roundtrip.py`): for all 1840 files, run XML → TOML → XML and compare per §3.6, then TOML → XML → TOML and compare fields. It prints a per-file verdict to `docs/m1-roundtrip.tsv` and a summary, and exits non-zero on any failure.
 
 **Must-pass subsets** (acceptance item 3): the 16 bare-`&` files, the 59 aircraft, the single `recoilless_rifle`, the 2 files with a reopened branch, and at least one file from each of the 6 parents listed in §2.1.
@@ -242,14 +297,14 @@ The project owner confirmed that the schema is reviewed **first, on its own**, b
 |---|---|---|---|---|
 | T1 | `errors.py` and its tests | PR 1 (schema) | — | ~60 lines |
 | T4 | `schema.py` for `squad` and `weapon` | PR 1 (schema) | T1 | ~250 lines |
-| T5 | `schema.py` for `aircraft` and `mod` | PR 1 (schema) | T1 | ~120 lines |
+| T5 | `schema.py` for `aircraft` | PR 1 (schema) | T1 | ~120 lines |
 | T2 | `textio.py`, `xmlmodel.py`, `xmlread.py` and their tests | PR 2 | T1 | ~300 lines |
 | T3 | `tomlmodel.py`, `tomlread.py`, `tomlwrite.py` and their tests | PR 2 | T1 | ~450 lines |
 | T6 | `convert.py` and its tests | PR 2 | T2, T3, T4 | ~250 lines |
 | T7 | `tools/m1_roundtrip.py` and the corpus run | PR 3 | T6 | ~180 lines |
 | T8 | Golden fixtures and `docs/m1-report.md` | PR 3 | T7 | ~100 lines |
 
-PR 1 lands `errors.py` plus the full schema, and is reviewable without any parser: the schema is a table of parent paths, shapes and value types, derived from §2 and [m0-baseline.md](m0-baseline.md) §3. PR 2 lands the parsers and the conversion. PR 3 lands the corpus harness and its report.
+PR 1 lands `errors.py`, the full schema and `docs/baseline/path-inventory.tsv`, and is reviewable without any parser: the schema is a table of parent paths, shapes and value types, derived from §2 and [m0-baseline.md](m0-baseline.md) §3, and its coverage test reads the committed inventory. PR 2 lands the parsers and the conversion. PR 3 lands the corpus harness and its report.
 
 T2 and T3 share no files, so they can proceed in parallel if the work is split; T6 onward is sequential.
 
@@ -262,9 +317,13 @@ T2 and T3 share no files, so they can proceed in parallel if the work is split; 
 | Schema errors surface late, when a rare tag appears | Unknown tags warn and are preserved rather than dropped, so a gap degrades to a warning instead of data loss |
 | Numeric fidelity of floats | Never re-render an unedited value; assert in tests that `raw` survives `parse` → `render` |
 | The 5-minute log segments and `.editor/` layout are irrelevant to M1 | Nothing in M1 writes `.editor/` |
+| Deferring `mod` to M5 leaves the project file unmodelled for now | The deferral is a scope decision, not a gap: stock files never repeat a leaf (§2.5), so no M1 deliverable is blocked by it, and §2.7 records the shape `mod` will need |
 
 ## 7. Decisions confirmed by the project owner
 
 1. The revised acceptance comparison in §3.6 is **accepted** as the M1 gate: siblings with different names compare as an unordered multiset, repeated blocks of the same name compare as an ordered sequence. The 807-file finding in §2.1 means source order cannot be reproduced as literal TOML text, and sibling order was verified in-game to carry no semantics.
 2. The measurement probe stays **outside** this repository; the numbers are recorded in §2 and the document is the reference.
 3. The schema lands **first, on its own**, in a reviewable pull request before any parser or conversion code exists. This is reflected in the PR column of §5.
+4. The `mod` schema moves to M5, because `mod.txt` repeats a leaf and the M1 TOML subset deliberately has no scalar arrays (§2.5, §2.7).
+5. `docs/baseline/path-inventory.tsv` is committed as a data artifact, like `docs/baseline/summary.json` and `tag-inventory.tsv`: the numbers are the record, and the measurement scripts stay outside the repository.
+6. M1 covers the three stock roots `squad`, `weapon` and `aircraft` only. `Maps/` and `Surnames/` remain out of scope.
