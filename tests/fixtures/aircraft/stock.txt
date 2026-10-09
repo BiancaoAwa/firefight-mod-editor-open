@@ -1,0 +1,17 @@
+<aircraft>
+	<description>
+		<type>TYPE_PLANE</type>
+		<long_name>Demo Plane</long_name>
+		<speed>200</speed>
+	</description>
+
+	<availability>
+		<data><month>3</month><year>1943</year><number>100</number></data>
+	</availability>
+
+	<armament>
+		<weapon><type>WEAPON_CANNON_20MM</type><offsetX>-315</offsetX><offsetY>32</offsetY></weapon>
+		<weapon><type>WEAPON_CANNON_20MM</type><offsetX>331</offsetX><offsetY>28</offsetY></weapon>
+		<ammo><for>WEAPON_CANNON_20MM</for><flavour>FLAVOUR_HE</flavour><rounds>750</rounds></ammo>
+	</armament>
+</aircraft>

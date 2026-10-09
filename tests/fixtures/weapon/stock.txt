@@ -1,0 +1,22 @@
+<weapon>
+	<name>Demo Rifle</name>
+	<type>WEAPON_RIFLE</type>
+
+	<ammo>
+		<type><flavour>FLAVOUR_HE</flavour><speed>800</speed><mass>0.012</mass><HE>0</HE><name>HE</name></type>
+	</ammo>
+
+	<shoot>
+		<muzzle_flash>no</muzzle_flash>
+		<reload>RELOAD_SEMI_AUTOMATIC</reload>
+		<rof>12</rof>
+		<range>800</range>
+		<sound_shoot>SOUND_RIFLE</sound_shoot>
+	</shoot>
+
+	<magazine>
+		<capacity>5</capacity>
+		<single_shot>yes</single_shot>
+		<sound_reload>SOUND_RELOAD</sound_reload>
+	</magazine>
+</weapon>

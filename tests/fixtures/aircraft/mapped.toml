@@ -1,0 +1,23 @@
+[aircraft]
+[aircraft.armament]
+[[aircraft.armament.ammo]]
+flavour = "FLAVOUR_HE"
+for = "WEAPON_CANNON_20MM"
+rounds = 750
+[[aircraft.armament.weapon]]
+offsetX = -315
+offsetY = 32
+type = "WEAPON_CANNON_20MM"
+[[aircraft.armament.weapon]]
+offsetX = 331
+offsetY = 28
+type = "WEAPON_CANNON_20MM"
+[aircraft.availability]
+[[aircraft.availability.data]]
+month = 3
+number = 100
+year = 1943
+[aircraft.description]
+long_name = "Demo Plane"
+speed = 200
+type = "TYPE_PLANE"
