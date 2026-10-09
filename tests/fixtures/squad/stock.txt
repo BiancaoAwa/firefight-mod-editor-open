@@ -1,0 +1,38 @@
+<squad>
+	<description>
+		<type>TYPE_TANK</type>
+		<nationality>NATIONALITY_GERMAN</nationality>
+		<long_name>Demo Tank</long_name>
+		<short_name>Demo</short_name>
+		<comment></comment>
+		<uniform>german_vehicle_crew</uniform>
+	</description>
+
+	<availability>
+		<data><month>11</month><year>1939</year><number>50</number></data>
+		<data><month>1</month><year>1940</year><number>100</number></data>
+	</availability>
+
+	<vehicle>
+		<attributes>
+			<image_profile>Profile-Demo.png</image_profile>
+			<is_amphibious>no</is_amphibious>
+			<weight>20000</weight>
+		</attributes>
+
+		<hull>
+			<image_view>Image-Demo & Co.png</image_view>
+			<width>284</width>
+			<armour>				// @0 means vertically upright, @90 is horizontal
+				<upper_front>30@12</upper_front>
+				<side>20</side>
+				<top>10</top>
+			</armour>
+		</hull>
+	</vehicle>
+
+	<man>
+		<job>JOB_RIFLEMAN</job>
+		<weapon><type>WEAPON_RIFLE_DEMO</type></weapon>
+	</man>
+</squad>
