@@ -1,9 +1,11 @@
 """XML ↔ TOML conversion.
 
 Shape comes from the path-keyed schema, never from a single file's data, so a
-field cannot change shape between files (docs/toml-mapping.md section 2).  Leaf
-text is kept verbatim next to its parsed value, so an export never rewrites a
-decimal (docs/toml-mapping.md section 3).
+field cannot change shape between files (docs/toml-mapping.md section 2).  One
+deliberate exception: a table element that repeats in one parent instance is
+stored as an array with a warning, because shipped mods do this.  Leaf text is
+kept verbatim next to its parsed value, so an export never rewrites a decimal
+(docs/toml-mapping.md section 3).
 """
 
 import re
@@ -100,7 +102,10 @@ def _element_table(element: XmlElement, node: Node | None, path: tuple[str, ...]
             table.entries.append((name, TomlArrayEntry(items=items)))
         else:
             if count > 1:
-                raise SchemaError(child_path, f"single-instance table occurs {count} times in one parent instance")
+                warnings.append(f"{'/'.join(child_path)}: table repeats {count} times, stored as an array")
+                items = [_element_table(kid, child_node, child_path, warnings) for kid in kids]
+                table.entries.append((name, TomlArrayEntry(items=items)))
+                continue
             table.entries.append((name, _element_table(kids[0], child_node, child_path, warnings)))
     return table
 

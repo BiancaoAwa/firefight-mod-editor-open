@@ -15,53 +15,92 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core import textio, xmlread  # noqa: E402
 from core.convert import toml_to_xml, xml_to_toml  # noqa: E402
-from core.errors import FfError  # noqa: E402
+from core.errors import FfError, XmlStructureError  # noqa: E402
 from core.schema import schema_for  # noqa: E402
 from core.tomlmodel import TomlTable  # noqa: E402
 from core.tomlread import parse as toml_parse  # noqa: E402
 from core.tomlwrite import render as toml_render  # noqa: E402
-from core.xmlmodel import signature  # noqa: E402
+from core.xmlmodel import XmlElement, signature  # noqa: E402
 
 SKIP_PREFIXES = ("equipment_", "surnames_")
-HEADER = "file\tsize\troot\txml_to_toml\ttoml_reparse\ttoml_to_xml\tcp1252\torder_match\twarnings\tnote"
+HEADER = "file\tsize\troot\tencoding\txml_to_toml\ttoml_reparse\ttoml_to_xml\tcp1252\torder_match\twarnings\tnote"
+
+
+def _cleared(element: XmlElement) -> XmlElement:
+    """Copy of a tree with text removed where the element also holds children.
+
+    Export drops that text by design (core/xmlread.py warns about it), so it is
+    excluded from the equivalence predicate instead of failing the file.
+    """
+    return XmlElement(
+        tag=element.tag,
+        line=element.line,
+        value="" if element.children else element.value,
+        children=[_cleared(child) for child in element.children],
+    )
 
 
 def run_file(path: Path) -> tuple[list[str], bool]:
     """Run the round trip for one file; returns a report row and a pass flag."""
-    source = textio.read_source(path)
-    document = xmlread.parse(source.text, str(path))
+    source_warnings: list[str] = []
+    source = textio.read_source(path, source_warnings)
+    try:
+        document = xmlread.parse(source.text, str(path))
+    except XmlStructureError:
+        # A .txt without an XML root is a plain-text list file (news_main.txt).
+        return [], False
     schema = schema_for(document.root.tag)
     if schema is None:
         return [], False
-    warnings = len(document.warnings)
+    warnings = len(document.warnings) + len(source_warnings)
     try:
         table = xml_to_toml(document, schema)
     except FfError as error:
-        return [f"{path.name}\t{len(source.text)}\t{document.root.tag}\t{error.__class__.__name__}\t-\t-\t-\t{warnings}\t{error}"], False
+        row = "\t".join([
+            path.name, str(len(source.text)), document.root.tag, source.encoding,
+            error.__class__.__name__, "-", "-", "-", "-", str(warnings), str(error),
+        ])
+        return [row], False
     rendered = toml_render(table)
     try:
         reparsed = toml_parse(rendered, str(path) + " (toml)")
     except FfError as error:
-        return [f"{path.name}\t{len(source.text)}\t{document.root.tag}\tok\t{error.__class__.__name__}\t-\t-\t{warnings}\t{error}"], False
+        row = "\t".join([
+            path.name, str(len(source.text)), document.root.tag, source.encoding,
+            "ok", error.__class__.__name__, "-", "-", "-", str(warnings), str(error),
+        ])
+        return [row], False
     stable = toml_render(reparsed) == rendered
     exported = toml_to_xml(reparsed, schema, str(path))
     encoded = "ok"
     try:
-        textio.encode_export(exported, str(path))
+        textio.encode_export(exported, str(path), source.encoding)
     except FfError as error:
         encoded = error.__class__.__name__
+    cp1252 = "ok"
+    try:
+        textio.encode_export(exported, str(path))
+    except FfError as error:
+        cp1252 = error.__class__.__name__
     exported_document = xmlread.parse(exported, str(path) + " (export)")
-    equivalent = signature(exported_document.root) == signature(document.root)
+    equivalent = signature(_cleared(exported_document.root)) == signature(_cleared(document.root))
+    strict = signature(exported_document.root) == signature(document.root)
     order_match = textio.normalize_newlines(exported) == textio.normalize_newlines(source.text)
-    note = "" if stable else "TOML text not idempotent"
+    if strict:
+        note = "" if stable else "TOML text not idempotent"
+    elif equivalent:
+        note = "stray text in source dropped on export"
+    else:
+        note = "" if stable else "TOML text not idempotent"
     row = "\t".join([
         path.name,
         str(len(source.text)),
         document.root.tag,
+        source.encoding,
         "ok",
         "ok" if stable else "unstable",
         "ok" if equivalent else "different",
-        encoded,
+        cp1252,
         "yes" if order_match else "no",
         str(warnings),
         note,

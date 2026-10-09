@@ -84,6 +84,10 @@ class ToleranceTest(unittest.TestCase):
         doc = xmlread.parse("<?xml version=\"1.0\"?><squad><name>a</name></squad>", "unit")
         self.assertEqual(doc.root.tag, "squad")
 
+    def test_stray_text_inside_a_branch_is_a_warning(self) -> None:
+        doc = xmlread.parse("<squad><availability><data>1</data>></availability></squad>", "unit")
+        self.assertTrue(any("stray text" in warning for warning in doc.warnings))
+
     def test_by_tag_helper(self) -> None:
         element = XmlElement(tag="squad", line=0)
         element.children = [XmlElement(tag="man", line=0), XmlElement(tag="description", line=0)]
