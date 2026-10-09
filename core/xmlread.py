@@ -103,7 +103,18 @@ def parse(text: str, origin: str) -> XmlDocument:
         raise XmlStructureError(origin, 1, "no root element")
     if comments:
         warnings.append(f"{comments} comment line(s) removed")
+    _warn_stray_text(root, warnings)
     return XmlDocument(origin=origin, root=root, source=text, warnings=warnings, comments=comments)
+
+
+def _warn_stray_text(root: XmlElement, warnings: list[str]) -> None:
+    """Warn about text in an element that also holds children; export drops it."""
+    stack = [root]
+    while stack:
+        element = stack.pop()
+        if element.children and element.value:
+            warnings.append(f"line {element.line}: stray text {element.value!r} in <{element.tag}> is dropped on export")
+        stack.extend(element.children)
 
 
 def _close_tag(name: str, line: int, stack: list[XmlElement], warnings: list[str]) -> None:

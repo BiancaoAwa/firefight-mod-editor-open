@@ -35,6 +35,34 @@ class ReadSourceTest(ScratchTest):
         self.assertEqual(caught.exception.offset, 2)
         self.assertIn("bad.txt", str(caught.exception))
 
+    def test_falls_back_to_utf8_and_reports_it(self) -> None:
+        path = SCRATCH / "mod.txt"
+        path.write_bytes("<squad><name>小机炮</name></squad>".encode("utf-8"))
+        warnings: list[str] = []
+        source = textio.read_source(path, warnings)
+        self.assertEqual(source.encoding, "utf-8")
+        self.assertEqual(source.text, "<squad><name>小机炮</name></squad>")
+        self.assertTrue(any("decoded as utf-8" in warning for warning in warnings))
+
+    def test_prefers_utf8_when_cp1252_would_also_decode(self) -> None:
+        # C3 97 is a multiplication sign in UTF-8 and two letters in cp1252; the
+        # retail corpus and mods both ship this shape.
+        path = SCRATCH / "calibre.txt"
+        path.write_bytes("<name>5.8×42mm</name>".encode("utf-8"))
+        warnings: list[str] = []
+        source = textio.read_source(path, warnings)
+        self.assertEqual(source.encoding, "utf-8")
+        self.assertEqual(source.text, "<name>5.8×42mm</name>")
+
+    def test_stock_file_reports_cp1252_and_no_warning(self) -> None:
+        path = SCRATCH / "stock.txt"
+        path.write_bytes("naïve".encode("cp1252"))
+        warnings: list[str] = []
+        source = textio.read_source(path, warnings)
+        self.assertEqual(source.encoding, "cp1252")
+        self.assertEqual(source.text, "naïve")
+        self.assertEqual(warnings, [])
+
 
 class EncodingTest(unittest.TestCase):
     def test_encodes_cp1252(self) -> None:
@@ -44,6 +72,12 @@ class EncodingTest(unittest.TestCase):
         with self.assertRaises(ExportEncodingError) as caught:
             textio.encode_export("arrow →", "unit")
         self.assertEqual(caught.exception.value, "→")
+
+    def test_encodes_utf8_when_the_source_was_utf8(self) -> None:
+        self.assertEqual(
+            textio.encode_export("小机炮", "unit", "utf-8"),
+            "小机炮".encode("utf-8"),
+        )
 
 
 class NewlineTest(ScratchTest):

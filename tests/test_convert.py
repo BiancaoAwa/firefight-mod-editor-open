@@ -6,6 +6,7 @@ from core.convert import toml_to_xml, xml_to_toml
 from core.errors import SchemaError
 from core.schema import schema_for
 from core.tomlmodel import TomlArrayEntry, TomlTable, TomlValue
+from core.tomlwrite import render as toml_render
 from core.xmlmodel import XmlElement
 from core.xmlread import parse as xml_parse
 
@@ -167,10 +168,31 @@ class EdgeCaseTest(unittest.TestCase):
             xml_to_toml(document)
         self.assertEqual(caught.exception.path, ("squad", "description", "type"))
 
-    def test_repeated_single_instance_table_is_rejected(self) -> None:
-        document = xml_parse("<squad><description></description><description></description></squad>", "unit")
-        with self.assertRaises(SchemaError):
-            xml_to_toml(document)
+    def test_repeated_single_instance_table_becomes_an_array_with_a_warning(self) -> None:
+        document = xml_parse(
+            "<squad><description><type>a</type></description><description><type>b</type></description></squad>",
+            "unit",
+        )
+        table = xml_to_toml(document)
+        descriptions = table_of(table, "squad").get("description")
+        assert isinstance(descriptions, TomlArrayEntry)
+        self.assertEqual(len(descriptions.items), 2)
+        self.assertTrue(any("table repeats" in warning for warning in document.warnings))
+        exported = xml_parse(toml_to_xml(table), "export")
+        self.assertEqual(signature(exported.root), signature(document.root))
+
+    def test_repeated_table_under_a_repeated_parent_round_trips(self) -> None:
+        source = (
+            "<squad><vehicle><hull><man><job>JOB_DRIVER</job>"
+            "<ammo><for>WEAPON_A</for><rounds>100</rounds></ammo>"
+            "<ammo><for>WEAPON_A</for><rounds>200</rounds></ammo>"
+            "</man></hull></vehicle></squad>"
+        )
+        document = xml_parse(source, "unit")
+        table = xml_to_toml(document)
+        exported = xml_parse(toml_to_xml(table), "export")
+        self.assertEqual(signature(exported.root), signature(document.root))
+        self.assertIn("[[squad.vehicle.hull.man.ammo]]", toml_render(table))
 
     def test_unknown_root_has_no_schema(self) -> None:
         document = xml_parse("<mod><name>x</name></mod>", "unit")
