@@ -1,6 +1,6 @@
 # M1 detailed design — tolerant XML ↔ in-house TOML, both directions
 
-> Status: **PR 1 in review**. The error model and the schema are implemented on `m1/pr1-schema`; no parser exists yet. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records the measurements that changed it.
+> Status: **implemented and measured**. The error model and the schema are on the published branch `m1/pr1-schema`; the parsers, the conversion and the corpus harness are implemented locally and verified against all 1792 modelled stock files — see [m1-report.md](m1-report.md). Publication of the code awaits the project owner's instruction. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records the measurements that changed it.
 
 ## 1. Scope
 
@@ -285,9 +285,11 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 
 **Corpus harness** (`tools/m1_roundtrip.py`): for all 1840 files, run XML → TOML → XML and compare per §3.6, then TOML → XML → TOML and compare fields. It prints a per-file verdict to `docs/m1-roundtrip.tsv` and a summary, and exits non-zero on any failure.
 
+**Result of that run** (2026-10-09, CPython 3.14.5): 1792 files modelled, 48 skipped by scope, **0 failures**; the exact-text match rate is 0 of 1792 and the three measured causes are listed in [m1-report.md](m1-report.md) §3.1. In short: the canonical writer drops blank lines, expands elements that stock writes inline, and orders differently-named siblings canonically — none of which the §3.6 comparison treats as a difference.
+
 **Must-pass subsets** (acceptance item 3): the 16 bare-`&` files, the 59 aircraft, the single `recoilless_rifle`, the 2 files with a reopened branch, and at least one file from each of the 6 parents listed in §2.1.
 
-**Golden files**: three XML files and their TOML, committed under `tests/fixtures/`, so the mapping itself is reviewable in a diff.
+**Golden files**: three XML files and their TOML, committed under `tests/fixtures/`, so the mapping itself is reviewable in a diff. The tests require the derived TOML to be byte-identical to the committed file, the TOML to render back to the source tree signature, a full TOML → XML → TOML cycle to return the committed text, and the fixtures to raise no unknown-element warning. They are synthetic and use only declared paths; the first draft used four stock tags that do not exist under the paths it assumed (`image_view` under `squad/description`, `name` and `type` under `squad/man`, `rounds_per_minute` under `weapon/shoot`) and the schema reported each one.
 
 ## 5. Task order
 
@@ -306,13 +308,15 @@ The project owner confirmed that the schema is reviewed **first, on its own**, b
 
 PR 1 lands `errors.py`, the full schema and `docs/baseline/path-inventory.tsv`, and is reviewable without any parser: the schema is a table of parent paths, shapes and value types, derived from §2 and [m0-baseline.md](m0-baseline.md) §3, and its coverage test reads the committed inventory. PR 2 lands the parsers and the conversion. PR 3 lands the corpus harness and its report.
 
+Current state: T1, T4 and T5 are on the published branch `m1/pr1-schema`; T2, T3, T6, T7, T8 and the report are complete in the working tree with the corpus run recorded in [m1-report.md](m1-report.md) and 109 unit tests passing locally. Following the project owner's instruction, no further branch is published until that code is verified, which the corpus run above now does.
+
 T2 and T3 share no files, so they can proceed in parallel if the work is split; T6 onward is sequential.
 
 ## 6. Risks
 
 | Risk | Mitigation |
 |---|---|
-| The TOML writer's canonical order diverges from source order more than expected | Report the exact-match rate from the harness as a number; it is informational, and the semantic criterion is what gates the milestone |
+| The TOML writer's canonical order diverges from source order more than expected | Measured and accepted: the exact-text match rate is 0 of 1792 files, and every difference is one of the three formatting causes in [m1-report.md](m1-report.md) §3.1. The milestone gate is the semantic criterion, which passes for all 1792 |
 | A `//` inside a legitimate value (for example a URL) is stripped as a comment | Resolved by measurement: all **1732** `//` occurrences in the corpus are at the start of a line or preceded by whitespace, tab or `>`, so the reader treats `//` as a comment only in those positions and leaves any other occurrence as data |
 | Schema errors surface late, when a rare tag appears | Unknown tags warn and are preserved rather than dropped, so a gap degrades to a warning instead of data loss |
 | Numeric fidelity of floats | Never re-render an unedited value; assert in tests that `raw` survives `parse` → `render` |
