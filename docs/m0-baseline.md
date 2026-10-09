@@ -25,8 +25,8 @@
 | Game root | `D:\Program Files (x86)\Steam\steamapps\common\Firefight` |
 | Version | `version.txt` = `13.2.0.0` (10 bytes including CRLF) |
 | Data directory | `<game>/Data` |
-| Mod sample | `C:\Users\BC_aw\Downloads\WW3-模组工程文件-发行版2030007-20261001.zip` (43.8 MB / 1712 entries, **not stored in this repository**) |
-| Pre-existing reference | `C:\Users\BC_aw\Downloads\firefight-modding-SKILL.md` (470 lines, baseline 12.2.0) |
+| Mod sample | the released WW3 mod project archive (release 2030007 / 2026-10-01; 43.8 MB / 1712 entries, **not stored in this repository**) |
+| Pre-existing reference | `firefight-modding-SKILL.md` (470 lines, baseline 12.2.0; kept outside this repository) |
 | Survey tooling | Python 3 (dsh runtime), standard library only |
 
 ## 2. Stock data baseline (13.2.0.0)
@@ -268,7 +268,7 @@ The ZIP holds **1712 entries, all under the `.Mod/` prefix**:
 
 ### Supplementary evidence: the game's actual MOD root name (added after M0, from the packager source)
 
-Source: `C:\Users\BC_aw\Downloads\FirefightModPackager.zip` → `FirefightModPackager/ffpack.py`.
+Source: the FirefightModPackager archive → `FirefightModPackager/ffpack.py`.
 
 | Location | Fact |
 |---|---|
