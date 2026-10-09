@@ -4,9 +4,9 @@ __pycache__/
 .venv/
 venv/
 
-# 编辑器产物（工程目录内的生成物，不进仓库）
+# Editor output (generated inside a project directory, not tracked)
 dist/
 *.7z
 
-# 本地临时
+# Local scratch
 *.tmp

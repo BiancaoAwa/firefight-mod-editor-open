@@ -1,4 +1,4 @@
-# 本仓库自身的文本文件统一使用 LF。
-# 注意：这只约束本仓库的源码与文档；编辑器在“用户的模组工程”里写出的
-#      游戏数据文件仍然必须是 cp1252 + CRLF + 制表符（见 docs/m0-baseline.md §2.2）。
+# Text files in this repository use LF.
+# This covers this repository's sources and documents only; the game data files
+#      the editor writes into a mod project must still be cp1252 + CRLF + tabs (see docs/m0-baseline.md §2.2).
 * text=auto eol=lf
