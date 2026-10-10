@@ -1,20 +1,20 @@
 [squad]
+[squad.description]
+type = "TYPE_TANK"
+nationality = "NATIONALITY_GERMAN"
+long_name = "Demo Tank"
+short_name = "Demo"
+comment = ""
+uniform = "german_vehicle_crew"
 [squad.availability]
 [[squad.availability.data]]
 month = 11
-number = 50
 year = 1939
+number = 50
 [[squad.availability.data]]
 month = 1
-number = 100
 year = 1940
-[squad.description]
-comment = ""
-long_name = "Demo Tank"
-nationality = "NATIONALITY_GERMAN"
-short_name = "Demo"
-type = "TYPE_TANK"
-uniform = "german_vehicle_crew"
+number = 100
 [squad.vehicle]
 [squad.vehicle.attributes]
 image_profile = "Profile-Demo.png"
@@ -24,9 +24,9 @@ weight = 20000
 image_view = "Image-Demo & Co.png"
 width = 284
 [squad.vehicle.hull.armour]
+upper_front = "30@12"
 side = "20"
 top = "10"
-upper_front = "30@12"
 [[squad.man]]
 job = "JOB_RIFLEMAN"
 [[squad.man.weapon]]

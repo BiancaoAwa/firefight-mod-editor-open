@@ -1,19 +1,18 @@
 """Golden fixtures: committed TOML must be what the pipeline produces.
 
-Each fixture is a small hand-written `stock.txt` plus the `mapped.toml` that
-`core/convert.py` derives from it.  Regenerating the TOML is a deliberate edit,
-so an accidental change in the writer fails here (docs/m1-design.md section 4).
+Each fixture is a hand-written ``stock.txt`` plus the ``mapped.toml`` derived from it;
+regenerating one is a deliberate edit, so an accidental writer change fails here.
 """
 
 import unittest
 from pathlib import Path
 
-from core import textio, xmlread
+from core import textio, xml
 from core.convert import toml_to_xml, xml_to_toml
 from core.schema import schema_for
-from core.tomlread import parse as toml_parse
-from core.tomlwrite import render as toml_render
-from core.xmlmodel import signature
+from core.toml import parse as toml_parse
+from core.toml import render as toml_render
+from core.xml import signature
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -34,7 +33,7 @@ class GoldenTest(unittest.TestCase):
         for folder in self.folders():
             with self.subTest(fixture=folder.name):
                 stock = read_fixture(folder, "stock.txt")
-                document = xmlread.parse(stock, str(folder / "stock.txt"))
+                document = xml.parse(stock, str(folder / "stock.txt"))
                 self.assertEqual([w for w in document.warnings if "unknown" in w], [])
                 schema = schema_for(document.root.tag)
                 self.assertIsNotNone(schema)
@@ -44,10 +43,10 @@ class GoldenTest(unittest.TestCase):
         for folder in self.folders():
             with self.subTest(fixture=folder.name):
                 stock = read_fixture(folder, "stock.txt")
-                schema = schema_for(xmlread.parse(stock, "").root.tag)
+                schema = schema_for(xml.parse(stock, "").root.tag)
                 table = toml_parse(read_fixture(folder, "mapped.toml"), str(folder / "mapped.toml"))
                 exported = toml_to_xml(table, schema, str(folder / "mapped.toml"))
-                self.assertEqual(signature(xmlread.parse(exported, "").root), signature(xmlread.parse(stock, "").root))
+                self.assertEqual(signature(xml.parse(exported, "").root), signature(xml.parse(stock, "").root))
 
     def test_toml_survives_a_full_cycle(self):
         for folder in self.folders():
@@ -55,7 +54,7 @@ class GoldenTest(unittest.TestCase):
                 committed = read_fixture(folder, "mapped.toml")
                 schema = schema_for(toml_parse(committed, "").entries[0][0])
                 exported = toml_to_xml(toml_parse(committed, ""), schema, str(folder / "mapped.toml"))
-                again = xml_to_toml(xmlread.parse(exported, ""), schema)
+                again = xml_to_toml(xml.parse(exported, ""), schema)
                 self.assertEqual(toml_render(again), committed)
 
     def test_exported_text_is_cp1252_and_crlf(self):

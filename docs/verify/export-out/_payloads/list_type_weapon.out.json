@@ -1,0 +1,4303 @@
+{
+  "scope": "Firefight",
+  "root": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\Firefight",
+  "count": 716,
+  "entities": [
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 609
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 571
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 611
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 564
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 557
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 615
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 610
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 612
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 731
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 582
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 303
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 366
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 300
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 363
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 365
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 367
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 303
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 360
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 302
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 364
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 752
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1098
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10_S.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1099
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10_T.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1099
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10_T2S.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1023
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_TYPE_59.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1123
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_TYPE_69.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 823
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_TYPE_86.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 823
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_14.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 559
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_47_F2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 822
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_CN_105_F1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 836
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_HOWITZER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 687
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_JSW.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1028
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_JSW_HOWITZER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 731
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_L25.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 648
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_L7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1050
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_L70.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 764
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_LEFH18_L28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 768
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_M68.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 924
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_MAVAG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 676
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_T5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 794
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_80.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 825
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_83.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 826
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_88.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 825
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_88A.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 825
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_88B.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 826
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_105_TYPE_91.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 871
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_115_2A20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 960
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_GIAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 739
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_JSW.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 812
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_L1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 706
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_L11A5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 809
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_L30A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 809
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_L_44.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 817
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_L_55.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 817
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_M256.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 809
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_SA_46.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 711
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_120_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 685
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_122_A_19.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 736
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_122_D_25T.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 737
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_122_M_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 871
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 957
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46_2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 957
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 956
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46M_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 958
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46M_2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 958
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A46M_5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 958
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_2A82_1M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 958
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_KBA_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 956
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_TYPE_88C.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 817
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_125_TYPE_99A.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 820
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_128_KWK44_L55.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 800
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_128_PAK44.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 791
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_130_M_46.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 716
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_130_M_65.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 730
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_149_19.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_150_SFH18_L30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 550
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_150_SFH18_L32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 556
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_150_SIG_33.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 659
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_150_TYPE_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 754
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_150_TYPE_4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 753
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_152_M162.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 713
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_152_M81E1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 898
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_152_M_10.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_152_ML_20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 900
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_152_TYPE_83.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 720
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_155_JSW_HOWITZER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 585
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_155_T7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 853
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_155_T7E1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 855
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_155_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 719
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_15_MG151.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 665
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_17PDR_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 912
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_HISPANO.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 575
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_HO_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 655
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_HO_5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_KWK30_L55.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 765
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_KWK38_L55.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 765
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_MG151.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 663
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_MG151_TRIPLE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 704
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_MG_FF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 639
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_MG_FF_M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 649
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_OERLIKON.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 677
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_OERLIKON_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 720
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_POLSTEN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_POLSTEN_QUAD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_SHVAK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 655
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_ST5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 539
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_TNSH.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 655
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_TYPE_98.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20_WZ38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_20PDR_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 879
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_23_2A13.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 861
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_23_2A7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 860
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_23_NS_37.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 662
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_23_VYA_23.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 663
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_25_HOTCHKISS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 445
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_25_SA35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 440
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_25_SA37.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 440
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_25MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 687
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_25PDR_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 758
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_28_SPZB41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 574
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_2PDR_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 686
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_30_2A42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 763
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_30_2A72.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 763
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_30_GAU_8_AVENGER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 549
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 927
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 797
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_61_K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 643
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_B_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 673
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_BOFORS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_KWK34T_L40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 687
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_KWK36_L45.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 806
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_KWK38T_L47.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 690
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_L40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 574
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_L45.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 575
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_L54.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 489
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M1936.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M1A2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 719
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 749
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 779
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 779
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_M6.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 799
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_PAK36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 797
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_SA18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 798
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_SA38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 751
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 613
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_100.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 615
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_11.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 576
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_14.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 498
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_94.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 611
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_94_AT_GUN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 447
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_TYPE_98.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 437
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_37_WZ36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 556
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_38M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 990
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3_7_INCH_HOWITZER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 558
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3_7_INCH_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 674
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3INCH_M5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 855
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3INCH_M7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 868
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3INCH_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 666
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_3PDR_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 678
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_40_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 641
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_40_37M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 665
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_40_BOFORS_L60.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 666
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_40_MAVAG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 675
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_40M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 539
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_42_PAK41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 547
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_45_19K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 965
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_45_20K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 973
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_45_53K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 965
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_45_M42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 965
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_1939.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 764
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 644
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_L32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 871
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_L40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 776
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_PAK38_T.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 784
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_SA34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 670
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_SA35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_SA37.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 664
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_TYPE_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 648
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_TYPE_1_TANK_GUN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_47_WZ25.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 699
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_4_5INCH_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 873
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_50_KWK38_L42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 881
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_50_KWK39_L60.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 998
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_50_PAK38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 989
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57_M1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 896
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57_TYPE_90.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 759
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57_TYPE_97.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 759
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57_ZIS_2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 968
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57_ZIS_4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 968
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_57MM_MAXIM_NORDENFELT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 580
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_6PDR_OQF_HOTCHKISS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 603
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_6PDR_OQF_L43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 854
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_6PDR_OQF_L50.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1057
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_70_TYPE_92.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 663
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_73_2A28_GROM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 757
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_73_TYPE_85.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 719
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_13.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 542
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_41M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 782
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_HOWITZER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 674
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_K51_L24.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 801
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_KWK37_L24.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 804
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_KWK40_L43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 931
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_KWK40_L48.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 931
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_KWK42_L70.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 775
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_KWK44_L36_5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 806
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_L18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 773
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_L32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 661
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_L34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 771
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_L46.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 663
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_LEIG18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 655
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M1897.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 918
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M1897A4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 888
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M1943.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 913
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 875
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 895
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_M6.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 873
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_PAK39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 903
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_PAK40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 903
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_PAK41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 567
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_SA32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 669
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_SA35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 674
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_SA50.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 685
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_TYPE_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 752
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_TYPE_5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 749
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_TYPE_88.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 537
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_TYPE_90.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 756
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75_TYPE_99.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 670
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75MM_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 855
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_75MM_SCHNEIDER_BLOCKHAUS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_F_22.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 881
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_F_32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 869
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_F_34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 984
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_KT_28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 785
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_L23A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 698
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_L_10.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 783
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_L_11.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 867
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_M1A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 873
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_M1A1C.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 874
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_M1A2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 853
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_M32A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 897
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_PAK36R.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 992
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_S_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 672
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_USV.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 993
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_ZIS_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 860
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76_ZIS_5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 870
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_76MM_MOUNTAIN_GUN_M1909.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 585
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_77MM_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1005
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_80_PAW_600.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 686
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_85_52_K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 839
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_85_D_5T.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 839
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_85_S_53.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 843
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_85_TYPE_62.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 923
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_88_FLAK36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 698
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_88_KWK36_L56.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 908
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_88_KWK43_L71.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 893
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_88_PAK43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 884
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_88_RAKETENWERFER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 524
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_BK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1079
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_CN_90_F1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 732
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_CN_90_F3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 732
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_CN_90_F4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 732
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_COCKERILL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 740
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_L53.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 660
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 852
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_M3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1009
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_M41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 1066
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_SA_1945.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 686
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_T15.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 852
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_90_TYPE_61.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 835
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_95MM_OQF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 707
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_BREDA_20_65.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 753
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_FLAK_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 756
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_FLAK_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 757
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_FLAK_43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 758
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_FLAK_VIERLING_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 803
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_M242_BUSHMASTER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 684
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_MK101.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 650
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_MK103.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 650
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_MK103_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 693
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_MK108.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 650
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_MK20_RH202.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 786
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_RARDEN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 770
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_BERTHIER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 556
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_M1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_M_28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 550
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_M_39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CARBINE_MODEL_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_FLAMETHROWER_PORTABLE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 643
+    },
+    {
+      "path": "Data/Weapons/WEAPON_FLAMETHROWER_TANK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 649
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_1914.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 385
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 361
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_38M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 368
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_69.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 364
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_DM51.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 410
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_EIHANDGRANATE39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 387
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_F1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 383
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_F_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 384
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_GAMMON.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 364
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_GRANATE39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 349
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_L109A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 417
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_L2A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 415
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_30MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 641
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_40MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 641
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_AG36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 672
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_GEW.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 640
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_GM_94.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 764
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_GP_25.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 714
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_GRB_39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 764
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_HK69A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 674
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_HOWA_TYPE_96.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 734
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_M1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 645
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 645
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_M203.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 668
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_M7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 777
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_MILKOR_MGL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 725
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_QLZ_87.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 739
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_QTS_11.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 674
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_RG_6.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 768
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_SCHIESSBECHER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 640
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_SICHUANMADE_47.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 641
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_100.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 656
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_27.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 782
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 634
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_LAUNCHER_VB.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 642
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_M26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 405
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_MAN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 406
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_MK2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 378
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_MK3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 378
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_MOLOTOV_COCKTAIL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_RPG43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 349
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_AN_M8.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 422
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_FRANGIBLE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 385
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_M18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 413
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_M32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 419
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_MLE1916.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 421
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_N39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 420
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_NO77.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 415
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_RGD1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 417
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SMOKE_SRCM35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 398
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_SRCM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 353
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_STIELHANDGRANATE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 369
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_TYPE_18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 409
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_TYPE_23.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 382
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_TYPE_97.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 384
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_WZ33.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 362
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_WZ40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 358
+    },
+    {
+      "path": "Data/Weapons/WEAPON_GRENADE_WZ42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 383
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_31M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_50CAL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 603
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_50CAL_AN_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 609
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_50CAL_QUAD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 634
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_50CAL_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 633
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BEREZIN_UB.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BESA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 604
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_M1931.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 588
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_M1937.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 583
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_M1937_DUAL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 626
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_M1938.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 582
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_M1938_DUAL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_BREDA_SAFAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 599
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_DSHK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 589
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914_DUAL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 627
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1935.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 587
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_HOTCHKISS_1930.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 615
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_KPVT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 658
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_M1907.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 577
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_M1917.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 596
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_MAXIM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 588
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_MAXIM_M_09_21.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 669
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_MG08.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 621
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_MG131.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_MLE_1907.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 590
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_NSV.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_QJG_02.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_QJZ_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_SG43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 659
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_24.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_92.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_TYPE_93.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_VICKERS_303.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_VICKERS_50.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 707
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_WZ25.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 617
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_WZ30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 583
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_ZB_37.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 604
+    },
+    {
+      "path": "Data/Weapons/WEAPON_HMG_ZB_53.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 588
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_31M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 531
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_8_38M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 540
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_8_40M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 540
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_AA_52.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 611
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BAR.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BERGMANN_MG15NA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 621
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BESA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 616
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BREDA_M1930.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BREDA_SAFAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 596
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BREN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BREN_MK3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_BROWNING_FN_M36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 598
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_CHAUCHAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 613
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_DARNE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 586
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_DP27.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_DT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 590
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 609
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 636
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_GEBAUER_1918.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 540
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_GEBAUER_1926.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 547
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_HOTCHKISS_1914.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_HOTCHKISS_M1909.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_HOTCHKISS_MK1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 629
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_JINMADE_CZECH_MG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_KE_7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_L3A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_L7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 631
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_L_41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_LEWIS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 612
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_LS_26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M1918A2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M1919.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 640
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M1941.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M240.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M2429.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M249.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 621
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_M60.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 617
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MADSEN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG13.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG13_SMK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG13_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 638
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG15.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG17.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF_TWIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 638
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG37.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MG5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_MINIMI.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PKM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 654
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PKP.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 661
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PKS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 654
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PKT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 652
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_PV_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 587
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_QJB_95.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_QJB_95_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 627
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_QJY_88.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 626
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_REIBEL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 586
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_RPK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 657
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_SCHWARZLOSE_6_5MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_SCHWARZLOSE_8MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 616
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_SHKAS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 589
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_62.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_74.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_91.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_96.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_97.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_TYPE_99.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_VICKERS_303.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 596
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_WZ28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 601
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_WZ33.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_ZB_26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 603
+    },
+    {
+      "path": "Data/Weapons/WEAPON_LMG_ZB_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 611
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MLRS_M26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 632
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_120_43M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 554
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_120_PM_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 554
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_120MM_KRH_40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 560
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_2_INCH.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 559
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_36M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_39M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_3_INCH.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 560
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_45MM_BRIXIA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 549
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_4_2_INCH.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 561
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_4_2_INCH_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_5CM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_60_M2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 549
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_81_M1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 550
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_81MM_KRH_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 557
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_81MM_M35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 549
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_82MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 558
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_BRANDT_1935.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_BRANDT_2731.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 554
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_GW34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 558
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_GW36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 557
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_GW42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 560
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_L16_81MM.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 582
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_M1942.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 557
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_MO_120_RT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 577
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 544
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 550
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_31.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 554
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_63.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_82.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_87.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 577
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 547
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_90.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_96.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 580
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_97.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_98.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 544
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_TYPE_99.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_WZ31.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_MORTAR_WZ36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 560
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_37M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_BERETTA_M1934.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_BHP.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_CF_07.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_COLT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 585
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_ENFIELD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 606
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_GLOCK_17.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 628
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_GLOCK_19.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 628
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_HK_USP.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 626
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_JINMADE_TYPE_17.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_L9A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 631
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_L_35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_LUGER_P08.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_M1892.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_M1912.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 543
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_MAKAROV.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 661
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_MAUSER_C96.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 633
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_MAUSER_M1932.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 598
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_NAMBU.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_NP_22.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_NP_22A.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_NP_34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_NP_56.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_QSZ_92.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_QSZ_92G.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_TOKAREV.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_WZ35.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RECOILLESS_RIFLE_LG_40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 692
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RECOILLESS_RIFLE_M18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 737
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RECOILLESS_RIFLE_M20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 732
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_35M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 484
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AK_12.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AK_15.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AK_47.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AK_74.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AR_15.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ARISAKA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ARMAGUERRA_M39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 606
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_AS_VAL.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 645
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_BERTHIER.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_BREDA_PG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_CARCANO.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 553
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_CHUANMADE_79.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 568
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ENFIELD_M1917.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 559
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_FAMAS_F1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_FAMAS_G2.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_FG_42.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_G3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 613
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_GARAND.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 652
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_GEWEHR41.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 601
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_GEWEHR43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 601
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_GEWEHR98.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 581
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HANYANG_88.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 560
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HK_416.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HK_417.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HK_G36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HK_G36C.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_64.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_JINMADE_TYPE_65.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 561
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_KARABINER_98K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 561
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_L129A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 603
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_LEBEL_1886.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 552
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_LEE_ENFIELD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 554
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_LIAOMADE_TYPE_13.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M14.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 610
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M16.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 611
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M1941.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 566
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 612
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M_28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 546
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_M_39.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 559
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_MAS36.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 544
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_MAS49.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 615
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_MODEL_1930G.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 559
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBS_06.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBU_191.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_03.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_191.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_192.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_95.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_95_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_95B.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_QBZ_95B_1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 621
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SA80.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 623
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SCAR_H.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 613
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SCAR_L.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 614
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SKS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 654
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SLR.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SPRINGFIELD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 563
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_STEYR_AUG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 621
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_STG44.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SVD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 653
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SVT_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_SVT_40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_TYPE_38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 544
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_TYPE_56.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 614
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_VSS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 651
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_WINCHESTER_M1895.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 578
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_WZ29.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 548
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ZB24.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 556
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ZH29.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 597
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RIFLE_ZHONGZHENG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 557
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_16.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 681
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_22.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 683
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 683
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_27.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 682
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 682
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_29.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 682
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_32.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_3_KG.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 750
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_70MM_TYPE_4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 565
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_AT4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 769
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_BAZOOKA_M1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 676
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_BAZOOKA_M1A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 678
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_BAZOOKA_M20.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 733
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_BAZOOKA_M9.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 700
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_BAZOOKA_M9A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 702
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_CARL_GUSTAF.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_FGM_148_JAVELIN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 683
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_LAW_80.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 649
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_LRAC_F1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 581
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_M3_MAAWS.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 577
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_M47_DRAGON.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 673
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_M67.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 589
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_M72_LAW.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 639
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_100.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 598
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_150.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 587
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_30.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 604
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_30K.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 609
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_44.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERFAUST_60.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 596
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PANZERSCHRECK.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 534
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PF_69.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 639
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PF_89.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 639
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PF_98.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 576
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_PIAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 499
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_RP-3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 698
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_RP_3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 698
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_RS_82.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 690
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_TYPE_01_LMAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 675
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_TYPE_64_MAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 677
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_TYPE_79_JYU_MAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 682
+    },
+    {
+      "path": "Data/Weapons/WEAPON_RPG_TYPE_87_CHU_MAT.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 682
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_BENELLI_M4.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_HK_512.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_KS_23.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 659
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_M26.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_500.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_590.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 624
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_MTS225.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 660
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_NEOSTEAD_2000.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 625
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_QBS_09.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_REMINGTON_870.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 631
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_SAIGA_12.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 662
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SHOTGUN_TOZ_34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 660
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_39M.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 576
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_BERETTA_M1938.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 591
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_BJC_16.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_BLYSKAWICA.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_CHUANMADE_TOMMYGUN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_CS_LS5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_CS_LS7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_DAGUMADE.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 599
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_JH_16.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 619
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_JINMADE_TOMMYGUN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 584
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_KP_31.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 587
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_LIAOMADE_BERGMAN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 607
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M1921.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 590
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M1928A1.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 592
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M1932.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 601
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M1938.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 588
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M1941.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 586
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M3.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 581
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_M55.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 555
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MAS38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 587
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MAT49.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 622
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MINEBEA_PM_9.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 628
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP18.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP28.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 618
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 594
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP38.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 598
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 602
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP5.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 620
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_MP7.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 617
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_PPD.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 599
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_PPD_34.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 599
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_PPS_43.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 599
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_PPSH.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 600
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_QCQ_05.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 614
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_QCW_05.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 614
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_STEN.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 605
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_STERLING.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 605
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_THOMPSON.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 593
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_TYPE_100_40.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_TYPE_100_44.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 595
+    },
+    {
+      "path": "Data/Weapons/WEAPON_SMG_UZI.txt",
+      "category": "weapon",
+      "format": "txt",
+      "bytes": 616
+    }
+  ]
+}

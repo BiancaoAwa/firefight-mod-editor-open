@@ -1,0 +1,12 @@
+{
+  "path": "Data/Weapons/WEAPON_PISTOL_P38.txt",
+  "field": "name",
+  "count": 1,
+  "values": [
+    {
+      "path": "weapon/name",
+      "line": 3,
+      "value": "P38 Pistol"
+    }
+  ]
+}

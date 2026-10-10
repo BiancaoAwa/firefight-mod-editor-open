@@ -1,18 +1,12 @@
-"""Reference graph over entity documents.
+"""Reference graph over entity documents: collection, index and target resolution.
 
-A reference is a leaf value that names another file: a weapon slot, a sound, an
-image or a uniform.  Collection is pure (an :class:`~core.xmlmodel.XmlElement`
-plus its source path in, references out); :class:`TargetIndex` maps a value onto
-the asset layout of one scope root, which is the same shape for stock data and
-for a mod project (``Data/``, ``Images/``, ``Sounds/``).
-
-Layout rules and their measured coverage are in ``docs/refs.md``.
+``TargetIndex`` maps a leaf value onto the asset layout of one scope root (docs/refs.md).
 """
 
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.xmlmodel import XmlElement
+from core.xml import XmlElement
 
 
 @dataclass(frozen=True)

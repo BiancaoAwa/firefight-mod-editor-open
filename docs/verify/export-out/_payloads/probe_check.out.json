@@ -1,0 +1,17 @@
+{
+  "scope": "Firefight",
+  "files": 3,
+  "loaded": 1,
+  "skipped": 1,
+  "errors": [
+    {
+      "path": "Data/Bad/broken.toml",
+      "error": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\_probe-scope\\Data\\Bad\\broken.toml:1:1: TOML syntax (array-of-tables header must end with ']]')"
+    }
+  ],
+  "warnings_total": 0,
+  "warning_files": 0,
+  "warning_samples": [],
+  "dangling": [],
+  "ok": false
+}

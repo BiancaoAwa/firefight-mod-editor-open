@@ -1,0 +1,8 @@
+python.exe : unknown as=json; use raw, toml or xml
+At line:7 char:3
++   & $py $cli @argv 1> $so 2> $se
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (unknown as=json; use raw, toml or xml:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+run 'ff help' for usage

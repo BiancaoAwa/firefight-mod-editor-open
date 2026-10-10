@@ -4,7 +4,7 @@ import shutil
 import unittest
 from pathlib import Path
 
-from core import refs, xmlread
+from core import refs, xml
 
 SCRATCH = Path(__file__).resolve().parent / "_scratch_refs"
 
@@ -67,7 +67,7 @@ AT_GUN = """<squad>
 
 
 def parse(text: str, origin: str = "unit.txt"):
-    return xmlread.parse(text, origin).root
+    return xml.parse(text, origin).root
 
 
 class ScratchTest(unittest.TestCase):

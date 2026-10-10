@@ -5,9 +5,9 @@ import unittest
 from core.convert import toml_to_xml, xml_to_toml
 from core.errors import SchemaError
 from core.schema import schema_for
-from core.tomlmodel import TomlArrayEntry, TomlTable, TomlValue
-from core.xmlmodel import XmlElement
-from core.xmlread import parse as xml_parse
+from core.toml import TomlArrayEntry, TomlTable, TomlValue
+from core.xml import XmlElement
+from core.xml import parse as xml_parse
 
 SQUAD = """<squad>
 \t<description>
@@ -167,10 +167,14 @@ class EdgeCaseTest(unittest.TestCase):
             xml_to_toml(document)
         self.assertEqual(caught.exception.path, ("squad", "description", "type"))
 
-    def test_repeated_single_instance_table_is_rejected(self) -> None:
+    def test_repeated_single_instance_table_becomes_an_array(self) -> None:
         document = xml_parse("<squad><description></description><description></description></squad>", "unit")
-        with self.assertRaises(SchemaError):
-            xml_to_toml(document)
+        table = xml_to_toml(document)
+        squad = table_of(table, "squad")
+        description = squad.get("description")
+        assert isinstance(description, TomlArrayEntry)
+        self.assertEqual(len(description.items), 2)
+        self.assertTrue(any("table repeats 2 times" in warning for warning in document.warnings))
 
     def test_unknown_root_has_no_schema(self) -> None:
         document = xml_parse("<mod><name>x</name></mod>", "unit")

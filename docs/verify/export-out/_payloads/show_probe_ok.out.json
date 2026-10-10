@@ -1,0 +1,6 @@
+{
+  "path": "Data/Good/ok.toml",
+  "format": "toml",
+  "text": "[Weapon]\nname = \"Synthetic Probe\"\n\n",
+  "warnings": []
+}

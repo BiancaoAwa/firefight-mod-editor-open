@@ -1,0 +1,307 @@
+# =============================================================================
+# Firefight 枚举表（合并整理版，2026-09-26）
+# 来源: AUV(1).txt（13.0.0 反编译枚举） + AUV(2).txt（引擎数据模板内嵌值）
+#       + 12.2.0 WW2 原版基线（validate.py 内置）
+# 格式: 类别:值          （# 后为注释，整行 # 开头为注释）
+# 类别: type / vehicle_type / nationality / quality / job / reliability /
+#       steering / mount / reload / weapon_class / flavour / era / guided /
+#       period / sound / country / lang
+# 说明: ①武器文件里声明的枚举值本身即合法（校验器自动学习），本表是兜底白名单
+#       ②带 ⚠ 的为引擎原文拼写错误，保留原样（数据里确实在用）
+# =============================================================================
+
+# ---- 国家代码 country（<usage><countries> 用 | 分隔）----
+country:USA
+country:UNITED_KINGDOM
+country:FRANCE
+country:GERMANY
+country:RUSSIA
+country:JAPAN
+country:ITALY
+country:CHINA
+country:POLAND
+country:CANADA
+country:ROMANIA
+country:AUSTRALIA
+country:HUNGARY
+country:SOUTH_KOREA
+country:NORTH_KOREA
+country:IRAQ
+country:IRAN
+country:NORTH_VIETNAM
+country:SOUTH_VIETNAM
+country:UKRAINE
+country:FINLAND
+country:INDIA
+country:PAKISTAN
+country:EGYPT
+country:JORDAN
+country:SYRIA
+country:KUWAIT
+country:ISRAEL
+country:ARMENIA
+country:AZERBAIJAN
+country:GEORGIA
+country:TURKEY
+country:AUSTRIA
+country:BELGIUM
+country:NETHERLANDS
+
+# ---- 国籍 nationality（<description><nationality>）----
+nationality:NATIONALITY_AMERICAN
+nationality:NATIONALITY_BRITISH
+nationality:NATIONALITY_CHINESE
+nationality:NATIONALITY_FINNISH
+nationality:NATIONALITY_FRENCH
+nationality:NATIONALITY_GERMAN
+nationality:NATIONALITY_HUNGARIAN
+nationality:NATIONALITY_ITALIAN
+nationality:NATIONALITY_JAPANESE
+nationality:NATIONALITY_POLISH
+nationality:NATIONALITY_ROMANIAN
+nationality:NATIONALITY_RUSSIAN
+nationality:NATIONALITY_UKRAINIAN
+nationality:NATIONALITY_CANADIAN
+nationality:NATIONALITY_AUSTRALIAN
+nationality:NATIONALITY_SOUTH_KOREAN
+nationality:NATIONALITY_NORTH_KOREAN
+nationality:NATIONALITY_IRAQI
+nationality:NATIONALITY_IRANIAN
+nationality:NATIONALITY_NORTH_VIETNAMESE
+nationality:NATIONALITY_SOUTH_VIETNAMESE
+nationality:NATIONALITY_INDIAN
+nationality:NATIONALITY_PAKISTANI
+nationality:NATIONALITY_EGYPTIAN
+nationality:NATIONALITY_JORDANIAN
+nationality:NATIONALITY_SYRIAN
+nationality:NATIONALITY_KUWAITI
+nationality:NATIONALITY_ISRAELI
+nationality:NATIONALITY_ARMENIAN
+nationality:NATIONALITY_AZERBAIJANI
+nationality:NATIONALITY_GEORGIAN
+nationality:NATIONALITY_AUSTRIAN
+nationality:NATIONALITY_TURKISH
+nationality:NATIONALITY_BELGIAN
+nationality:NATIONALITY_DUTCH
+nationality:NATIONALITY_FINLAND          # ⚠ 原文如此（应为 _FINNISH，引擎两处用法不一致）
+nationality:NATIONALITY_KUWATI           # ⚠ 原文如此（应为 _KUWAITI）
+
+# ---- 小写国籍 / 语言代码 lang（<language>、surnames、voice 用）----
+lang:american
+lang:british
+lang:chinese
+lang:finnish
+lang:french
+lang:german
+lang:hungarian
+lang:italian
+lang:japanese
+lang:polish
+lang:romanian
+lang:russian
+lang:ukrainian
+lang:canadian
+lang:australian
+lang:south_korean
+lang:north_korean
+lang:iraqi
+lang:iranian
+lang:north_vietnamese
+lang:south_vietnamese
+lang:indian
+lang:pakistani
+lang:egyptian
+lang:jordanian
+lang:syrian
+lang:kuwaiti
+lang:israeli
+lang:armenian
+lang:azerbaijani
+lang:georgian
+lang:austrian
+lang:turkish
+lang:belgian
+lang:dutch
+
+# ---- 武器大类 weapon_class（Weapons/*.txt 的 <type>，同时是文件名前缀）----
+weapon_class:WEAPON_NONE
+weapon_class:WEAPON_PISTOL
+weapon_class:WEAPON_RIFLE
+weapon_class:WEAPON_CARBINE
+weapon_class:WEAPON_SHOTGUN
+weapon_class:WEAPON_SMG
+weapon_class:WEAPON_LMG
+weapon_class:WEAPON_HMG
+weapon_class:WEAPON_AT_RIFLE
+weapon_class:WEAPON_ATGM
+weapon_class:WEAPON_BAZOOKA
+weapon_class:WEAPON_RPG
+weapon_class:WEAPON_RECOILLESS_RIFLE
+weapon_class:WEAPON_MORTAR
+weapon_class:WEAPON_GRENADE_LAUNCHER
+weapon_class:WEAPON_FLAMETHROWER
+weapon_class:WEAPON_FLAMETHROWER_PORTABLE
+weapon_class:WEAPON_FLAMETHROWER_TANK
+weapon_class:WEAPON_CANNON
+weapon_class:WEAPON_MLRS
+weapon_class:WEAPON_GRENADE
+weapon_class:WEAPON_BOMB
+weapon_class:WEAPON_ARTILLERY
+
+# ---- 单位类型 type（<description><type>；不校验所在目录）----
+type:TYPE_INFANTRY_SECTION
+type:TYPE_AT_RIFLE
+type:TYPE_BAZOOKA
+type:TYPE_GRENADE_LAUNCHER
+type:TYPE_FLAMETHROWER
+type:TYPE_HMG
+type:TYPE_MORTAR
+type:TYPE_RECOILLESS_RIFLE
+type:TYPE_ATGUN
+type:TYPE_HOWITZER
+
+# ---- 车辆类型 vehicle_type（Vehicles 的 <type> 子集）----
+vehicle_type:TYPE_TANK
+vehicle_type:TYPE_ASSAULT_GUN
+vehicle_type:TYPE_INFANTRY_FIGHTING_VEHICLE
+vehicle_type:TYPE_HALFTRACK
+vehicle_type:TYPE_ARMOURED_CAR
+vehicle_type:TYPE_LORRY
+
+# ---- 班组素质 quality（<quality>）----
+quality:QUALITY_ELITE
+quality:QUALITY_SUPERIOR
+quality:QUALITY_REGULAR
+quality:QUALITY_POOR
+quality:QUALITY_UNTRAINED
+quality:QUALITY_RAW
+
+# ---- 发动机可靠性 reliability（<reliability>）----
+reliability:RELIABILITY_TERRIBLE
+reliability:RELIABILITY_VERY_POOR
+reliability:RELIABILITY_POOR
+reliability:RELIABILITY_AVERAGE
+reliability:RELIABILITY_GOOD
+reliability:RELIABILITY_VERY_GOOD
+reliability:RELIABILITY_EXCELLENT
+
+# ---- 转向类型 steering（<steering>）----
+steering:STEERING_CLUTCH_AND_BRAKES
+steering:STEERING_CONTROLLED_DIFFERENTIAL
+steering:STEERING_DOUBLE_DIFFERENTIAL
+steering:STEERING_DOUBLE_DIFFERENTIAL_MAYBACH
+steering:STEERING_TRIPLE_DIFFERENTIAL
+steering:STEERING_TWIN_TRANSMISSION
+steering:STEERING_TWIN_TRANSMISSION_WITH_REVERSE
+steering:STEERING_FRONT_WHEELS
+steering:STEERING_HALFTRACK
+
+# ---- 职位 job（<man><job>）----
+job:JOB_NONE
+job:JOB_SQUAD_LEADER
+job:JOB_SQUAD_ASSISTANT_LEADER
+job:JOB_SQUAD_MG_ASSISTANT
+job:JOB_COMMANDER
+job:JOB_GUNNER
+job:JOB_LOADER
+job:JOB_DRIVER
+job:JOB_RADIO
+job:JOB_MACHINE_GUNNER
+
+# ---- 安装位置 mount（发动机 <mount>）----
+mount:MOUNT_FRONT
+mount:MOUNT_MIDDLE
+mount:MOUNT_REAR
+
+# ---- 装填方式 reload（<reload>；引擎模板原文两值粘连 RELOAD_SEMI_AUTOMATICRELOAD_AUTOMATIC 是引擎笔误）----
+reload:RELOAD_SEMI_AUTOMATIC
+reload:RELOAD_AUTOMATIC
+
+# ---- 弹种 flavour（<ammo><type><flavour>）----
+flavour:FLAVOUR_NONE
+# 榴弹 / 霰弹类
+flavour:FLAVOUR_BALL
+flavour:FLAVOUR_PELLETS
+flavour:FLAVOUR_SHRAPNEL
+flavour:FLAVOUR_WOOD_SPLINTER
+flavour:FLAVOUR_SPARK
+# 穿甲系
+flavour:FLAVOUR_AP
+flavour:FLAVOUR_APC
+flavour:FLAVOUR_APCBC
+flavour:FLAVOUR_APCR
+flavour:FLAVOUR_APCNR
+flavour:FLAVOUR_APDS
+flavour:FLAVOUR_APFSDS
+flavour:FLAVOUR_AP_HE
+flavour:FLAVOUR_APC_HE
+flavour:FLAVOUR_APCBC_HE
+# 高爆 / 化学能
+flavour:FLAVOUR_HE
+flavour:FLAVOUR_HEAT
+flavour:FLAVOUR_HEATFS
+flavour:FLAVOUR_HESH
+flavour:FLAVOUR_ATGM
+flavour:FLAVOUR_CANISTER
+flavour:FLAVOUR_SMOKE
+flavour:FLAVOUR_FLAME
+# 步枪 / 手榴弹
+flavour:FLAVOUR_AT_RIFLE_AP
+flavour:FLAVOUR_AT_RIFLE_HE
+flavour:FLAVOUR_GRENADE_HE
+flavour:FLAVOUR_GRENADE_HEAT
+flavour:FLAVOUR_GRENADE_FLAME
+flavour:FLAVOUR_GRENADE_SMOKE
+# 火箭 / 迫击炮 / 炮兵 / 航弹
+flavour:FLAVOUR_RPG_HEAT
+flavour:FLAVOUR_RPG_HE
+flavour:FLAVOUR_RPG_SMOKE
+flavour:FLAVOUR_MORTAR_HE
+flavour:FLAVOUR_MORTAR_SMOKE
+flavour:FLAVOUR_ROCKET_HE
+flavour:FLAVOUR_BOMB_HE
+flavour:FLAVOUR_ARTILLERY_HE
+flavour:FLAVOUR_ARTILLERY_SMOKE
+# 弹种标志位（引擎内部）
+flavour:FLAVOUR_FLAG_AP
+flavour:FLAVOUR_FLAG_AP_HE
+flavour:FLAVOUR_FLAG_APC
+flavour:FLAVOUR_FLAG_APC_HE
+flavour:FLAVOUR_FLAG_APCBC
+flavour:FLAVOUR_FLAG_APCBC_HE
+
+# ---- HEAT 时代 era（<ammo><type><era>）----
+era:HEAT_ERA_EARLY
+era:HEAT_ERA_LATE
+era:HEAT_ERA_COLD_WAR_EARLY
+era:HEAT_ERA_COLD_WAR
+era:HEAT_ERA_COLD_WAR_LATE
+era:HEAT_ERA_MODERN
+
+# ---- 制导方式 guided（<ammo><type><guided>）----
+guided:GUIDED_NO
+guided:GUIDED_MANUAL
+guided:GUIDED_FAF
+guided:GUIDED_TOP_ATTACK
+guided:GUIDED_OVER_THE_TOP
+
+# ---- 时代 / 战役 period（<usage><period>）----
+period:WW1
+period:WW2
+period:MODERN
+# 战役（13.x 新增场景包）
+period:Korea
+period:Vietnam
+period:Gulf 1
+period:Gulf 2
+period:Ukraine
+period:Gallipoli
+period:Verdun
+period:Somme
+period:Passchendaele
+period:Michael
+period:Dunkirk
+period:Barbarossa
+period:El-Alamein
+period:Kursk
+period:D-Day

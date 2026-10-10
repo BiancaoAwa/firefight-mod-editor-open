@@ -1,0 +1,1412 @@
+{
+  "query": {
+    "tag": "name",
+    "value": null,
+    "path": null,
+    "ignore_case": false
+  },
+  "count": 200,
+  "truncated": true,
+  "matches": [
+    {
+      "path": "Data/Vehicles/American-LVT(A)-1.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W-690-9A"
+    },
+    {
+      "path": "Data/Vehicles/American-LVT(A)-2.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W-690-9A"
+    },
+    {
+      "path": "Data/Vehicles/American-LVT(A)-4.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R-975"
+    },
+    {
+      "path": "Data/Vehicles/American-LVT-2.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W-690-9A"
+    },
+    {
+      "path": "Data/Vehicles/American-LVT-4.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W-670-9A"
+    },
+    {
+      "path": "Data/Vehicles/American-M1 Armoured Car.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Hercules JXD"
+    },
+    {
+      "path": "Data/Vehicles/American-M1 Combat Car.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M10 Wolverine.txt",
+      "line": 30,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M10A1 Wolverine.txt",
+      "line": 30,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA V8"
+    },
+    {
+      "path": "Data/Vehicles/American-M13 Halftrack.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M15 Halftrack.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M15A1 Halftrack.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M16 Halftrack.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M18 Hellcat 90mm.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M18 Hellcat.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M2 Halftrack.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M2 Medium Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M20 Armoured Car.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Hercules JXD"
+    },
+    {
+      "path": "Data/Vehicles/American-M22 Locust.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Lycoming 0 435T"
+    },
+    {
+      "path": "Data/Vehicles/American-M24 Chaffee.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Cadillac Twin Series 44T4"
+    },
+    {
+      "path": "Data/Vehicles/American-M26 Pershing.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAF"
+    },
+    {
+      "path": "Data/Vehicles/American-M26 Super Pershing.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAF"
+    },
+    {
+      "path": "Data/Vehicles/American-M2A1 Light Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M2A2 Light Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M2A3 Light Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M2A4 Light Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M3 Halftrack.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M3 Lee (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M3 Lee.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M3 Light Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M36 Tank Destroyer.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M36B1 Tank Destroyer.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M36B2 Tank Destroyer.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M3A1 GMC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-M3A1 Satan.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M4 Sherman (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4 Sherman (late).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4 Sherman (mid).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4(105) Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1 Sherman (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1 Sherman (late).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1 Sherman (mid).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1 Sherman (very early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 EC2"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1(76)W Sherman HVSS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A1(76)W Sherman VVSS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A2 Sherman (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A2 Sherman (late).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A2 Sherman (mid).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A2(76)W Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3 Sherman (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3 Sherman (late).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3 Sherman (mid).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3(105) Sherman HVSS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3(105) Sherman VVSS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3(75)W Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3(76)W Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3E2 Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3E2(76) Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3E8(76) Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3R2 Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3R3 Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M4A3R5 Sherman.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAA"
+    },
+    {
+      "path": "Data/Vehicles/American-M5A1 Light Tank.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Twin Cadillac Series 42"
+    },
+    {
+      "path": "Data/Vehicles/American-M5A1 Satan.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/American-M7 Priest.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/American-M8 Armoured Car.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Hercules JXD"
+    },
+    {
+      "path": "Data/Vehicles/American-M8 HMC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Twin Cadillac Series 42"
+    },
+    {
+      "path": "Data/Vehicles/American-T17 Deerhound.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "2 x Hercules JXD 6-cylinder petrol engines"
+    },
+    {
+      "path": "Data/Vehicles/American-T19 HMC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-T26E5 Pershing.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAF"
+    },
+    {
+      "path": "Data/Vehicles/American-T29 Heavy Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford GAC V12"
+    },
+    {
+      "path": "Data/Vehicles/American-T30 Heavy Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental AV-1790-3 V12"
+    },
+    {
+      "path": "Data/Vehicles/American-T30 HMC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/American-T30E1 Heavy Tank.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental AV-1790-3 V12"
+    },
+    {
+      "path": "Data/Vehicles/American-T48 GMC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "White 160 AX"
+    },
+    {
+      "path": "Data/Vehicles/British-A10 Cruiser Mk II IA CS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A179"
+    },
+    {
+      "path": "Data/Vehicles/British-A10 Cruiser Mk II IA.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A179"
+    },
+    {
+      "path": "Data/Vehicles/British-A10 Cruiser Mk II.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A179"
+    },
+    {
+      "path": "Data/Vehicles/British-A11 Infantry Mk I Matilda I.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford V8 239"
+    },
+    {
+      "path": "Data/Vehicles/British-A12 Infantry Mk II Matilda II CS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Leyland Twin E164"
+    },
+    {
+      "path": "Data/Vehicles/British-A12 Infantry Mk II Matilda II Mk II.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC Twin"
+    },
+    {
+      "path": "Data/Vehicles/British-A12 Infantry Mk II Matilda II Mk IV.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Leyland Twin E164"
+    },
+    {
+      "path": "Data/Vehicles/British-A13 Cruiser Mk III.txt",
+      "line": 30,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkII"
+    },
+    {
+      "path": "Data/Vehicles/British-A13 Cruiser Mk IV.txt",
+      "line": 30,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkII"
+    },
+    {
+      "path": "Data/Vehicles/British-A13 Cruiser Mk V Covenanter.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkII"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader CS.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkII"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk I.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkII"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk II.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkIII"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk III AA Mk I.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty Mk IV"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk III AA Mk II.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty Mk IV"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk III AA Mk III.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty Mk IV"
+    },
+    {
+      "path": "Data/Vehicles/British-A15 Cruiser Mk VI Crusader Mk III.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty MkIV"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk I.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk II.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk IV.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk V.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk VII Crocodile.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill Mk VII.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A22 Infantry Mk IV Churchill NA 75.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A24 Cruiser Mk VII Cavalier.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty V12 Petrol"
+    },
+    {
+      "path": "Data/Vehicles/British-A27L Cruiser Mk VIII Centaur.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Nuffield Liberty V12 Petrol"
+    },
+    {
+      "path": "Data/Vehicles/British-A27M Cruiser Mk VIII Cromwell I.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A27M Cruiser Mk VIII Cromwell IV.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A30 Cruiser Mk VIII Challenger.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A34 Comet.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A41 Centurion Mk 1.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A41 Centurion Mk 2.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Rolls Royce Meteor"
+    },
+    {
+      "path": "Data/Vehicles/British-A43 Infantry Black Prince.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-A9 Cruiser Mk I.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A179"
+    },
+    {
+      "path": "Data/Vehicles/British-AEC Armoured Car Mk I.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A195"
+    },
+    {
+      "path": "Data/Vehicles/British-AEC Armoured Car Mk II.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A197"
+    },
+    {
+      "path": "Data/Vehicles/British-AEC Armoured Car Mk III.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A197"
+    },
+    {
+      "path": "Data/Vehicles/British-Bishop.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A190"
+    },
+    {
+      "path": "Data/Vehicles/British-Boys Gun Carrier.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Bren Gun Carrier.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Daimler Armoured Car.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Daimler 4 1L"
+    },
+    {
+      "path": "Data/Vehicles/British-Daimler Scout Car AT Rifle.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "2.5 litre 6-cyl Daimler petrol"
+    },
+    {
+      "path": "Data/Vehicles/British-Daimler Scout Car.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "2.5 litre 6-cyl Daimler petrol"
+    },
+    {
+      "path": "Data/Vehicles/British-Humber Armoured Car Mk I.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Humber Armoured Car Mk IV.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Humber Scout Car.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Kangaroo Churchill.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Bedford Twin Six"
+    },
+    {
+      "path": "Data/Vehicles/British-Kangaroo Priest.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Kangaroo Sherman.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Chrysler A57"
+    },
+    {
+      "path": "Data/Vehicles/British-Lanchester 6x4.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Light Tank Mk VIA.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Light Tank Mk VIB.txt",
+      "line": 30,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Light Tank Mk VIC.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Light Tank Mk VII Tetrarch.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows MAT H12 petrol"
+    },
+    {
+      "path": "Data/Vehicles/British-Light Tank Mk VIII Harry Hopkins.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-LVT-4.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W-670-9A"
+    },
+    {
+      "path": "Data/Vehicles/British-M10 Achilles.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/British-M10 Wolverine.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/British-M3 Grant (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-M3 Grant.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-M5 Halftrack.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "IHC RED-450-B V6"
+    },
+    {
+      "path": "Data/Vehicles/British-M7 Priest.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Morris CS9.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Morris LRC.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/British-Sexton.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman I.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman IB.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman IC Firefly.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman IC Hybrid Firefly.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman II.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman IIA.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R975 C1"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman III.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "General Motors 6046"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman V (early).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Chrysler A57"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman V.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Chrysler A57"
+    },
+    {
+      "path": "Data/Vehicles/British-Sherman VC Firefly.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Chrysler A57"
+    },
+    {
+      "path": "Data/Vehicles/British-Skink.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental R-975C1 radial"
+    },
+    {
+      "path": "Data/Vehicles/British-Staghound Mk I.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 270 Twin"
+    },
+    {
+      "path": "Data/Vehicles/British-Staghound Mk II.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 270 Twin"
+    },
+    {
+      "path": "Data/Vehicles/British-Staghound Mk III.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 270 Twin"
+    },
+    {
+      "path": "Data/Vehicles/British-Stuart I.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/British-Stuart VI.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/British-Valentine Archer.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 6004 6 71A"
+    },
+    {
+      "path": "Data/Vehicles/British-Valentine Mk II.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "AEC A190"
+    },
+    {
+      "path": "Data/Vehicles/British-Valentine Mk IX.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 6004 6 71A"
+    },
+    {
+      "path": "Data/Vehicles/British-Valentine Mk X.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 6004 6 71A"
+    },
+    {
+      "path": "Data/Vehicles/British-Valentine Mk XI.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GMC 6004 6 71A"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-BA-27.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GAZ MM"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-BA-6.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GAZ MM"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Boys UC.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Bren UC.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows 6 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-BT-5.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Model M5"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Carro Veloce L3-35.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Fiat SPA CV3"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-M3 Light Tank.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Continental W670 7"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-M4A4 Sherman.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Chrysler A57"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-M5A1 Light Tank.txt",
+      "line": 32,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Twin Cadillac Series 42"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Renault AMR ZB MG.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault Reinastela"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Renault AMR ZB.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault Reinastela"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Renault FT-17 (female).txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault 4 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Renault FT-17 (male).txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault 4 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-SdKfz 221.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Maybach HL42 TUKRM"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-SdKfz 222.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Maybach HL42 TUKRM"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-T-26B.txt",
+      "line": 37,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Armstrong-Siddeley V4"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Type 95 Ha-Go.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Mitsubishi A6120VD"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Type 97 Chi-Ha.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Mitsubishi SA12200VD"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-VCL M1931.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Meadows V6"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-VCL MKIV tankette.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Ford T4"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Vickers 6t MkEB.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Armstrong Siddeley petrol"
+    },
+    {
+      "path": "Data/Vehicles/Chinese-Vickers Artillery Tractor.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Armstrong Siddeley petrol"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-BA-10M.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "GAZ MM"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-BT-42.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Mikulin M-17T"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-BT-5.txt",
+      "line": 31,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Model M5"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-BT-7.txt",
+      "line": 29,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Mikulin M 17T"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-ISU-152.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-KV-1 Model 1940.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-Panzer IV Ausf J.txt",
+      "line": 27,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Maybach HL120 TRM 112"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-Renault FT-17 (female).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault 4 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-Renault FT-17 (male).txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Renault 4 cylinder"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-StuG III Ausf G.txt",
+      "line": 28,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Maybach HL120 TRM 112"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-26.txt",
+      "line": 36,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "T-26"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-26B.txt",
+      "line": 36,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Armstrong-Siddeley V4"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-28 Model 1938.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "Mikulin M 17T"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-34-76 Model 1940.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-34-76 Model 1942.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-34-85 Model 1943.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    },
+    {
+      "path": "Data/Vehicles/Finnish-T-34-85 Model 1944.txt",
+      "line": 26,
+      "tag": "name",
+      "document_path": "squad/vehicle/drive/engine/name",
+      "value": "V 2 34"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+python.exe : cannot find a mod project here; run inside a project (mod.toml), or pass root=<project directory>
+At line:7 char:3
++   & $py $cli @argv 1> $so 2> $se
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (cannot find a m...ject directory>:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+run 'ff help' for usage
