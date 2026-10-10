@@ -31,6 +31,13 @@ UTF8_FLAG = 0x100
 
 
 # ================================================================ 通用
+def _new_temp_path(suffix):
+    """原子创建空临时文件并返回其路径"""
+    fd, path = tempfile.mkstemp(suffix=suffix)
+    os.close(fd)
+    return path
+
+
 def find_ref():
     v = os.environ.get("FIREFIGHT_REF")
     if v and os.path.isdir(os.path.join(v, "Data")):
@@ -537,8 +544,9 @@ def read_apk_manifest(apk_path):
         raise RuntimeError("缺少 ManifestEditor 包（需与 ffpack.py 同目录）")
     with zipfile.ZipFile(apk_path) as z:
         xml = z.read("AndroidManifest.xml")
-    t = tempfile.mktemp(".xml")
-    open(t, "wb").write(xml)
+    t = _new_temp_path(".xml")
+    with open(t, "wb") as f:
+        f.write(xml)
     try:
         am = ManifestEditor.AndroidManifest(t)
         tc = am.xml_chunk.find_tag_chunk("manifest")
@@ -950,9 +958,10 @@ def patch_manifest_permissions(manifest_bytes, old_pkg, new_pkg, log=print):
     - uses-permission/permission 的 name（如 <old>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION）
     - provider 的 authorities（如 <old>.androidx-startup，不改会与原版同装冲突）
     注意: 组件类名（activity name 等）指向 dex 里的旧包类，绝不能改。"""
-    tmp = tempfile.mktemp(".xml")
-    open(tmp, "wb").write(manifest_bytes)
-    out = tempfile.mktemp(".xml")
+    tmp = _new_temp_path(".xml")
+    with open(tmp, "wb") as f:
+        f.write(manifest_bytes)
+    out = _new_temp_path(".xml")
     try:
         am = ManifestEditor.AndroidManifest(tmp)
         changed = 0
@@ -1113,7 +1122,7 @@ def repack_apk(src_apk, dst_apk, mod_dir=None, manifest_attrs=None, app_name=Non
     icon_paths = set()
     if icon_pool:
         try:
-            _mid = _extract_manifest(src_apk, tempfile.mktemp(".xml"))
+            _mid = _extract_manifest(src_apk, _new_temp_path(".xml"))
             _am = ManifestEditor.AndroidManifest(_mid)
             _app = _am.xml_chunk.find_tag_chunk("application")
             _iv = _app.get_attr_value("icon") or ""
@@ -1143,7 +1152,7 @@ def repack_apk(src_apk, dst_apk, mod_dir=None, manifest_attrs=None, app_name=Non
                 v = int(v)
             patch[k] = v
         if patch:
-            tmp = tempfile.mktemp(".xml")
+            tmp = _new_temp_path(".xml")
             try:
                 ManifestEditor.modify_xml_attr(_extract_manifest(src_apk, tmp), {"tag": "manifest"},
                                                [{"key": k, "value": v} for k, v in patch.items()])
