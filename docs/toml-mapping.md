@@ -281,3 +281,189 @@ The source excerpt also establishes two facts:
 4. Encoding: every exported file must encode in the encoding it was read with — UTF-8 strict first, cp1252 fallback, ASCII reported as cp1252 (0 failures; §7.1 of [m1-report.md](m1-report.md)). Stock data is not uniformly cp1252: 13 files store `×` as UTF-8. cp1252 encodability of the export is recorded as information, not as a gate.
 5. The in-house TOML implementation **must raise an error rather than degrade silently** on unsupported syntax (with unit tests).
 6. **Byte fidelity (added 2026-10-11)**: `export` reproduces a file read from disk **byte for byte**, including sibling order, blank lines, indentation, `//` comments and newline style, because the reader captures the source layout (§4.1). Gate: `python tools/export_fidelity.py --data "<Firefight>/Data"` exits non-zero unless every file is identical (1840 of 1840 on the stock corpus), and `tests/test_roundtrip_bytes.py` pins the individual layout cases (CRLF, LF, missing trailing newline, trailing blank line, comment before an element, inline branch, multiline leaf, self-closing element, declaration, deep indentation, cp1252 text, stray text). The semantic criterion of item 1 stays the floor and must keep holding for documents rendered without source layout (a `.toml` project file).
+
+---
+
+# XML ↔ TOML 映射规范（草案 v0）
+
+> 状态：已合并进 `main`，并包含 [m1-design.md](m1-design.md) 记录的 M1 细化。本文档定义 M1 实现的双向映射。
+> 底层事实来自 [m0-baseline.md](m0-baseline.md)，均为实测。
+
+## 1. 总则
+
+1. **TOML 是唯一事实来源**：项目内实体数据只以 TOML 存在；XML 仅为「导出为原版标准」而渲染。
+2. **验收标准**（已议定）：`XML → TOML → XML` 必须与原版**语义等价**，而非逐字节相同；`TOML → XML → TOML` 必须
+   在字段级无损。
+3. **不使用第三方依赖**：按项目方「为编辑器自研 TOML 实现」的要求，代码自研（见 §6），不使用 `tomlkit` 或
+   `tomli`。
+4. **保真优先**：未编辑的实体必须能原样导出。为此项目为每个实体保存**原版来源快照**（见
+   [project-layout.md](project-layout.md)），导出未编辑实体时回显快照。
+5. **保守导出、宽容导入**（裁决 D6）：导出侧尽量贴合原版，导入侧可以更健壮。细节见 §4 与 §5。
+
+## 2. 元素 → TOML 映射规则
+
+原版 XML **没有属性、没有命名空间、没有混合内容**（实测），因此五条规则足够：
+
+| # | XML | TOML | 示例 |
+|---|---|---|---|
+| R1 | 根元素 | 以元素名命名的顶层表 | `<squad>` → `[squad]` |
+| R2 | 单实例子元素 | 同名键（表或标量） | `<description><type>X</type></description>` → `[squad.description]` 加 `type = "X"` |
+| R3 | 多实例子元素 | 表数组 `[[...]]` | `<man>…</man><man>…</man>` → 两个 `[[squad.man]]` 条目 |
+| R4 | 叶子元素 | 按 §3 定型的标量键 | `<speed>200</speed>` → `speed = 200` |
+| R5 | 元素名不是合法裸键 | 基本字符串键 | `<1>Pvt</1>` → `"1" = "Pvt"` |
+
+叶子还是分支由元素是否有子节点决定：有子节点即表，无子节点即标量。**该判定由 schema 固定**，而不是由单个文件
+的数据决定，从而避免同一字段在不同文件里形状不同。**schema 以父路径为键，绝不只用标签名**：`type` 在 `weapon`
+与 `description` 下是叶子，但在 `ammo` 下是表数组（每个实例最多 7 个）；`weapon` 在
+`man`/`turret`/`fixed_weapon` 下是表数组，而在 `atgun`/`hmg`/`mortar`/`recoilless_rifle` 下是单表。只按标签名
+建键的 schema 至少会把其中之一判错。实测见 [m1-design.md](m1-design.md) §2.3 与 §2.4。
+
+**空元素**（实测：语料中共 70 个，`<name></name>` 37 个、`<dimensions></dimensions>` 33 个）：schema 判定为
+叶子时是空字符串，判定为表时是空表。`weapon/dimensions` 是唯一两种写法都出现的字段，它被声明为表，因此其 33 个
+空实例渲染回 `<dimensions></dimensions>`（[m1-design.md](m1-design.md) §2.6）。
+
+**表数组是 M1 唯一需要的数组形式**：语料中没有任何一个父实例内重复出现叶子（[m1-design.md](m1-design.md)
+§2.5），因此 §6 的子集不需要标量数组。
+
+### 2.1 键名规则
+
+| 情形 | 处理 | 示例 |
+|---|---|---|
+| `[A-Za-z0-9_-]+`（TOML 裸键字符集） | 原样裸键 | `type = …`、`offsetX = …`、`for = …` |
+| 以数字开头 | 基本字符串键 | `"1" = "Pvt"` |
+| 其他（原版中不存在） | 带转义的基本字符串键 | — |
+
+驼峰标签（`offsetX`/`offsetY`/`offsetZ`）**保留原拼写**，不转换为 snake_case，以避免引入无法逆转的重命名。
+
+## 3. 值定型
+
+导出为原版标准时**按值的内容重新渲染**，因此类型推断必须可逆。
+
+| 类型 | 判定 | TOML | 示例 |
+|---|---|---|---|
+| 整数 | `^-?\d+$` | 整数 | `<width>284</width>` → `284` |
+| 小数 | `^-?\d+\.\d+$` | 浮点 | `<mass>0.12</mass>` → `0.12` |
+| 布尔 | `yes` / `no` | 布尔 | `<AA>yes</AA>` → `true` |
+| 字符串 | 其余一切 | 字符串 | `<type>TYPE_TANK</type>` → `"TYPE_TANK"` |
+
+定点风险：`<mass>0.12</mass>` 这类小数**必须原样回写**，绝不能变成 `0.12000000000000001`。实现把原始字符串与
+解析值一同保存，只在编辑之后重新渲染；这是 M1 的核心保真点之一。
+
+上表描述的是语法允许的形态。**对通用判定会破坏来源的字段，schema 会覆盖它**（[m1-design.md](m1-design.md)
+§3.8）：钉为 `str` 的字段即使看起来是数字也保留文本（`armour` 的 `30@12`、`20` 等），钉为 `bool` 的字段恰好
+是 `yes`/`no` 集合，其余字段为 `auto`，即保留原始字面量并原样渲染。因此同一字段可以在一个文件里是
+`RELOAD_AUTOMATIC`、在另一个文件里是 `0`，两者都不会被改写。
+
+> 尺寸与质量：数据文件中长度单位为 **cm**，质量为 **kg**（取自既有参考材料；M0 未重新核验）。
+
+## 4. 顺序
+
+统计证据：同一个父元素内**同一子元素集合会以多种顺序出现**（`<vehicle>` 出现 28 种集合、109 种排列），说明
+兄弟顺序不承载语义。项目方已在运行中的安装上验证：交换同一父元素下兄弟块的顺序依然能正确加载。
+
+约定（裁决 D6：保守导出、宽容导入）：
+
+* **同名重复块之间**（`[[man]]`、`[[turret]]`、`[[ammo]]` …）：顺序**严格保留**，数组顺序即原始顺序。这是零代价
+  的安全选择。
+* **不同名兄弟之间**：导出按**原版顺序**渲染，绝不自行重排。未编辑的实体走快照回显，因此自然保持原顺序。
+* **导入侧不校验顺序**：兄弟块的任何排列都必须能解析成功。
+
+**TOML 文本顺序是写入方选定的规范顺序，不是源顺序的复制。** 实测：**1792 个文件中有 807 个**源顺序把叶子放在
+分支之后，而 TOML 不允许在子表头之后出现裸键（见 [m1-design.md](m1-design.md) §2.1）。规范顺序是叶子在前、
+单实例子表居中、表数组最后，各组内按 schema 顺序。该差异是安全的，因为兄弟顺序不承载语义；用于验证的比较定义
+见 §8 第 1 条。
+
+**XML 导出顺序即源顺序。** 读取器捕获的布局（§4.1）是权威的，因此 `export` 按子节点在文件中出现的顺序遍历并
+逐字节复现。2026-10-11 在原版语料上的实测：1840 个文件全部原样返回（`tools/export_fidelity.py`）。只有没有源
+文本的文档——`.toml` 工程文件——由规范写入器渲染，其兄弟顺序按 TOML 中记录的首现顺序（对由 XML 转换来的文件而言
+即源顺序）。
+
+### 4.1 布局（空行、缩进、注释、换行）
+
+空行与缩进在原版文件中是**人为撰写**的——读取器无法从元素树推断，因此按文本捕获：
+
+* 每个元素保留 `prefix`（上一个兄弟与自身 `<tag>` 之间的文本）、`suffix`（分支 `</tag>` 之前的空隙）或
+  `raw_value`（叶子内部的空隙），文档保留 `header`、`footer`、`newline` 与 `indent`；
+* 捕获的文本包含该空隙中的 `//` 注释，因此注释能存活到导出；读取器仍会为 TOML 视图统计并剥离它们；
+* `None` 表示「该元素没有源布局」，写入器回退到规范形式（制表符缩进、CRLF，以及文档的换行风格）；
+* 内存中编辑一个叶子会清除该叶子的 `raw_value`，因此恰好只有一行发生变化，其余字节保持不变——该性质由
+  `tests/test_roundtrip_bytes.py` 固定。
+
+对编辑的影响：改值会保留整个文件的布局；结构性改动（增删元素）只对被触及的元素回退到规范形式。
+
+## 5. 注释与非法字符
+
+| 情形 | 处理 |
+|---|---|
+| `//` 注释 | 不在 TOML 中建模，但**作为捕获布局的一部分保留，并由 `export` 写回**（§4.1）；首次导入时可选收集到 `.editor/notes.toml` 供人工查看 |
+| 裸 `&`（16 个原版文件） | 导入时按普通字符读取，导出时**写回裸 `&`**（转成 `&amp;` 会改变游戏实际读取的字符串，不再语义等价） |
+| `mod.txt` 中的数字标签 `<1>` | 见 §2.1；`mod_setting.toml` 单独实现 |
+| 换行符 | 导入时归一化；**导出保留源文件的换行风格**（裁决 D3，2026-10-11 修订）。原版 1840 个文件中 1824 个为 CRLF、其余 16 个为 LF，现在 1840 个全部逐字节相同。无源文本的文档（`.toml` 工程文件）按 CRLF 写出 |
+| 缩进 | 导出保留源缩进（制表符，深度等于元素嵌套深度）；没有捕获布局的元素按其嵌套深度回退到制表符 |
+| 空行 | 人为分组，按元素作为其 `prefix` 的一部分捕获（§4.1）并原样复现 |
+| `mod.txt` 中的 `<nationality><units>` / `<filename>` | **原样透传**，不解释语义（项目方判定为原版编辑器特性；记为 TODO，见 [project-layout.md](project-layout.md) §11 D2） |
+
+## 6. 自研 TOML 实现的范围（`core/toml`）
+
+按「为编辑器专用」的要求，只实现编辑器真正需要的子集，以换取**可控的往返保真**与**零依赖**：
+
+**必需**
+
+* 顶层表 `[a]`、嵌套表 `[a.b]`、表数组 `[[a.b]]`
+* 基本字符串（含转义）、字面量字符串、带引号的键
+* 整数、浮点、布尔
+* `#` 注释、空行、CRLF/LF 混合输入
+* **顺序保留**：解析结果按书写顺序保留键序，使写入对 diff 友好
+* **字面量保留**：数字与字符串保留原始书写形式（`0.12` 绝不变成 `0.120000`）
+* 位置信息：每个键携带其源行号，供 UI 报错与 AI 定位
+
+**明确不支持**（抛错而不是静默退化）
+
+* 内联表 `{ }`、数组 `[ ]`、日期时间、多行字符串、跨层级的点分裸键
+
+理由：这些在原版数据结构中都没有对应物，抛错比「半支持」造成的静默破坏更安全。
+
+这些排除项是实测得出而非假设：没有任何原版文件在同一个父实例内重复出现叶子（[m1-design.md](m1-design.md)
+§2.5），因此表示原版数据从不需要标量数组。唯一需要它的文件是 `mod.txt`，正因如此其 schema 推迟到 M5
+（[m1-design.md](m1-design.md) §2.7）。
+
+## 7. 映射示例
+
+### 7.1 完整 `<aircraft>` 示例
+
+来源（`Aircraft/German-Junkers Ju 87 Stuka G.txt`，见 [m0-baseline.md](m0-baseline.md) §3.1）：TOML 见上文英文
+部分同节（`[aircraft.description]`、两个 `[[aircraft.availability.data]]`、两个 `[[aircraft.armament.weapon]]`
+与一个 `[[aircraft.armament.ammo]]`）。
+
+`<availability>` 本身是单实例（表），其下只有 `<data>` 重复，因此数组头是 `[[aircraft.availability.data]]`。
+
+### 7.2 `<squad>` 与 `<vehicle>` 节选（所有取值均来自实测原版数据）
+
+来源：`Vehicles/German-Panzer IV Ausf D.txt`（151 行）。关键节选与映射结果见上文英文部分同节（XML 中的
+`attributes`/`drive`/`hull` 结构，映射为 `[squad.description]`、`[[squad.availability.data]]`、
+`[squad.vehicle.drive.engine]`、`[squad.vehicle.hull.armour]` 等）。
+
+该节选还确立两个事实：
+
+* **`//` 注释会出现在元素内部**（`<armour>` 行尾），构成该元素文本的一部分 → 导入时丢弃，导出时可选回放。
+* **`armour` 中的角度可以省略**（`<side>20</side>` 没有 `@`）。因此每个 `armour` 叶子值都**按字符串**处理，不做
+  数值分解，使导出无风险。
+
+## 8. M1 验收标准
+
+1. **XML → TOML → XML**：对**全部 1840 个文件**运行，产出的 XML 与原版**语义等价**。比较定义为：把两侧宽容
+   解析为元素树，**不同名兄弟按无序多重集**比较、**同名重复块按有序序列**比较；标签名、嵌套与叶子文本精确比较，
+   且裸 `&` 永不等于 `&amp;`。渲染顺序恰好等于源顺序的文件数只作为信息报告，不作为门槛。细化的理由见
+   [m1-design.md](m1-design.md) §3.6。2026-10-11 起该计数为 1840/1840，并启用了更强的门槛：见第 6 条。
+2. **TOML → XML → TOML**：字段级无损，包括 `0.12` 这类定点小数、`yes/no` 值与大小写混用的键。
+3. 往返必须**覆盖含裸 `&` 的 16 个文件、59 个飞行器与唯一的 `recoilless_rifle`**（边界样本）。
+4. 编码：每个导出文件必须用读取时使用的编码编码——先严格 UTF-8，回退 cp1252，ASCII 报告为 cp1252（0 失败；
+   [m1-report.md](m1-report.md) §7.1）。原版数据并非统一 cp1252：13 个文件用 UTF-8 存 `×`。导出的 cp1252
+   可编码性作为信息记录，不作为门槛。
+5. 自研 TOML 实现对不支持的语法**必须抛错而不是静默退化**（含单元测试）。
+6. **逐字节保真（2026-10-11 新增）**：`export` 把从磁盘读入的文件**逐字节**复现，包括兄弟顺序、空行、缩进、
+   `//` 注释与换行风格，因为读取器捕获了源布局（§4.1）。门槛：`python tools/export_fidelity.py --data
+   "<Firefight>/Data"` 在任一文件不相同（原版语料为 1840/1840）时以非零退出；`tests/test_roundtrip_bytes.py`
+   固定各个布局用例（CRLF、LF、缺尾换行、尾空行、元素前注释、内联分支、多行叶子、自闭合元素、声明、深层缩进、
+   cp1252 文本、游离文本）。第 1 条的语义标准仍是底线，并且对没有源布局渲染的文档（`.toml` 工程文件）必须继续
+   成立。

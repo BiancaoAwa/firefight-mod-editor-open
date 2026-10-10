@@ -1,6 +1,6 @@
 """Command line entry point: usage, argument parsing, output and exit codes.
 
-Shape: ``ff <scope> <command> [selector] [key=value ...] [--json]``, scope first (docs/cli.md).
+Shape: ``python -m core.cli <scope> <command> [selector] [key=value ...] [--json]``, scope first (docs/cli.md).
 """
 
 import json
@@ -13,7 +13,7 @@ from core.errors import FfError
 from core.cli.commands import VERSION, Context, Result, command_names, run_command
 from core.cli.scope import UsageError, resolve_all, resolve_scope, split_spec
 
-USAGE = """ff <scope> <command> [selector] [key=value ...] [--json]
+USAGE = """python -m core.cli <scope> <command> [selector] [key=value ...] [--json]
 
 Scopes
   Mod              the mod project this directory belongs to (mod.toml), or root=<dir>
@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         return result.code
     except UsageError as error:
         _emit(str(error), stream=sys.stderr)
-        _emit("run 'ff help' for usage", stream=sys.stderr)
+        _emit("run 'python -m core.cli help' for usage", stream=sys.stderr)
         return 2
     except FfError as error:
         _emit(str(error), stream=sys.stderr)

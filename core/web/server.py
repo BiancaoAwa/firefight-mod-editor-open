@@ -904,10 +904,10 @@ class Handler(BaseHTTPRequestHandler):
         return json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
     def page_cmd(self, query: dict[str, str]) -> str:
-        """A command line: run one read-only ff command and print what the CLI prints.
+        """A command line: run one read-only CLI command and print what the CLI prints.
 
-        The line is what you would type after `ff`, optionally starting with a scope name
-        (`Mod stats`). Quoting a path with a space works; `export` and `web` are refused
+        The line is what you would type after `python -m core.cli`, optionally starting with a scope
+        name (`Mod stats`). Quoting a path with a space works; `export` and `web` are refused
         because the page must stay read-only.
         """
         scope = self.app.scope(query.get("scope", ""))
@@ -915,7 +915,7 @@ class Handler(BaseHTTPRequestHandler):
         line = query.get("line", "").strip()
         as_json = query.get("json", "") in ("1", "yes", "true")
         body = h2("命令行")
-        body += note("输入 ff 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。")
+        body += note("输入 python -m core.cli 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。")
         body += note("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。这里是只读界面：export 与 web 会被拒绝。")
         body += form(url("cmd"), [text_field("line", "命令", line, 80), checkbox("json", "JSON 输出", as_json)], "运行")
         examples = ["list weapon", "stats", "check", "deps value=WEAPON_PISTOL_P38", 'show "Data/Infantry/American-Rifle Squad.txt" as=toml']

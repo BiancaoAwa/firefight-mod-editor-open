@@ -1,8 +1,8 @@
 ﻿<#
-ff-tool.ps1 - one-click start / stop for the Firefight mod editor tool (the `ff.py` CLI).
+ff-tool.ps1 - one-click start / stop for the Firefight mod editor tool (the `core.cli` package).
 
   start    preflight + version + scope overview, then leave a shell where `ff` works
-  stop     end leftover ff.py processes and clean the generated output
+  stop     end leftover editor processes and clean the generated output
   restart  stop, then start
   status   show the paths, what exists, and what is still running
   run      pass the rest of the command line straight to the CLI (this is what `ff` does)
@@ -45,19 +45,19 @@ $script:Self = $PSCommandPath
 $editorParent = Split-Path $PSScriptRoot -Parent
 $bundledPython = 'C:\Users\BC_aw\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe'
 $defaultPython = if (Test-Path $bundledPython) { $bundledPython } else { 'python' }
-# The launcher ships in two layouts, so the CLI is resolved instead of hard-coded:
-#   repository: m3-cli\tools\launcher\ff-tool.ps1  +  ..\..\ff.py
-#   release   : <editor>\launcher\ff-tool.ps1      +  ..\ff.py
+# The launcher ships in two layouts, so the entry point is resolved instead of hard-coded:
+#   repository: m3-cli\tools\launcher\ff-tool.ps1  +  ..\..\core\cli\__main__.py
+#   release   : <editor>\launcher\ff-tool.ps1      +  ..\core\cli\__main__.py
 $cliCandidates = @(
-    (Join-Path $editorParent '..\ff.py'),
-    (Join-Path $editorParent 'm3-cli\ff.py'),
-    (Join-Path $editorParent 'ff.py'),
-    (Join-Path $PSScriptRoot 'ff.py')
+    (Join-Path $editorParent 'core\cli\__main__.py'),
+    (Join-Path $editorParent '..\core\cli\__main__.py'),
+    (Join-Path $editorParent 'm3-cli\core\cli\__main__.py'),
+    (Join-Path $PSScriptRoot '..\core\cli\__main__.py')
 )
 $defaultCli = $cliCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (-not $defaultCli) { $defaultCli = $cliCandidates[0] }
-# The game data sits next to the CLI entry point: <editor>\Firefight in a release, Steam in the repository.
-$editorRoot = Split-Path -Parent $defaultCli
+# The game data sits next to the editor root: <editor>\Firefight in a release, Steam in the repository.
+$editorRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $defaultCli))
 $steamRoot = 'D:\Program Files (x86)\Steam\steamapps\common\Firefight'
 $bundledRoot = Join-Path $editorRoot 'Firefight'
 $defaultRoot = if (Test-Path $steamRoot) { $steamRoot } elseif (Test-Path $bundledRoot) { $bundledRoot } else { $steamRoot }
@@ -95,9 +95,14 @@ function Write-Log([string]$Text) {
     if ($script:LogFile) { Add-Content -Path $script:LogFile -Value $Text -Encoding UTF8 }
 }
 
+function Get-CliArgv([string[]]$Arguments) {
+    # `-m core.cli` only resolves with the editor root on sys.path, so callers set that cwd.
+    return @('-m', 'core.cli') + $Arguments
+}
+
 function Get-FfPython {
-    # every python process that is running our editor CLI
-    $pattern = [regex]::Escape([System.IO.Path]::GetFileName($Cli))
+    # every python process that is running our editor CLI (`python -m core.cli`)
+    $pattern = '-m\s+core\.cli'
     Get-CimInstance -ClassName Win32_Process -Filter "Name = 'python.exe' OR Name = 'pythonw.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -and $_.CommandLine -match $pattern }
 }
@@ -167,10 +172,10 @@ function Invoke-Ff([string[]]$FfArgs, [switch]$Quiet) {
         elseif ($scope -eq 'Mod' -and $Project) { $call += ('root=' + $Project); Write-Info "added   root=$Project" }
     }
 
-    $argv = @($Cli) + $call
+    $argv = Get-CliArgv $call
     Write-Log ("argv: " + ($argv -join ' '))
-    $lines = & $Python @argv 2>&1
-    $code = $LASTEXITCODE
+    Push-Location $editorRoot
+    try { $lines = & $Python @argv 2>&1; $code = $LASTEXITCODE } finally { Pop-Location }
     $text = ($lines | Out-String).TrimEnd()
     if ($text) { Write-Log $text }
     Write-Log "exit=$code"
@@ -213,8 +218,8 @@ function Start-Tool {
 
     if (-not $Quick) {
         Write-Head 'stock data'
-        $json = & $Python $Cli 'Firefight' 'stats' "root=$Root" '--json' 2>&1
-        $code = $LASTEXITCODE
+        Push-Location $editorRoot
+        try { $json = & $Python @(Get-CliArgv @('Firefight', 'stats', "root=$Root", '--json')) 2>&1; $code = $LASTEXITCODE } finally { Pop-Location }
         Write-Log ("argv: Firefight stats root=$Root --json")
         if ($code -eq 0 -or $code -eq 1) {
             $text = ($json | Out-String)
@@ -307,15 +312,16 @@ function Start-Web {
 
     Write-Head 'web ui'
     Write-Info ("python   " + $Python)
-    Write-Info ("cli      " + $Cli)
+    Write-Info ("cli      python -m core.cli  (" + $Cli + ")")
     Write-Info ("scope    " + $scope)
     Write-Info ("root     " + (Get-WebRootText $scope))
     Write-Info ("url      http://127.0.0.1:{0}/" -f $Port)
     Write-Info 'this window stays busy while the server runs - press Ctrl-C to stop it'
     Write-Info 'the server is read-only and only binds 127.0.0.1'
-    $argv = @($Cli) + $call
+    $argv = Get-CliArgv $call
     Write-Log ("argv: " + ($argv -join ' '))
-    & $Python @argv
+    Push-Location $editorRoot
+    try { & $Python @argv } finally { Pop-Location }
     $code = $LASTEXITCODE
     Write-Log "exit=$code"
     Write-Head 'web ui stopped'
@@ -328,7 +334,7 @@ function Start-Web {
 function Start-WebWindow {
     # Serve hidden in the background: the server runs directly (python ... web) with its
     # output redirected into the work log folder, so no console window is left behind.
-    # `status` and `stop` find it by the command line, which still says `ff.py ... web`.
+    # `status` and `stop` find it by the command line, which still says `-m core.cli ... web`.
     Write-Head 'web ui (background)'
     if (-not (Test-Path $Python)) { Write-Bad "python not found: $Python"; return 2 }
     if (-not (Test-Path $Cli)) { Write-Bad "cli not found: $Cli"; return 2 }
@@ -349,16 +355,16 @@ function Start-WebWindow {
     $scopeName = Get-WebScope
     $scopeRoot = if ($Project) { $Project } elseif ($scopeName -eq 'Firefight') { $Root } else { '' }
     $rootArgs = @(Get-WebRootArgs $scopeName | ForEach-Object { '"' + $_ + '"' })
-    $cliArgs = @('"' + $Cli + '"', $scopeName, 'web') + $rootArgs + @('"port=' + $Port + '"')
+    $cliArgs = @('-m', 'core.cli', $scopeName, 'web') + $rootArgs + @('"port=' + $Port + '"')
     try {
-        $proc = Start-Process -FilePath $Python -ArgumentList $cliArgs -WorkingDirectory $WorkDir `
+        $proc = Start-Process -FilePath $Python -ArgumentList $cliArgs -WorkingDirectory $editorRoot `
             -WindowStyle Hidden -PassThru -RedirectStandardOutput $outLog -RedirectStandardError $errLog
     }
     catch { Write-Bad ("could not start the server: " + $_.Exception.Message); return 1 }
 
     $url = "http://127.0.0.1:{0}/" -f $Port
     Write-Info ("python   " + $Python)
-    Write-Info ("cli      " + $Cli)
+    Write-Info ("cli      python -m core.cli  (" + $Cli + ")")
     Write-Info ("scope    " + $scopeName)
     Write-Info ("root     " + (Get-WebRootText $scopeName))
     Write-Info ("server   pid " + $proc.Id + " (no window)")
@@ -849,7 +855,7 @@ function Show-Help {
     Write-Info '  web      serve the read-only web UI for the stock data until Ctrl-C (see below)'
     Write-Info 'options: -Quick (skip the stock scan)  -KeepOutput  -Project <dir>  -Port <n>'
     Write-Info '         -Window (web: serve in the background)  -NoBrowser  -Browser'
-    Write-Info '         -Python <exe>  -Cli <ff.py>  -Root <game dir>  -WorkDir <dir>'
+    Write-Info '         -Python <exe>  -Cli <core\cli\__main__.py>  -Root <game dir>  -WorkDir <dir>'
     Write-Head 'inside a started window'
     Write-Info 'status | stop | restart              the same actions, typed at the prompt'
     Write-Info 'ff-start                             start again (PowerShell owns the name `start`)'
