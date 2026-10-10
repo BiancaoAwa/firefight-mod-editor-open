@@ -9,6 +9,8 @@ import io
 import json
 import os
 import shutil
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -171,7 +173,14 @@ class CliTestCase(unittest.TestCase):
     def test_usage_without_arguments(self) -> None:
         code, out, _ = run()
         self.assertEqual(code, 0)
-        self.assertIn("ff <scope> <command>", out)
+        self.assertIn("python -m core.cli <scope> <command>", out)
+
+    def test_the_module_entry_point_runs(self) -> None:
+        # `python -m core.cli` is the shipped entry; -m resolves the package from the cwd.
+        root = Path(__file__).resolve().parent.parent
+        done = subprocess.run([sys.executable, "-m", "core.cli", "version"], cwd=root, capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("editor:", done.stdout)
 
     def test_help_lists_resolved_scope(self) -> None:
         code, out, _ = run("help", self.stock())
