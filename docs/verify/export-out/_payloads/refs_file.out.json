@@ -1,0 +1,22 @@
+{
+  "scope": "Firefight",
+  "count": 2,
+  "by_kind": {
+    "sound": 2
+  },
+  "references": [
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,14 @@
+{
+  "scope": "Firefight",
+  "to": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\single",
+  "count": 1,
+  "files": [
+    {
+      "path": "Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "out": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\single\\Data\\Weapons\\WEAPON_PISTOL_P38.txt",
+      "bytes": 605,
+      "warnings": []
+    }
+  ],
+  "errors": []
+}

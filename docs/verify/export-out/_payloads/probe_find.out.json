@@ -1,0 +1,23 @@
+{
+  "query": {
+    "tag": "name",
+    "value": null,
+    "path": null,
+    "ignore_case": false
+  },
+  "count": 2,
+  "truncated": false,
+  "matches": [
+    {
+      "path": "Data/Bad/broken.toml",
+      "error": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\_probe-scope\\Data\\Bad\\broken.toml:1:1: TOML syntax (array-of-tables header must end with ']]')"
+    },
+    {
+      "path": "Data/Good/ok.toml",
+      "line": 2,
+      "tag": "name",
+      "document_path": "Weapon/name",
+      "value": "Synthetic Probe"
+    }
+  ]
+}

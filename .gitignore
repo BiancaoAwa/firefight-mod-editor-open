@@ -10,3 +10,10 @@ dist/
 
 # Local scratch
 *.tmp
+_out/
+.ff-editor.local.toml
+
+# Launcher runtime output (logs, state and downloads stay out of the repository)
+tools/launcher/logs/
+tools/launcher/out/
+tools/launcher/*.json

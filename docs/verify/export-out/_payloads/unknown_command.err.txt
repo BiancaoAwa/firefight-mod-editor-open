@@ -1,0 +1,8 @@
+python.exe : unknown command 'nosuchcmd'; try 'help'
+At line:7 char:3
++   & $py $cli @argv 1> $so 2> $se
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (unknown command 'nosuchcmd'; try 'help':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+run 'ff help' for usage

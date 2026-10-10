@@ -1,0 +1,31 @@
+{
+  "scope": "Firefight",
+  "root": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\_probe-scope",
+  "count": 4,
+  "entities": [
+    {
+      "path": "Data/Bad/broken.toml",
+      "category": "other",
+      "format": "toml",
+      "bytes": 3
+    },
+    {
+      "path": "Data/Good/eq=file.toml",
+      "category": "other",
+      "format": "toml",
+      "bytes": 33
+    },
+    {
+      "path": "Data/Good/ok.toml",
+      "category": "other",
+      "format": "toml",
+      "bytes": 36
+    },
+    {
+      "path": "Data/Surnames/surnames_probe.txt",
+      "category": "surnames",
+      "format": "txt",
+      "bytes": 32
+    }
+  ]
+}

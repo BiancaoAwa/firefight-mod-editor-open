@@ -71,15 +71,29 @@ Conventions (decision D6: conservative export, tolerant import):
 
 **TOML text order is a canonical order chosen by the writer, not a copy of the source order.** Measured: in **807 of 1792** files the source order places a leaf after a branch, and TOML does not allow a bare key after a sub-table header (see [m1-design.md](m1-design.md) §2.1). The canonical order is leaves first, then single-instance sub-tables, then arrays of tables, each group following schema order. The difference is safe because sibling order carries no semantics; the comparison used to verify it is defined in §8 item 1.
 
+**XML export order is the source order.** The layout captured by the reader (§4.1) is authoritative, so `export` walks children in the order they appeared in the file and reproduces it byte for byte. Measured over the stock corpus on 2026-10-11: 1840 of 1840 files come back identical (`tools/export_fidelity.py`). Only a document that has no source text — a `.toml` project file — is rendered by the canonical writer, where siblings follow first-appearance order as stored in the TOML (which, for a file converted from XML, is the source order).
+
+### 4.1 Layout (blank lines, indentation, comments, newlines)
+
+Blank lines and indentation are **authored** in the stock files — the reader cannot infer them from the element tree, so they are captured as text:
+
+* every element keeps `prefix` (the text between the previous sibling and its own `<tag>`), `suffix` (the gap before `</tag>` of a branch) or `raw_value` (the gap inside a leaf), and the document keeps `header`, `footer`, `newline` and `indent`;
+* the captured text includes the `//` comments of that gap, so comments survive export; the reader still counts and strips them for the TOML view;
+* `None` means "no source layout for this element" and the writer falls back to the canonical form (tab indent, CRLF, and the newline style of the document);
+* an in-memory edit of a leaf clears that leaf's `raw_value`, so exactly one line changes and every other byte stays as it was — the property `tests/test_roundtrip_bytes.py` pins down.
+
+Consequence for editing: a value change keeps the whole file's layout; a structural change (adding or removing an element) falls back to the canonical form for the touched element only.
+
 ## 5. Comments and illegal characters
 
 | Case | Treatment |
 |---|---|
-| `//` comments | **Discarded** (they do not participate in semantic equivalence); optionally collected into `.editor/notes.toml` on first import for human inspection |
+| `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); optionally collected into `.editor/notes.toml` on first import for human inspection |
 | Bare `&` (16 stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
 | Numeric tags `<1>` in `mod.txt` | See §2.1; `mod_setting.toml` is implemented separately |
-| Line endings | Normalised on import; export **always uses CRLF** (decision D3). Stock is CRLF in 1824 of 1840 files, so **the 16 bare-LF files differ from stock after export**; this does not affect the semantic-equivalence criterion but does prevent byte identity |
-| Indentation | Export always uses tabs, with depth equal to element nesting depth |
+| Line endings | Normalised on import; **export keeps the newline style of the source file** (decision D3, revised 2026-10-11). Stock is CRLF in 1824 of 1840 files and LF in the other 16, and all 1840 now come back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
+| Indentation | Export keeps the source indentation (tabs, depth equal to element nesting depth); an element without captured layout falls back to tabs at its nesting depth |
+| Blank lines | Authored grouping, captured per element as part of its `prefix` (§4.1) and reproduced as-is |
 | `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO, see [project-layout.md](project-layout.md) §11 D2) |
 
 ## 6. Scope of the in-house TOML implementation (`core/toml`)
@@ -261,8 +275,9 @@ The source excerpt also establishes two facts:
 
 ## 8. M1 acceptance criteria
 
-1. **XML → TOML → XML**: run over **all 1840 files** and produce XML that is **semantically equivalent** to stock. The comparison is defined as: parse both sides permissively into element trees, compare **siblings of different names as an unordered multiset** and **repeated blocks of the same name as an ordered sequence**; compare tag names, nesting and leaf text exactly, with a bare `&` never equal to `&amp;`. The count of files whose rendered order happens to equal the source order is reported as information, not as a gate. Rationale for the refinement in [m1-design.md](m1-design.md) §3.6.
+1. **XML → TOML → XML**: run over **all 1840 files** and produce XML that is **semantically equivalent** to stock. The comparison is defined as: parse both sides permissively into element trees, compare **siblings of different names as an unordered multiset** and **repeated blocks of the same name as an ordered sequence**; compare tag names, nesting and leaf text exactly, with a bare `&` never equal to `&amp;`. The count of files whose rendered order happens to equal the source order is reported as information, not as a gate. Rationale for the refinement in [m1-design.md](m1-design.md) §3.6. Since 2026-10-11 that count is 1840 of 1840 and a stronger gate is in place: see item 6.
 2. **TOML → XML → TOML**: lossless at field level, including fixed-point decimals such as `0.12`, `yes/no` values and mixed-case keys.
 3. The round trip must **cover the 16 files containing a bare `&`, the 59 aircraft and the single `recoilless_rifle`** (boundary samples).
-4. cp1252 throughout: every exported file must encode as `cp1252` (0 failures originally, and export may not introduce any).
+4. Encoding: every exported file must encode in the encoding it was read with — UTF-8 strict first, cp1252 fallback, ASCII reported as cp1252 (0 failures; §7.1 of [m1-report.md](m1-report.md)). Stock data is not uniformly cp1252: 13 files store `×` as UTF-8. cp1252 encodability of the export is recorded as information, not as a gate.
 5. The in-house TOML implementation **must raise an error rather than degrade silently** on unsupported syntax (with unit tests).
+6. **Byte fidelity (added 2026-10-11)**: `export` reproduces a file read from disk **byte for byte**, including sibling order, blank lines, indentation, `//` comments and newline style, because the reader captures the source layout (§4.1). Gate: `python tools/export_fidelity.py --data "<Firefight>/Data"` exits non-zero unless every file is identical (1840 of 1840 on the stock corpus), and `tests/test_roundtrip_bytes.py` pins the individual layout cases (CRLF, LF, missing trailing newline, trailing blank line, comment before an element, inline branch, multiline leaf, self-closing element, declaration, deep indentation, cp1252 text, stray text). The semantic criterion of item 1 stays the floor and must keep holding for documents rendered without source layout (a `.toml` project file).

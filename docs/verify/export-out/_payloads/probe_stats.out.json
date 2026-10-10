@@ -1,0 +1,24 @@
+{
+  "scope": "Firefight",
+  "root": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\_probe-scope",
+  "files": 3,
+  "bytes": 71,
+  "lists": 1,
+  "by_category": {
+    "other": 2,
+    "surnames": 1
+  },
+  "by_format": {
+    "toml": 2,
+    "txt": 1
+  },
+  "by_root": {
+    "Weapon": 1
+  },
+  "errors": [
+    {
+      "path": "Data/Bad/broken.toml",
+      "error": "D:\\deepseek-harness\\WorkSpace\\_scratch\\verify\\export-out\\_probe-scope\\Data\\Bad\\broken.toml:1:1: TOML syntax (array-of-tables header must end with ']]')"
+    }
+  ]
+}

@@ -1,0 +1,1412 @@
+{
+  "query": {
+    "tag": null,
+    "value": null,
+    "path": "weapon/ammo",
+    "ignore_case": false
+  },
+  "count": 200,
+  "truncated": true,
+  "matches": [
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "735"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.148"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20x105mmB"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 21,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 22,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 22,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 22,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "747"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 22,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.06"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "line": 22,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": ".55 Boys"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1216"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.0146"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "7.92x94 mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 21,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 22,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 22,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 22,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "910"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 22,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.0126"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "line": 22,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "7.92x57mm SMK"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 20,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 21,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 21,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 21,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "800"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 21,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.12"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 21,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20x138B"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "800"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.12"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "0.0102"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "line": 22,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20X138B_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 20,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 21,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 21,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 21,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "805"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 21,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.06"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "line": 21,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "13.2mmX92mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 20,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 21,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 21,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 21,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1012"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 21,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.06"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "line": 21,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "14.5x114mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1013"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.06"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "14.5x114mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 20,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 21,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 21,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 21,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1211"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 21,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.0148"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "line": 21,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "7.92x94 mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 20,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 21,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 21,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 21,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1211"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 21,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.0147"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "line": 21,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "7.92x94 mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "735"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.14"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20x105mmB"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "850"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.12"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20x138mmB"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 22,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 23,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 23,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "790"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 23,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.162"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 23,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "20x125mm"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "790"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.136"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "0.006"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "line": 24,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 21,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 22,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 22,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_AT_RIFLE_AP"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 22,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "1275"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 22,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "0.014"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "line": 22,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "7.92x107mm DS"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "453"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "250"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_1000_POUND.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "100"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "55"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "50"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "23"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_100_POUND.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "10"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "5"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_10_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "12"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "6"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_12_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "250"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "125"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "113"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "60"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_250_POUND.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "500"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "250"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "235"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "120"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_500_POUND.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 6,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_BOMB_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "0"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "50"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "23"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_BOMB_50_KG.txt",
+      "line": 7,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 16,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "355"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "13.4"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "2.2"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 17,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_HEAT"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "370"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "18.8"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "era",
+      "document_path": "weapon/ammo/type/era",
+      "value": "HEAT_ERA_COLD_WAR"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "2.2"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 18,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "ATGM"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 19,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 19,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_SMOKE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 19,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "355"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 19,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "13.4"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "line": 19,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "Smoke"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 16,
+      "tag": "ammo",
+      "document_path": "weapon/ammo",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "900"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "15.6"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "1.6"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 17,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "flavour",
+      "document_path": "weapon/ammo/type/flavour",
+      "value": "FLAVOUR_HEAT"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "speed",
+      "document_path": "weapon/ammo/type/speed",
+      "value": "900"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "mass",
+      "document_path": "weapon/ammo/type/mass",
+      "value": "12.38"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "era",
+      "document_path": "weapon/ammo/type/era",
+      "value": "HEAT_ERA_LATE"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "HE",
+      "document_path": "weapon/ammo/type/HE",
+      "value": "1.17"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 18,
+      "tag": "name",
+      "document_path": "weapon/ammo/type/name",
+      "value": "HEAT"
+    },
+    {
+      "path": "Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "line": 19,
+      "tag": "type",
+      "document_path": "weapon/ammo/type",
+      "value": ""
+    }
+  ]
+}

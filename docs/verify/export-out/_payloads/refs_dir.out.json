@@ -1,0 +1,5734 @@
+{
+  "scope": "Firefight",
+  "count": 954,
+  "by_kind": {
+    "sound": 954
+  },
+  "references": [
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_36M.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_BOYS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_EW_141.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_HANYANG_88_SMK.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_L_39.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_MAUSER_M1918.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PTRD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PTRS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PZB_38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_PZB_39.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_SOLOTHURN_1000.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_TYPE_97.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "kind": "sound",
+      "value": "shoot_at_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_AT_RIFLE_WZOR_35.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_2A70.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_D_10.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_D_10_S.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_D_10_T.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_D_10_T2S.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_TYPE_59.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_TYPE_69.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_100_TYPE_86.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_14.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_47_F2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_CN_105_F1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_HOWITZER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_JSW.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_JSW_HOWITZER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_L25.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_L7.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_L70.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_LEFH18_L28.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_M68.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_MAVAG.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_T5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_80.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_83.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_88.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_88A.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_88B.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_105_TYPE_91.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_115_2A20.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_GIAT.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_JSW.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_L1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_L11A5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_L30A1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_L_44.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_L_55.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_M256.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_SA_46.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_120_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_122_A_19.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_122_D_25T.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_122_M_30.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46_1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46_2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46M_1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46M_2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A46M_5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_2A82_1M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_KBA_3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_TYPE_88C.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_125_TYPE_99A.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_128_KWK44_L55.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_128_PAK44.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_130_M_46.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_130_M_65.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_149_19.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_150_SFH18_L30.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_150_SFH18_L32.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_150_SIG_33.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_150_TYPE_38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_150_TYPE_4.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_152_M162.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_152_M81E1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_152_M_10.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_152_ML_20.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_152_TYPE_83.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_155_JSW_HOWITZER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_155_T7.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_155_T7E1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_155_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_15_MG151.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_17PDR_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_HISPANO.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_HO_3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_HO_5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_KWK30_L55.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_KWK38_L55.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_MG151.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_MG151_TRIPLE.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_MG_FF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_MG_FF_M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_OERLIKON.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_OERLIKON_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_POLSTEN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_POLSTEN_QUAD.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_SHVAK.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_ST5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_TNSH.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_TYPE_98.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20_WZ38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_20PDR_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_23_2A13.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_23_2A7.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_23_NS_37.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_23_VYA_23.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_25_HOTCHKISS.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_25_SA35.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_25_SA37.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_25MM.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_25PDR_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_28_SPZB41.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_2PDR_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_30_2A42.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_30_2A72.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_30_GAU_8_AVENGER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_36M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_36M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_61_K.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_B_3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_BOFORS.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_KWK34T_L40.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_KWK36_L45.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_KWK38T_L47.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_L40.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_L45.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_L54.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M1936.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M1A2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M28.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_M6.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_PAK36.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_SA18.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_SA38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_100.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_11.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_14.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_94.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_94_AT_GUN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_TYPE_98.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_37_WZ36.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_38M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3_7_INCH_HOWITZER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3_7_INCH_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3INCH_M5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3INCH_M7.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3INCH_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_3PDR_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_40_36M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_40_37M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_40_BOFORS_L60.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_40_MAVAG.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_40M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_42_PAK41.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_45_19K.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_45_20K.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_45_53K.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_45_M42.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_1939.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_36M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_L32.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_L40.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_PAK38_T.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_SA34.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_SA35.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_SA37.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_TYPE_1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_TYPE_1_TANK_GUN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_47_WZ25.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_4_5INCH_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_50_KWK38_L42.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_50_KWK39_L60.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_50_PAK38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57_M1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57_TYPE_90.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57_TYPE_97.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57_ZIS_2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57_ZIS_4.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_57MM_MAXIM_NORDENFELT.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_6PDR_OQF_HOTCHKISS.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_6PDR_OQF_L43.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_6PDR_OQF_L50.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_70_TYPE_92.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_73_2A28_GROM.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_73_TYPE_85.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_13.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_41M.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_HOWITZER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_K51_L24.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_KWK37_L24.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_KWK40_L43.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_KWK40_L48.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_KWK42_L70.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_KWK44_L36_5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_L18.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_L32.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_L34.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_L46.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_LEIG18.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M1897.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M1897A4.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M1943.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_M6.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_PAK39.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_PAK40.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_PAK41.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_SA32.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_SA35.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_SA50.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_TYPE_3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_TYPE_5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_TYPE_88.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_TYPE_90.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75_TYPE_99.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75MM_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_75MM_SCHNEIDER_BLOCKHAUS.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_F_22.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_F_32.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_F_34.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_KT_28.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_L23A1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_L_10.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_L_11.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_M1A1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_M1A1C.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_M1A2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_M32A1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_PAK36R.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_S_1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_USV.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_ZIS_3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76_ZIS_5.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_76MM_MOUNTAIN_GUN_M1909.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_77MM_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_80_PAW_600.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_85_52_K.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_85_D_5T.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_85_S_53.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_85_TYPE_62.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_88_FLAK36.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_88_KWK36_L56.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_88_KWK43_L71.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_88_PAK43.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_88_RAKETENWERFER.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_BK.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_CN_90_F1.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_CN_90_F3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_CN_90_F4.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_COCKERILL.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_L53.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_M2.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_M3.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_M41.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_SA_1945.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_T15.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_90_TYPE_61.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_95MM_OQF.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_BREDA_20_65.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_FLAK_30.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_FLAK_38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_FLAK_43.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_FLAK_VIERLING_38.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_M242_BUSHMASTER.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_MK101.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_MK103.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_MK103_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_MK108.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_MK20_RH202.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CANNON_RARDEN.txt",
+      "kind": "sound",
+      "value": "shoot_cannon",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_BERTHIER.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_BERTHIER.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M1.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M2.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M_28.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M_28.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M_39.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_M_39.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_MODEL_38.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_CARBINE_MODEL_38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_FLAMETHROWER_PORTABLE.txt",
+      "kind": "sound",
+      "value": "shoot_flamethrower",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_FLAMETHROWER_TANK.txt",
+      "kind": "sound",
+      "value": "shoot_flamethrower",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_30MM.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_40MM.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_AG36.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_GEW.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_GM_94.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_GP_25.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_GRB_39.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_HK69A1.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_HOWA_TYPE_96.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_M1.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_M2.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_M203.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_M7.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_MILKOR_MGL.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_QLZ_87.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_QTS_11.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_RG_6.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_SCHIESSBECHER.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_SICHUANMADE_47.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_100.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_27.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_28.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_GRENADE_LAUNCHER_VB.txt",
+      "kind": "sound",
+      "value": "shoot_grenade_launcher",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_31M.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_31M.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_AN_M2.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_AN_M2.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_QUAD.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_QUAD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_50CAL_TWIN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BEREZIN_UB.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BEREZIN_UB.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BESA.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BESA.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1931.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1931.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1937.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1937.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1937_DUAL.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1937_DUAL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1938.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1938.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1938_DUAL.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_M1938_DUAL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_SAFAT.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_BREDA_SAFAT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_DSHK.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_DSHK.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914_DUAL.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1914_DUAL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1935.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_FIAT_REVELLI_M1935.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_HOTCHKISS_1930.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_HOTCHKISS_1930.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_KPVT.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_KPVT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_M1907.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_M1907.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_M1917.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_M1917.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MAXIM.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MAXIM.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MAXIM_M_09_21.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MAXIM_M_09_21.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MG08.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MG08.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MG131.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MG131.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MLE_1907.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_MLE_1907.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_NSV.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_NSV.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_QJG_02.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_QJG_02.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_QJZ_89.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_QJZ_89.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_SG43.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_SG43.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_1.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_24.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_24.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_3.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_3.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_30.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_30.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_92.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_92.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_93.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_TYPE_93.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_VICKERS_303.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_VICKERS_303.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_VICKERS_50.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_VICKERS_50.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_WZ25.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_WZ25.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_WZ30.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_WZ30.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_ZB_37.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_ZB_37.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_ZB_53.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_HMG_ZB_53.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_31M.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_8_38M.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_8_40M.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_AA_52.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_AA_52.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BAR.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BAR.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BERGMANN_MG15NA.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BERGMANN_MG15NA.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BESA.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BESA.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREDA_M1930.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREDA_M1930.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREDA_SAFAT.txt",
+      "kind": "sound",
+      "value": "shoot_HMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREDA_SAFAT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREN.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREN_MK3.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BREN_MK3.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BROWNING_FN_M36.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_BROWNING_FN_M36.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_CHAUCHAT.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_CHAUCHAT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DARNE.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DARNE.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DP27.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DP27.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DT.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_DT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_FEDOROV_AVTOMAT_TWIN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_GEBAUER_1918.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_GEBAUER_1926.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_1914.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_1914.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_M1909.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_M1909.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_MK1.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_HOTCHKISS_MK1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_JINMADE_CZECH_MG.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_JINMADE_CZECH_MG.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_KE_7.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_KE_7.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L3A1.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L3A1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L7.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L7.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L_41.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_L_41.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_LEWIS.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_LEWIS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_LS_26.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_LS_26.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1918A2.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1918A2.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1919.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1919.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1941.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M1941.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M240.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M240.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M2429.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M2429.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M249.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M249.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M60.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_M60.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MADSEN.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MADSEN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13_SMK.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13_SMK.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG13_TWIN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG15.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG15.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG17.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG17.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG3.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG3.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF_TWIN.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG34_PANZERLAUF_TWIN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG37.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG37.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG4.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG4.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG42.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG42.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG5.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MG5.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MINIMI.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_MINIMI.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PK.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PK.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKM.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKM.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKP.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKP.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKS.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKT.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PKT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PV_1.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_PV_1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJB_95.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJB_95.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJB_95_1.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJB_95_1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJY_88.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_QJY_88.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_REIBEL.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_REIBEL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_RPK.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_RPK.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SCHWARZLOSE_6_5MM.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SCHWARZLOSE_6_5MM.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SCHWARZLOSE_8MM.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SCHWARZLOSE_8MM.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SHKAS.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_SHKAS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_62.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_62.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_74.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_74.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_89.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_91.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_91.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_96.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_96.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_97.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_97.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_99.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_TYPE_99.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_VICKERS_303.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_VICKERS_303.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_WZ28.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_WZ28.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_WZ33.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_WZ33.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_ZB_26.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_ZB_26.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_ZB_30.txt",
+      "kind": "sound",
+      "value": "shoot_LMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_LMG_ZB_30.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MLRS_M26.txt",
+      "kind": "sound",
+      "value": "shoot_rocket",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_120_43M.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_120_PM_38.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_120MM_KRH_40.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_2_INCH.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_36M.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_39M.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_3_INCH.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_45MM_BRIXIA.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_4_2_INCH.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_4_2_INCH_M2.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_5CM.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_60_M2.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_81_M1.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_81MM_KRH_38.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_81MM_M35.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_82MM.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_BRANDT_1935.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_BRANDT_2731.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_GW34.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_GW36.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_GW42.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_L16_81MM.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_M1942.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_MO_120_RT.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_2.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_20.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_31.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_63.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_82.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_87.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_90.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_96.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_97.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_98.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_TYPE_99.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_WZ31.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_MORTAR_WZ36.txt",
+      "kind": "sound",
+      "value": "shoot_mortar",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_37M.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_37M.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_BERETTA_M1934.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_BERETTA_M1934.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_BHP.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_BHP.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_CF_07.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_CF_07.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_COLT.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_COLT.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_ENFIELD.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_ENFIELD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_GLOCK_17.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_GLOCK_17.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_GLOCK_19.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_GLOCK_19.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_HK_USP.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_HK_USP.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_JINMADE_TYPE_17.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_JINMADE_TYPE_17.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_L9A1.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_L9A1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_L_35.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_L_35.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_LUGER_P08.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_LUGER_P08.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_M1892.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_M1892.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_M1912.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAKAROV.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAKAROV.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAUSER_C96.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAUSER_C96.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAUSER_M1932.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_MAUSER_M1932.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NAMBU.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NAMBU.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_22.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_22.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_22A.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_22A.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_34.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_34.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_56.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_NP_56.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_P38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_QSZ_92.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_QSZ_92.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_QSZ_92G.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_QSZ_92G.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_TOKAREV.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_TOKAREV.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_PISTOL_WZ35.txt",
+      "kind": "sound",
+      "value": "shoot_pistol",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RECOILLESS_RIFLE_LG_40.txt",
+      "kind": "sound",
+      "value": "shoot_recoilless_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RECOILLESS_RIFLE_M18.txt",
+      "kind": "sound",
+      "value": "shoot_recoilless_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RECOILLESS_RIFLE_M20.txt",
+      "kind": "sound",
+      "value": "shoot_recoilless_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_35M.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_12.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_12.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_15.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_15.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_47.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_47.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_74.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AK_74.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AR_15.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AR_15.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ARISAKA.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ARISAKA.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ARMAGUERRA_M39.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ARMAGUERRA_M39.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AS_VAL.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_AS_VAL.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_BERTHIER.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_BERTHIER.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_BREDA_PG.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_BREDA_PG.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_CARCANO.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_CARCANO.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_CHUANMADE_79.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_CHUANMADE_79.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ENFIELD_M1917.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ENFIELD_M1917.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FAMAS_F1.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FAMAS_F1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FAMAS_G2.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FAMAS_G2.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FG_42.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_FG_42.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_G3.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_G3.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GARAND.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GARAND.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GARAND.txt",
+      "kind": "sound",
+      "value": "eject_clip",
+      "document_path": "weapon/magazine/sound_eject_clip"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR41.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR41.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR43.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR43.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR98.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_GEWEHR98.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HANYANG_88.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HANYANG_88.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_416.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_416.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_417.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_417.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_G36.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_G36.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_G36C.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HK_G36C.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_20.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_20.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_64.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_64.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_89.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_HOWA_TYPE_89.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_JINMADE_TYPE_65.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_JINMADE_TYPE_65.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_KARABINER_98K.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_KARABINER_98K.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_L129A1.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_L129A1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LEBEL_1886.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LEBEL_1886.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LEE_ENFIELD.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LEE_ENFIELD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LIAOMADE_TYPE_13.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_LIAOMADE_TYPE_13.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M14.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M14.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M16.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M16.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M1941.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M1941.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M4.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M4.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M_28.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M_28.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M_39.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_M_39.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MAS36.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MAS36.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MAS49.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MAS49.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MODEL_1930G.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_MODEL_1930G.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBS_06.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBS_06.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBU_191.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBU_191.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_03.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_03.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_191.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_191.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_192.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_192.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95_1.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95_1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95B.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95B.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95B_1.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_QBZ_95B_1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SA80.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SA80.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SCAR_H.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SCAR_H.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SCAR_L.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SCAR_L.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SKS.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SKS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SLR.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SLR.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SPRINGFIELD.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SPRINGFIELD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_STEYR_AUG.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_STEYR_AUG.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_STG44.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_STG44.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVD.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVT_38.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVT_38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVT_40.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_SVT_40.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_TYPE_38.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_TYPE_38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_TYPE_56.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_TYPE_56.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_VSS.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_VSS.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_WINCHESTER_M1895.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_WINCHESTER_M1895.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_WZ29.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_WZ29.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZB24.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZB24.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZH29.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZH29.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZHONGZHENG.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RIFLE_ZHONGZHENG.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_16.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_18.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_22.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_26.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_27.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_28.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_29.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_30.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_32.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_7.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_70MM_TYPE_4.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_AT4.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_BAZOOKA_M1.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_BAZOOKA_M1A1.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_BAZOOKA_M20.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_BAZOOKA_M9.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_BAZOOKA_M9A1.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_CARL_GUSTAF.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_FGM_148_JAVELIN.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_LAW_80.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_LRAC_F1.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_M3_MAAWS.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_M47_DRAGON.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_M67.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_M72_LAW.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_100.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_150.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_3.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_30.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_30K.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_44.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERFAUST_60.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PANZERSCHRECK.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PF_69.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PF_89.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PF_98.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_PIAT.txt",
+      "kind": "sound",
+      "value": "shoot_PIAT",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_RP-3.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_RP_3.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_RS_82.txt",
+      "kind": "sound",
+      "value": "shoot_rocket",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_TYPE_01_LMAT.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_TYPE_64_MAT.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_TYPE_79_JYU_MAT.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_RPG_TYPE_87_CHU_MAT.txt",
+      "kind": "sound",
+      "value": "shoot_bazooka",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_BENELLI_M4.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_BENELLI_M4.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_HK_512.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_HK_512.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_KS_23.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_KS_23.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_M26.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_M26.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_500.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_500.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_590.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MOSSBERG_590.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MTS225.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_MTS225.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_NEOSTEAD_2000.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_NEOSTEAD_2000.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_QBS_09.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_QBS_09.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_REMINGTON_870.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_REMINGTON_870.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_SAIGA_12.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_SAIGA_12.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_TOZ_34.txt",
+      "kind": "sound",
+      "value": "shoot_rifle",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SHOTGUN_TOZ_34.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_39M.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_39M.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BERETTA_M1938.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BERETTA_M1938.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BJC_16.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BJC_16.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BLYSKAWICA.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_BLYSKAWICA.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CHUANMADE_TOMMYGUN.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CHUANMADE_TOMMYGUN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CS_LS5.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CS_LS5.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CS_LS7.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_CS_LS7.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_DAGUMADE.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_DAGUMADE.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_JH_16.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_JH_16.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_JINMADE_TOMMYGUN.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_JINMADE_TOMMYGUN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_KP_31.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_KP_31.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_LIAOMADE_BERGMAN.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_LIAOMADE_BERGMAN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1921.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1921.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1928A1.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1928A1.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1932.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1932.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1938.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1938.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1941.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M1941.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M3.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M3.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M55.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_M55.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MAS38.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MAS38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MAT49.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MAT49.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MINEBEA_PM_9.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MINEBEA_PM_9.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP18.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP18.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP28.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP28.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP34.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP34.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP38.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP38.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP40.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP40.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP5.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP5.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP7.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_MP7.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPD.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPD.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPD_34.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPD_34.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPS_43.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPS_43.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPSH.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_PPSH.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_QCQ_05.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_QCQ_05.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_QCW_05.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_QCW_05.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_STEN.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_STEN.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_STERLING.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_STERLING.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_THOMPSON.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_THOMPSON.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_TYPE_100_40.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_TYPE_100_40.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_TYPE_100_44.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_TYPE_100_44.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_UZI.txt",
+      "kind": "sound",
+      "value": "shoot_SMG",
+      "document_path": "weapon/shoot/sound_shoot"
+    },
+    {
+      "source": "Firefight/Data/Weapons/WEAPON_SMG_UZI.txt",
+      "kind": "sound",
+      "value": "reload_magazine",
+      "document_path": "weapon/magazine/sound_reload"
+    }
+  ],
+  "errors": []
+}

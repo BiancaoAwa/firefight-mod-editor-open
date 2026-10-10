@@ -266,3 +266,65 @@ ff mod export --out dist/ --format mod-zip
 * Import: no failure is caused by sibling order, a bare `&`, a numeric tag name or mixed case; shape decisions are fixed by the schema and never depend on a single file's data.
 
 **TODO from D2**: reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` (in WW3 they are `NATIONALITY_TAIWANESE` and `Taiwanese-`, apparently a unit-file prefix filter for that nationality) and expose them as editable fields in the UI.
+
+## 12. Repository layout and the editor folder
+
+Two layouts exist and they are deliberately different: the **repository** is the source tree
+on GitHub, the **editor folder** is what an installation looks like — the same shape whether
+the editor ships as loose code or as a packed executable.
+
+### 12.1 Repository (GitHub: `core/ docs/ tests/ tools/`)
+
+```
+<repo>/
+├── core/          the code
+│   ├── cli/       command line: scope resolution, commands, main
+│   ├── web/       the local read-only web UI: server
+│   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph
+├── docs/          specification and reports (this file lives here)
+├── tests/         the suite (230 tests, no game install, no network)
+├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
+│                  FirefightModPackager/, and launcher/ (the implementation behind
+│                  ff-web.cmd / ff-ai.cmd)
+├── ff.py          CLI entry point: `python ff.py <scope> <command> ...`
+└── README.md  LICENSE  .gitignore  .gitattributes
+```
+
+The CLI and the web UI live in `core/cli` and `core/web` and are imported as
+`core.cli.*` / `core.web.*`. `core/cli/scope.py` (`_editor_root`) is the one place that
+recognises an editor folder — repository or distribution — so a bundled `Firefight/` copy
+can be found without an installed game.
+
+### 12.2 Editor folder (a release: loose code or packed)
+
+```
+<editor>/
+├── ff-web.cmd          launcher with the web UI (double-click; page in its own window)
+├── ff-ai.cmd           launcher without a UI, for AI callers (forwards to the CLI)
+├── ff.py               CLI entry point
+├── skills/             AI skills: skills/firefight-editor/SKILL.md
+├── docs/               documentation
+├── core/               the code
+├── launcher/           the implementation behind ff-web.cmd / ff-ai.cmd
+├── Firefight/          stock game data copy (optional; reference, read-only)
+├── Mods/               mod projects
+│   └── <name>/         mod.toml, mod_setting.toml, README.md, LICENSE,
+│                       Mod/{Data,Images,Sounds},
+│                       .editor/{refs.toml, index.toml, log/, baseline/, notes.toml}
+└── .ff-editor.local.toml   machine-local settings: which mod, which stock directory
+```
+
+Rules that follow from this layout:
+
+* The editor looks for the stock data next to its own entry point (`<editor>/Firefight/Data`)
+  and reports that origin as `editor copy <path>`; an installation therefore works without
+  the game being installed.
+* `Mods/` is the workspace root for `<name>` scopes and `mod.toml` marks a mod project.
+* A mod project is a **partial overlay**: it may only replace files the game already reads,
+  so `Mod/Data`, `Mod/Images` and `Mod/Sounds` mirror the game folders exactly.
+* `.editor/` travels with a project, is excluded from any package (D5), and holds the
+  caches (`refs.toml`, `index.toml`), the event log and the baseline snapshots.
+* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`; its renderer is M5, so a
+  fixture project may carry a deliberately partial file, marked as such inside the file.
+* `sys.executable`-independent entry: `ff.py` stays at the editor root, so `python ff.py`
+  works in both layouts while the code sits one level down in `core/`.

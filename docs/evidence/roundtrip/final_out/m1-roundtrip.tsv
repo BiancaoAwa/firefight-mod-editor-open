@@ -1,0 +1,1793 @@
+file	size	root	xml_to_toml	toml_reparse	toml_to_xml	cp1252	order_match	warnings	note
+American-Curtiss A-12 Shrike.txt	1261	aircraft	ok	ok	ok	ok	no	0	
+American-Curtiss P-40 Warhawk.txt	1353	aircraft	ok	ok	ok	ok	no	0	
+American-Curtiss P-40B Warhawk.txt	1354	aircraft	ok	ok	ok	ok	no	0	
+American-Curtiss P-40E Warhawk.txt	1345	aircraft	ok	ok	ok	ok	no	0	
+American-Curtiss P-40F Warhawk.txt	1345	aircraft	ok	ok	ok	ok	no	0	
+American-Curtiss P-40N Warhawk.txt	1256	aircraft	ok	ok	ok	ok	no	0	
+American-Douglas A-20 Havoc.txt	1766	aircraft	ok	ok	ok	ok	no	0	
+American-Douglas A-26 Invader.txt	2338	aircraft	ok	ok	ok	ok	no	0	
+American-North American A-36 Apache.txt	1380	aircraft	ok	ok	ok	ok	no	0	
+American-Republic P-47B Thunderbolt.txt	1539	aircraft	ok	ok	ok	ok	no	0	
+American-Republic P-47C Thunderbolt.txt	1497	aircraft	ok	ok	ok	ok	no	0	
+American-Republic P-47D Thunderbolt.txt	1606	aircraft	ok	ok	ok	ok	no	0	
+British-Bristol Type 156 Beaufighter.txt	1870	aircraft	ok	ok	ok	ok	no	0	
+British-de Havilland Mosquito.txt	2639	aircraft	ok	ok	ok	ok	no	0	
+British-Fairey Battle.txt	980	aircraft	ok	ok	ok	ok	no	0	
+British-Hawker Tempest.txt	2033	aircraft	ok	ok	ok	ok	no	0	
+British-Hawker Typhoon Mk IA.txt	1921	aircraft	ok	ok	ok	ok	no	0	
+British-Hawker Typhoon Mk IB.txt	1751	aircraft	ok	ok	ok	ok	no	0	
+Chinese-Curtiss A-12 Shrike.txt	1271	aircraft	ok	ok	ok	ok	no	0	
+Chinese-Northrop Gamma 2E.txt	1437	aircraft	ok	ok	ok	ok	no	0	
+Chinese-Vultee V-11.txt	1373	aircraft	ok	ok	ok	ok	no	0	
+Finnish-Bristol Blenheim.txt	1003	aircraft	ok	ok	ok	ok	no	0	
+Finnish-Fokker CX.txt	1190	aircraft	ok	ok	ok	ok	no	0	
+Finnish-Fokker DXXI.txt	1034	aircraft	ok	ok	ok	ok	no	0	
+Finnish-Junkers Ju 88.txt	920	aircraft	ok	ok	ok	ok	no	0	
+French-Breguet 693.txt	1447	aircraft	ok	ok	ok	ok	no	0	
+French-Loire-Nieuport LN 401.txt	1143	aircraft	ok	ok	ok	ok	no	0	
+German-Focke-Wulf Fw 190 F.txt	1185	aircraft	ok	ok	ok	ok	no	0	
+German-Henschel Hs 129.txt	1183	aircraft	ok	ok	ok	ok	no	0	
+German-Junkers Ju 87 Stuka A.txt	896	aircraft	ok	ok	ok	ok	no	0	
+German-Junkers Ju 87 Stuka B.txt	1159	aircraft	ok	ok	ok	ok	no	0	
+German-Junkers Ju 87 Stuka D.txt	1158	aircraft	ok	ok	ok	ok	no	0	
+German-Junkers Ju 87 Stuka G.txt	828	aircraft	ok	ok	ok	ok	no	0	
+German-Messerschmitt Bf 110 C.txt	1430	aircraft	ok	ok	ok	ok	no	0	
+German-Messerschmitt Bf 110 G.txt	1426	aircraft	ok	ok	ok	ok	no	0	
+Hungarian-Junkers Ju 87 Stuka D.txt	1173	aircraft	ok	ok	ok	ok	no	0	
+Hungarian-Reggiane Re 2000 Heja.txt	1249	aircraft	ok	ok	ok	ok	no	0	
+Hungarian-Weiss WM-21.txt	1492	aircraft	ok	ok	ok	ok	no	0	
+Italian-Breda Ba65.txt	1641	aircraft	ok	ok	ok	ok	no	0	
+Italian-Fiat CR 42.txt	965	aircraft	ok	ok	ok	ok	no	0	
+Italian-Reggiane Re 2002 Ariete.txt	1269	aircraft	ok	ok	ok	ok	no	0	
+Japanese-Kawasaki Ki-45 Toryu.txt	918	aircraft	ok	ok	ok	ok	no	0	
+Japanese-Mitsubishi Ki-30 Ann.txt	989	aircraft	ok	ok	ok	ok	no	0	
+Japanese-Mitsubishi Ki-46 III KAI.txt	883	aircraft	ok	ok	ok	ok	no	0	
+Japanese-Mitsubishi Ki-51 Sonia (early).txt	1087	aircraft	ok	ok	ok	ok	no	0	
+Japanese-Mitsubishi Ki-51 Sonia (late).txt	1084	aircraft	ok	ok	ok	ok	no	0	
+Polish-PZL P11a.txt	1252	aircraft	ok	ok	ok	ok	no	0	
+Polish-PZL P11c.txt	1437	aircraft	ok	ok	ok	ok	no	0	
+Polish-PZL P23 Karas.txt	1164	aircraft	ok	ok	ok	ok	no	0	
+Polish-PZL P37 Los.txt	1312	aircraft	ok	ok	ok	ok	no	0	
+Romanian-IAR 81.txt	1025	aircraft	ok	ok	ok	ok	no	0	
+Romanian-Junkers Ju 87 Stuka.txt	1088	aircraft	ok	ok	ok	ok	no	0	
+Romanian-PZL P11f.txt	1174	aircraft	ok	ok	ok	ok	no	0	
+Russian-Ilyushin Il-10.txt	1421	aircraft	ok	ok	ok	ok	no	0	
+Russian-Ilyushin Il-2 1941.txt	2052	aircraft	ok	ok	ok	ok	no	0	
+Russian-Ilyushin Il-2 1942.txt	2055	aircraft	ok	ok	ok	ok	no	0	
+Russian-Ilyushin Il-2 1943.txt	1849	aircraft	ok	ok	ok	ok	no	0	
+Russian-Petlyakov Pe-2MV.txt	1549	aircraft	ok	ok	ok	ok	no	0	
+Russian-Polikarpov R-5Sh.txt	1265	aircraft	ok	ok	ok	ok	no	0	
+American-105mm Howitzer (pre-HEAT).txt	1858	squad	ok	ok	ok	ok	no	0	
+American-105mm Howitzer.txt	1944	squad	ok	ok	ok	ok	no	0	
+American-3 inch M5.txt	1954	squad	ok	ok	ok	ok	no	0	
+American-37mm M3.txt	1595	squad	ok	ok	ok	ok	no	0	
+American-40mm M1.txt	1618	squad	ok	ok	ok	ok	no	0	
+American-57mm M1.txt	1824	squad	ok	ok	ok	ok	no	0	
+American-75mm Howitzer (pre-HEAT).txt	1870	squad	ok	ok	ok	ok	no	0	
+American-75mm Howitzer.txt	1956	squad	ok	ok	ok	ok	no	0	
+American-90mm M2.txt	1882	squad	ok	ok	ok	ok	no	0	
+British-17 Pounder.txt	2236	squad	ok	ok	ok	ok	no	0	
+British-2 Pounder.txt	1521	squad	ok	ok	ok	ok	no	0	
+British-25 Pounder.txt	1959	squad	ok	ok	ok	ok	no	0	
+British-3_7_Inch.txt	1886	squad	ok	ok	ok	ok	no	0	
+British-6 Pounder.txt	2024	squad	ok	ok	ok	ok	no	0	
+Chinese-105mm leFH18.txt	1883	squad	ok	ok	ok	ok	no	0	
+Chinese-150mm sFH18.txt	2008	squad	ok	ok	ok	ok	no	0	
+Chinese-20mm ST-5 AA Gun.txt	1512	squad	ok	ok	ok	ok	no	0	
+Chinese-37mm M3.txt	1488	squad	ok	ok	ok	ok	no	0	
+Chinese-37mm Pak36.txt	1668	squad	ok	ok	ok	ok	no	0	
+Chinese-37mm Type 14.txt	1497	squad	ok	ok	ok	ok	no	0	
+Chinese-47mm Cannone 47_32.txt	1808	squad	ok	ok	ok	ok	no	0	
+Chinese-75mm leIG 18.txt	1735	squad	ok	ok	ok	ok	no	0	
+Chinese-75mm M1897.txt	1692	squad	ok	ok	ok	ok	no	0	
+Chinese-75mm M1A1 Howitzer.txt	1861	squad	ok	ok	ok	ok	no	0	
+Finnish-25mm Hotchkiss.txt	1478	squad	ok	ok	ok	ok	no	0	
+Finnish-37mm Bofors.txt	1666	squad	ok	ok	ok	ok	no	0	
+Finnish-37mm Pak36.txt	1556	squad	ok	ok	ok	ok	no	0	
+Finnish-45mm M1937 53K.txt	1929	squad	ok	ok	ok	ok	no	0	
+Finnish-47mm M1935.txt	1948	squad	ok	ok	ok	ok	no	0	
+Finnish-47mm M1939.txt	1928	squad	ok	ok	ok	ok	no	0	
+Finnish-50mm Pak38.txt	1759	squad	ok	ok	ok	ok	no	0	
+Finnish-75mm M1897.txt	1782	squad	ok	ok	ok	ok	no	0	
+Finnish-75mm Pak40.txt	1765	squad	ok	ok	ok	ok	no	0	
+Finnish-75mm Pak97-38.txt	1986	squad	ok	ok	ok	ok	no	0	
+French-25mm Hotchkiss.txt	1471	squad	ok	ok	ok	ok	no	0	
+French-3 inch M5.txt	1950	squad	ok	ok	ok	ok	no	0	
+French-47mm APX.txt	1768	squad	ok	ok	ok	ok	no	0	
+French-57mm M1.txt	1751	squad	ok	ok	ok	ok	no	0	
+French-75mm M1897.txt	1788	squad	ok	ok	ok	ok	no	0	
+French-90mm M2.txt	1879	squad	ok	ok	ok	ok	no	0	
+German-105mm leFH18 (pre-HEAT).txt	2095	squad	ok	ok	ok	ok	no	0	
+German-105mm leFH18.txt	2199	squad	ok	ok	ok	ok	no	0	
+German-128mm Pak44.txt	1975	squad	ok	ok	ok	ok	no	0	
+German-150mm sFH18.txt	1876	squad	ok	ok	ok	ok	no	0	
+German-150mm sIG33 (pre-HEAT).txt	1872	squad	ok	ok	ok	ok	no	0	
+German-150mm sIG33.txt	1957	squad	ok	ok	ok	ok	no	0	
+German-20mm Flak30.txt	1516	squad	ok	ok	ok	ok	no	0	
+German-20mm Flak38.txt	1517	squad	ok	ok	ok	ok	no	0	
+German-20mm Flakvierling38.txt	1892	squad	ok	ok	ok	ok	no	0	
+German-28mm sPzB41.txt	1854	squad	ok	ok	ok	ok	no	0	
+German-37mm Pak36.txt	2135	squad	ok	ok	ok	ok	no	0	
+German-42mm Pak41.txt	1757	squad	ok	ok	ok	ok	no	0	
+German-47mm Pak(t) (pre-APCR).txt	1686	squad	ok	ok	ok	ok	no	0	
+German-47mm Pak(t).txt	1787	squad	ok	ok	ok	ok	no	0	
+German-50mm Pak38.txt	1982	squad	ok	ok	ok	ok	no	0	
+German-75mm leIG18 (pre-HEAT).txt	1749	squad	ok	ok	ok	ok	no	0	
+German-75mm leIG18.txt	1832	squad	ok	ok	ok	ok	no	0	
+German-75mm Pak40.txt	2168	squad	ok	ok	ok	ok	no	0	
+German-75mm Pak41.txt	1928	squad	ok	ok	ok	ok	no	0	
+German-75mm Pak97-38.txt	2241	squad	ok	ok	ok	ok	no	0	
+German-80mm PAW 600.txt	2020	squad	ok	ok	ok	ok	no	0	
+German-88mm Flak36.txt	1992	squad	ok	ok	ok	ok	no	0	
+German-88mm Pak43.txt	2068	squad	ok	ok	ok	ok	no	0	
+German-88mm Raketenwerfer 43.txt	1362	squad	ok	ok	ok	ok	no	0	
+German-LG 40 Recoilless Rifle (early).txt	1522	squad	ok	ok	ok	ok	no	0	
+German-LG 40 Recoilless Rifle (late).txt	1522	squad	ok	ok	ok	ok	no	0	
+Hungarian-37mm 36M.txt	2343	squad	ok	ok	ok	ok	no	0	
+Hungarian-40mm 40M.txt	2022	squad	ok	ok	ok	ok	no	0	
+Hungarian-47mm 36M.txt	2174	squad	ok	ok	ok	ok	no	0	
+Hungarian-50mm 38M.txt	2163	squad	ok	ok	ok	ok	no	0	
+Hungarian-75mm Pak97-38.txt	2076	squad	ok	ok	ok	ok	no	0	
+Italian-75mm Pak97-38.txt	2088	squad	ok	ok	ok	ok	no	0	
+Italian-Cannone 37_45.txt	1460	squad	ok	ok	ok	ok	no	0	
+Italian-Cannone 37_54.txt	1415	squad	ok	ok	ok	ok	no	0	
+Italian-Cannone 47_32.txt	1773	squad	ok	ok	ok	ok	no	0	
+Italian-Cannone 75_32.txt	1730	squad	ok	ok	ok	ok	no	0	
+Italian-Cannone 90_53.txt	1761	squad	ok	ok	ok	ok	no	0	
+Italian-Obice 105_14.txt	1641	squad	ok	ok	ok	ok	no	0	
+Italian-Obice 149_19.txt	1778	squad	ok	ok	ok	ok	no	0	
+Italian-Obice 75_13.txt	1618	squad	ok	ok	ok	ok	no	0	
+Japanese-105mm Type 91.txt	1999	squad	ok	ok	ok	ok	no	0	
+Japanese-150mm Type 4.txt	1987	squad	ok	ok	ok	ok	no	0	
+Japanese-20mm AA Gun.txt	1524	squad	ok	ok	ok	ok	no	0	
+Japanese-25mm AA Gun.txt	1528	squad	ok	ok	ok	ok	no	0	
+Japanese-37mm Type 1.txt	1465	squad	ok	ok	ok	ok	no	0	
+Japanese-37mm Type 94.txt	1542	squad	ok	ok	ok	ok	no	0	
+Japanese-47mm Type 1.txt	1782	squad	ok	ok	ok	ok	no	0	
+Japanese-75mm Type 88.txt	1807	squad	ok	ok	ok	ok	no	0	
+Japanese-75mm Type 90.txt	2052	squad	ok	ok	ok	ok	no	0	
+Polish-37mm Bofors.txt	1657	squad	ok	ok	ok	ok	no	0	
+Polish-75mm M1897.txt	1777	squad	ok	ok	ok	ok	no	0	
+Polish-76mm.txt	1958	squad	ok	ok	ok	ok	no	0	
+Romanian-37mm M1936.txt	1776	squad	ok	ok	ok	ok	no	0	
+Romanian-47mm APX.txt	1979	squad	ok	ok	ok	ok	no	0	
+Romanian-47mm M1935.txt	2006	squad	ok	ok	ok	ok	no	0	
+Romanian-47mm M1939.txt	1989	squad	ok	ok	ok	ok	no	0	
+Romanian-75mm M1943.txt	2217	squad	ok	ok	ok	ok	no	0	
+Romanian-75mm Pak97-38.txt	2082	squad	ok	ok	ok	ok	no	0	
+Russian-100mm.txt	2032	squad	ok	ok	ok	ok	no	0	
+Russian-122mm.txt	1971	squad	ok	ok	ok	ok	no	0	
+Russian-152mm (pre-HEAT).txt	1850	squad	ok	ok	ok	ok	no	0	
+Russian-152mm.txt	1951	squad	ok	ok	ok	ok	no	0	
+Russian-45mm M1932 19K.txt	1759	squad	ok	ok	ok	ok	no	0	
+Russian-45mm M1937 53K.txt	2088	squad	ok	ok	ok	ok	no	0	
+Russian-45mm M1942 M42.txt	1955	squad	ok	ok	ok	ok	no	0	
+Russian-57mm.txt	2034	squad	ok	ok	ok	ok	no	0	
+Russian-76mm M1936 F22.txt	2023	squad	ok	ok	ok	ok	no	0	
+Russian-76mm M1939 USV (pre-HEAT).txt	2183	squad	ok	ok	ok	ok	no	0	
+Russian-76mm M1939 USV.txt	2141	squad	ok	ok	ok	ok	no	0	
+Russian-76mm M1942 ZiS3.txt	2173	squad	ok	ok	ok	ok	no	0	
+Russian-85mm.txt	1919	squad	ok	ok	ok	ok	no	0	
+American-Bazooka early.txt	854	squad	ok	ok	ok	ok	no	0	
+American-Bazooka.txt	955	squad	ok	ok	ok	ok	no	0	
+American-Flamethrower.txt	905	squad	ok	ok	ok	ok	no	0	
+American-HMG 50 Cal early.txt	1318	squad	ok	ok	ok	ok	no	0	
+American-HMG 50 Cal.txt	1313	squad	ok	ok	ok	ok	no	0	
+American-HMG early.txt	1347	squad	ok	ok	ok	ok	no	0	
+American-HMG.txt	1342	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Armoured) late.txt	3793	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Armoured).txt	3760	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Marine Raiders).txt	3367	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Marines) 0.txt	3400	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Marines) 1.txt	3357	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Marines) 2.txt	4091	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Marines) 3.txt	4075	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paramarines) 1.txt	3431	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paramarines) 2.txt	3452	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paras) 1.txt	4399	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paras) 2.txt	4382	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paras) 3.txt	4393	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paras) 4.txt	4390	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Paras) 5.txt	4263	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Rangers) 1.txt	4037	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Rangers) 2.txt	4064	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section (Rangers) early.txt	4035	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section 1.txt	4336	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section 2.txt	4284	squad	ok	ok	ok	ok	no	0	
+American-Infantry Section early.txt	4342	squad	ok	ok	ok	ok	no	0	
+American-MMG early.txt	1189	squad	ok	ok	ok	ok	no	0	
+American-MMG.txt	1184	squad	ok	ok	ok	ok	no	0	
+American-Mortar (Heavy).txt	1571	squad	ok	ok	ok	ok	no	0	
+American-Mortar (Light) early.txt	1404	squad	ok	ok	ok	ok	no	0	
+American-Mortar (Light).txt	1401	squad	ok	ok	ok	ok	no	0	
+American-Mortar (Medium) early.txt	1541	squad	ok	ok	ok	ok	no	0	
+American-Mortar (Medium).txt	1536	squad	ok	ok	ok	ok	no	0	
+American-Recoilless Rifle M18.txt	1522	squad	ok	ok	ok	ok	no	0	
+British-Boys AT Rifle.txt	968	squad	ok	ok	ok	ok	no	0	
+British-Flamethrower.txt	952	squad	ok	ok	ok	ok	no	0	
+British-HMG.txt	1372	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Armoured).txt	3076	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Commandos).txt	3783	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Grenadiers).txt	3453	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Marines).txt	4074	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Paras).txt	3636	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (Pioneers).txt	4049	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section (SAS).txt	4064	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section 0.txt	3799	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section 1.txt	3806	squad	ok	ok	ok	ok	no	0	
+British-Infantry Section 2.txt	3776	squad	ok	ok	ok	ok	no	0	
+British-LMG Bren.txt	1334	squad	ok	ok	ok	ok	no	0	
+British-Mortar (Heavy).txt	1610	squad	ok	ok	ok	ok	no	0	
+British-Mortar (Light).txt	1448	squad	ok	ok	ok	ok	no	0	
+British-Mortar (Medium).txt	1593	squad	ok	ok	ok	ok	no	0	
+British-PIAT.txt	834	squad	ok	ok	ok	ok	no	0	
+Chinese-Bazooka.txt	870	squad	ok	ok	ok	ok	no	0	
+Chinese-Boys AT Rifle.txt	987	squad	ok	ok	ok	ok	no	0	
+Chinese-CAII Flamethrower.txt	974	squad	ok	ok	ok	ok	no	0	
+Chinese-CAII Section.txt	4552	squad	ok	ok	ok	ok	no	0	
+Chinese-CAII SMG Section.txt	2490	squad	ok	ok	ok	ok	no	0	
+Chinese-CEF Section.txt	4289	squad	ok	ok	ok	ok	no	0	
+Chinese-GEID Infantry Section 1.txt	4517	squad	ok	ok	ok	ok	no	0	
+Chinese-GEID Infantry Section 2.txt	4725	squad	ok	ok	ok	ok	no	0	
+Chinese-Hanyang AT Team.txt	840	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG Hotchkiss M1914.txt	1394	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG M1917A1.txt	1361	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG Type 24.txt	1500	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG Type 30.txt	1383	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG Vickers.txt	1368	squad	ok	ok	ok	ok	no	0	
+Chinese-HMG ZB37.txt	1523	squad	ok	ok	ok	ok	no	0	
+Chinese-Infantry Section 1.txt	3827	squad	ok	ok	ok	ok	no	0	
+Chinese-Infantry Section 2.txt	3881	squad	ok	ok	ok	ok	no	0	
+Chinese-Jin-Sui Guard Section.txt	3283	squad	ok	ok	ok	ok	no	0	
+Chinese-Jin-Sui Section.txt	4625	squad	ok	ok	ok	ok	no	0	
+Chinese-Mauser M1918 AT Rifle.txt	906	squad	ok	ok	ok	ok	no	0	
+Chinese-MMG M1919.txt	1193	squad	ok	ok	ok	ok	no	0	
+Chinese-Mortar (Light).txt	1496	squad	ok	ok	ok	ok	no	0	
+Chinese-Mortar (Medium).txt	1642	squad	ok	ok	ok	ok	no	0	
+Chinese-Mortar M2 Heavy.txt	1504	squad	ok	ok	ok	ok	no	0	
+Chinese-Mortar M2 Light.txt	1330	squad	ok	ok	ok	ok	no	0	
+Chinese-Northeast Army Guards Section.txt	3196	squad	ok	ok	ok	ok	no	0	
+Chinese-Northeast Army Section.txt	4536	squad	ok	ok	ok	ok	no	0	
+Chinese-Northwest Army Section.txt	4271	squad	ok	ok	ok	ok	no	0	
+Chinese-Sichuan Guards Section (Liu).txt	3320	squad	ok	ok	ok	ok	no	0	
+Chinese-Sichuan Section (Liu).txt	3785	squad	ok	ok	ok	ok	no	0	
+Chinese-Sichuan Section (Yang).txt	4345	squad	ok	ok	ok	ok	no	0	
+Finnish-HMG.txt	1333	squad	ok	ok	ok	ok	no	0	
+Finnish-Infantry Section 0.txt	3520	squad	ok	ok	ok	ok	no	0	
+Finnish-Infantry Section 1.txt	3556	squad	ok	ok	ok	ok	no	0	
+Finnish-Infantry Section 2.txt	3556	squad	ok	ok	ok	ok	no	0	
+Finnish-Infantry Section 3.txt	3520	squad	ok	ok	ok	ok	no	0	
+Finnish-Infantry Section 4.txt	3575	squad	ok	ok	ok	ok	no	0	
+Finnish-Jaeger Section 0.txt	2429	squad	ok	ok	ok	ok	no	0	
+Finnish-Jaeger Section 1.txt	2996	squad	ok	ok	ok	ok	no	0	
+Finnish-Jaeger Section 2.txt	4231	squad	ok	ok	ok	ok	no	0	
+Finnish-L39 AT Rifle.txt	1057	squad	ok	ok	ok	ok	no	0	
+Finnish-LMG Section 0.txt	2954	squad	ok	ok	ok	ok	no	0	
+Finnish-LMG Section 1.txt	2966	squad	ok	ok	ok	ok	no	0	
+Finnish-LMG Section 2.txt	2954	squad	ok	ok	ok	ok	no	0	
+Finnish-MMG.txt	1304	squad	ok	ok	ok	ok	no	0	
+Finnish-Mortar (Heavy).txt	1577	squad	ok	ok	ok	ok	no	0	
+Finnish-Mortar (Light).txt	1416	squad	ok	ok	ok	ok	no	0	
+Finnish-Mortar (Medium).txt	1576	squad	ok	ok	ok	ok	no	0	
+Finnish-Panzerschreck.txt	870	squad	ok	ok	ok	ok	no	0	
+Finnish-Sissi Section 0.txt	2980	squad	ok	ok	ok	ok	no	0	
+Finnish-Sissi Section 1.txt	3014	squad	ok	ok	ok	ok	no	0	
+Finnish-Sissi Section 2.txt	3435	squad	ok	ok	ok	ok	no	0	
+French-Bazooka.txt	847	squad	ok	ok	ok	ok	no	0	
+French-Boys AT Rifle.txt	816	squad	ok	ok	ok	ok	no	0	
+French-Flamethrower.txt	934	squad	ok	ok	ok	ok	no	0	
+French-HMG 30 Cal.txt	1338	squad	ok	ok	ok	ok	no	0	
+French-HMG 50 Cal.txt	1309	squad	ok	ok	ok	ok	no	0	
+French-HMG.txt	1371	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section (Alpine).txt	3404	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section (Colonial).txt	4031	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section (Goumier).txt	3751	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section (Vichy).txt	3995	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section 1 (Priority).txt	3965	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section 1.txt	4095	squad	ok	ok	ok	ok	no	0	
+French-Infantry Section 2.txt	4328	squad	ok	ok	ok	ok	no	0	
+French-Mortar (Light).txt	1431	squad	ok	ok	ok	ok	no	0	
+French-Mortar (Medium).txt	1568	squad	ok	ok	ok	ok	no	0	
+German-Fallschirmjaegers 1.txt	4504	squad	ok	ok	ok	ok	no	0	
+German-Fallschirmjaegers 2.txt	4505	squad	ok	ok	ok	ok	no	0	
+German-Fallschirmjaegers 3.txt	3793	squad	ok	ok	ok	ok	no	0	
+German-Fallschirmjaegers 4.txt	3608	squad	ok	ok	ok	ok	no	0	
+German-Feuergruppen.txt	3119	squad	ok	ok	ok	ok	no	0	
+German-Flamethrower.txt	948	squad	ok	ok	ok	ok	no	0	
+German-Gebirgsjaegers 1.txt	4942	squad	ok	ok	ok	ok	no	0	
+German-Gebirgsjaegers 2.txt	3913	squad	ok	ok	ok	ok	no	0	
+German-GrB39 Grenade Launcher.txt	985	squad	ok	ok	ok	ok	no	0	
+German-HMG34.txt	1339	squad	ok	ok	ok	ok	no	0	
+German-HMG42.txt	1478	squad	ok	ok	ok	ok	no	0	
+German-Infantry Section 0.txt	5083	squad	ok	ok	ok	ok	no	0	
+German-Infantry Section 1.txt	5083	squad	ok	ok	ok	ok	no	0	
+German-Infantry Section 2.txt	4031	squad	ok	ok	ok	ok	no	0	
+German-Infantry Section 3.txt	3973	squad	ok	ok	ok	ok	no	0	
+German-Infantry Section 4.txt	3624	squad	ok	ok	ok	ok	no	0	
+German-Luftwaffe Field Infantry Section.txt	3831	squad	ok	ok	ok	ok	no	0	
+German-Mortar (Heavy).txt	1609	squad	ok	ok	ok	ok	no	0	
+German-Mortar (Light).txt	1466	squad	ok	ok	ok	ok	no	0	
+German-Mortar (Medium).txt	1608	squad	ok	ok	ok	ok	no	0	
+German-Panzergrenadiers (early).txt	3875	squad	ok	ok	ok	ok	no	0	
+German-Panzergrenadiers.txt	3878	squad	ok	ok	ok	ok	no	0	
+German-Panzerschreck.txt	888	squad	ok	ok	ok	ok	no	0	
+German-PzB39 AT Rifle.txt	837	squad	ok	ok	ok	ok	no	0	
+German-Sturmgruppen.txt	3019	squad	ok	ok	ok	ok	no	0	
+German-Volksgrenadiers 1.txt	3311	squad	ok	ok	ok	ok	no	0	
+German-Volksgrenadiers 2.txt	3312	squad	ok	ok	ok	ok	no	0	
+German-Volkssturm.txt	2922	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Panzergrenadiers.txt	3998	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Section 0.txt	4840	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Section 1.txt	4840	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Section 2.txt	4135	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Section 3.txt	4081	squad	ok	ok	ok	ok	no	0	
+German-Waffen SS Section 4.txt	3732	squad	ok	ok	ok	ok	no	0	
+Hungarian-AT Rifle.txt	805	squad	ok	ok	ok	ok	no	0	
+Hungarian-Flamethrower.txt	932	squad	ok	ok	ok	ok	no	0	
+Hungarian-HMG.txt	1431	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (Border).txt	3368	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (Mountain).txt	3192	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (Paras).txt	3186	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (Rapid).txt	3371	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (River).txt	3366	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section (StLz).txt	3205	squad	ok	ok	ok	ok	no	0	
+Hungarian-Infantry Section.txt	3341	squad	ok	ok	ok	ok	no	0	
+Hungarian-Mortar (Heavy).txt	1540	squad	ok	ok	ok	ok	no	0	
+Hungarian-Mortar (Light).txt	1390	squad	ok	ok	ok	ok	no	0	
+Hungarian-Mortar (Medium).txt	1543	squad	ok	ok	ok	ok	no	0	
+Hungarian-Panzerschreck.txt	874	squad	ok	ok	ok	ok	no	0	
+Italian-AT Rifle.txt	832	squad	ok	ok	ok	ok	no	0	
+Italian-Bersaglieri Squad (LMG).txt	2369	squad	ok	ok	ok	ok	no	0	
+Italian-Bersaglieri Squad (Rifle).txt	3151	squad	ok	ok	ok	ok	no	0	
+Italian-Flamethrower.txt	993	squad	ok	ok	ok	ok	no	0	
+Italian-HMG Modello 1935.txt	1392	squad	ok	ok	ok	ok	no	0	
+Italian-HMG.txt	1362	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Alpini).txt	4111	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts LMG) early.txt	3004	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts LMG) late.txt	3005	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts M) early.txt	4062	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts M) late.txt	3974	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts Rifle) early.txt	3372	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Blackshirts Rifle) late.txt	3373	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (LMG).txt	3215	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Paras).txt	4177	squad	ok	ok	ok	ok	no	0	
+Italian-Infantry Squad (Rifle).txt	3583	squad	ok	ok	ok	ok	no	0	
+Italian-Mortar (Light).txt	1451	squad	ok	ok	ok	ok	no	0	
+Italian-Mortar (Medium).txt	1574	squad	ok	ok	ok	ok	no	0	
+Italian-Panzerschreck.txt	878	squad	ok	ok	ok	ok	no	0	
+Japanese-Army Paratroopers 1.txt	2273	squad	ok	ok	ok	ok	no	0	
+Japanese-Army Paratroopers 2.txt	2273	squad	ok	ok	ok	ok	no	0	
+Japanese-AT Launcher.txt	903	squad	ok	ok	ok	ok	no	0	
+Japanese-AT Rifle.txt	1150	squad	ok	ok	ok	ok	no	0	
+Japanese-Flamethrower.txt	942	squad	ok	ok	ok	ok	no	0	
+Japanese-HMG 13-2.txt	1333	squad	ok	ok	ok	ok	no	0	
+Japanese-HMG.txt	1332	squad	ok	ok	ok	ok	no	0	
+Japanese-Imperial Guards (early).txt	4158	squad	ok	ok	ok	ok	no	0	
+Japanese-Imperial Guards (late).txt	4191	squad	ok	ok	ok	ok	no	0	
+Japanese-Imperial Guards.txt	4191	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry PETA.txt	3203	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (AT) 1.txt	3798	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (AT) 2.txt	3806	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Commandos) 1.txt	3611	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Commandos) 2.txt	3611	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Grenadiers) 1.txt	4308	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Grenadiers) 2.txt	4316	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Pioneers) 1.txt	3207	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section (Pioneers) 2.txt	3215	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section 1.txt	4138	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section 2.txt	4146	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry Section 3.txt	4146	squad	ok	ok	ok	ok	no	0	
+Japanese-Infantry VFC.txt	3517	squad	ok	ok	ok	ok	no	0	
+Japanese-Marine Paratroopers 1.txt	3051	squad	ok	ok	ok	ok	no	0	
+Japanese-Marine Paratroopers 2.txt	3059	squad	ok	ok	ok	ok	no	0	
+Japanese-Marine Paratroopers 3.txt	3059	squad	ok	ok	ok	ok	no	0	
+Japanese-Mortar Type 2.txt	1578	squad	ok	ok	ok	ok	no	0	
+Japanese-Mortar Type 89.txt	1435	squad	ok	ok	ok	ok	no	0	
+Japanese-Mortar Type 97.txt	1580	squad	ok	ok	ok	ok	no	0	
+Japanese-Mortar Type 98.txt	1498	squad	ok	ok	ok	ok	no	0	
+Japanese-SNLF Infantry (Grenadiers) 1.txt	3920	squad	ok	ok	ok	ok	no	0	
+Japanese-SNLF Infantry (Grenadiers) 2.txt	3928	squad	ok	ok	ok	ok	no	0	
+Japanese-SNLF Infantry 1.txt	3836	squad	ok	ok	ok	ok	no	0	
+Japanese-SNLF Infantry 2.txt	3844	squad	ok	ok	ok	ok	no	0	
+Polish-AK Sabotage Section 1.txt	2214	squad	ok	ok	ok	ok	no	0	
+Polish-AK Sabotage Section 2.txt	2922	squad	ok	ok	ok	ok	no	0	
+Polish-AK Sabotage Section 3.txt	2921	squad	ok	ok	ok	ok	no	0	
+Polish-AK Sabotage Section 4.txt	2600	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 1.txt	2524	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 2.txt	3005	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 3.txt	2517	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 4.txt	2685	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 5.txt	2772	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 6.txt	3317	squad	ok	ok	ok	ok	no	0	
+Polish-AK Section 7.txt	2557	squad	ok	ok	ok	ok	no	0	
+Polish-AT Rifle 1.txt	837	squad	ok	ok	ok	ok	no	0	
+Polish-AT Rifle 2.txt	841	squad	ok	ok	ok	ok	no	0	
+Polish-Black Brigade Section.txt	3516	squad	ok	ok	ok	ok	no	0	
+Polish-Dismounted Cavalry Section.txt	4239	squad	ok	ok	ok	ok	no	0	
+Polish-Flamethrower 1.txt	933	squad	ok	ok	ok	ok	no	0	
+Polish-Flamethrower 2.txt	933	squad	ok	ok	ok	ok	no	0	
+Polish-HMG (M1917) 1.txt	1313	squad	ok	ok	ok	ok	no	0	
+Polish-HMG (M1917) 2.txt	1317	squad	ok	ok	ok	ok	no	0	
+Polish-HMG 1.txt	1336	squad	ok	ok	ok	ok	no	0	
+Polish-HMG 2.txt	1340	squad	ok	ok	ok	ok	no	0	
+Polish-Infantry Squad (LMG).txt	2926	squad	ok	ok	ok	ok	no	0	
+Polish-Infantry Squad (Rifle).txt	3523	squad	ok	ok	ok	ok	no	0	
+Polish-Mortar (Light) 1.txt	1400	squad	ok	ok	ok	ok	no	0	
+Polish-Mortar (Light) 2.txt	1404	squad	ok	ok	ok	ok	no	0	
+Polish-Mortar (Medium) 1.txt	1560	squad	ok	ok	ok	ok	no	0	
+Polish-Mortar (Medium) 2.txt	1566	squad	ok	ok	ok	ok	no	0	
+Polish-Panzerfaust.txt	1035	squad	ok	ok	ok	ok	no	0	
+Polish-Panzerschreck.txt	875	squad	ok	ok	ok	ok	no	0	
+Polish-PIAT.txt	875	squad	ok	ok	ok	ok	no	0	
+Polish-SZP Section.txt	2451	squad	ok	ok	ok	ok	no	0	
+Polish-TAP Section.txt	2272	squad	ok	ok	ok	ok	no	0	
+Polish-ZWZ Section.txt	2440	squad	ok	ok	ok	ok	no	0	
+Romanian-Flamethrower.txt	973	squad	ok	ok	ok	ok	no	0	
+Romanian-HMG (ZB53).txt	1431	squad	ok	ok	ok	ok	no	0	
+Romanian-HMG.txt	1441	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Border).txt	3468	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Guards).txt	3471	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Marines).txt	3459	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Paras) early.txt	3468	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Paras) late.txt	3463	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section (Vanatori).txt	3478	squad	ok	ok	ok	ok	no	0	
+Romanian-Infantry Section.txt	3449	squad	ok	ok	ok	ok	no	0	
+Romanian-Mortar (Heavy).txt	1536	squad	ok	ok	ok	ok	no	0	
+Romanian-Mortar (Light).txt	1429	squad	ok	ok	ok	ok	no	0	
+Romanian-Mortar (Medium).txt	1564	squad	ok	ok	ok	ok	no	0	
+Romanian-Panzerschreck.txt	872	squad	ok	ok	ok	ok	no	0	
+Russian-AT Rifle early.txt	830	squad	ok	ok	ok	ok	no	0	
+Russian-AT Rifle PTRS.txt	823	squad	ok	ok	ok	ok	no	0	
+Russian-AT Rifle.txt	824	squad	ok	ok	ok	ok	no	0	
+Russian-Bazooka.txt	900	squad	ok	ok	ok	ok	no	0	
+Russian-Flamethrower early.txt	957	squad	ok	ok	ok	ok	no	0	
+Russian-Flamethrower.txt	952	squad	ok	ok	ok	ok	no	0	
+Russian-HMG early.txt	1341	squad	ok	ok	ok	ok	no	0	
+Russian-HMG Maxim early.txt	1349	squad	ok	ok	ok	ok	no	0	
+Russian-HMG Maxim.txt	1343	squad	ok	ok	ok	ok	no	0	
+Russian-HMG SG43.txt	1478	squad	ok	ok	ok	ok	no	0	
+Russian-HMG.txt	1336	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Guards).txt	4242	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Marines) 1.txt	3480	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Marines) 2.txt	3779	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Motorized Guards).txt	4479	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Motorized Scouts).txt	3231	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Motorized).txt	2967	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Paras) early.txt	3790	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Paras).txt	3785	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Penal Battalion).txt	3663	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Sapper) 1.txt	3472	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Sapper) 2.txt	3501	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section (Sapper) 3.txt	3979	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 1.txt	4134	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 2.txt	4136	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 3.txt	4110	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 4.txt	4138	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 5.txt	3507	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry Section 6.txt	2549	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry SMG Section (Heavy).txt	2911	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry SMG Section (Light).txt	2987	squad	ok	ok	ok	ok	no	0	
+Russian-Infantry SMG Section.txt	2431	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Heavy) early.txt	1607	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Heavy).txt	1602	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Light) early.txt	1441	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Light).txt	1436	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Medium) early.txt	1591	squad	ok	ok	ok	ok	no	0	
+Russian-Mortar (Medium).txt	1586	squad	ok	ok	ok	ok	no	0	
+Russian-PIAT.txt	875	squad	ok	ok	ok	ok	no	0	
+American-LVT(A)-1.txt	4337	squad	ok	ok	ok	ok	no	1	
+American-LVT(A)-2.txt	3542	squad	ok	ok	ok	ok	no	1	
+American-LVT(A)-4.txt	3644	squad	ok	ok	ok	ok	no	1	
+American-LVT-2.txt	3525	squad	ok	ok	ok	ok	no	1	
+American-LVT-4.txt	4846	squad	ok	ok	ok	ok	no	1	
+American-M1 Armoured Car.txt	3031	squad	ok	ok	ok	ok	no	1	
+American-M1 Combat Car.txt	3596	squad	ok	ok	ok	ok	no	1	
+American-M10 Wolverine.txt	3999	squad	ok	ok	ok	ok	no	1	
+American-M10A1 Wolverine.txt	4014	squad	ok	ok	ok	ok	no	1	
+American-M13 Halftrack.txt	3338	squad	ok	ok	ok	ok	no	1	
+American-M15 Halftrack.txt	3763	squad	ok	ok	ok	ok	no	1	
+American-M15A1 Halftrack.txt	3771	squad	ok	ok	ok	ok	no	1	
+American-M16 Halftrack.txt	3369	squad	ok	ok	ok	ok	no	1	
+American-M18 Hellcat 90mm.txt	3825	squad	ok	ok	ok	ok	no	1	
+American-M18 Hellcat.txt	3905	squad	ok	ok	ok	ok	no	1	
+American-M2 Halftrack.txt	2750	squad	ok	ok	ok	ok	no	1	
+American-M2 Medium Tank.txt	5539	squad	ok	ok	ok	ok	no	1	
+American-M20 Armoured Car.txt	3037	squad	ok	ok	ok	ok	no	1	
+American-M22 Locust.txt	3264	squad	ok	ok	ok	ok	no	1	
+American-M24 Chaffee.txt	3999	squad	ok	ok	ok	ok	no	1	
+American-M26 Pershing.txt	4104	squad	ok	ok	ok	ok	no	1	
+American-M26 Super Pershing.txt	4081	squad	ok	ok	ok	ok	no	1	
+American-M2A1 Light Tank.txt	3454	squad	ok	ok	ok	ok	no	1	
+American-M2A2 Light Tank.txt	4165	squad	ok	ok	ok	ok	no	1	
+American-M2A3 Light Tank.txt	4171	squad	ok	ok	ok	ok	no	1	
+American-M2A4 Light Tank.txt	4422	squad	ok	ok	ok	ok	no	1	
+American-M3 Halftrack.txt	2751	squad	ok	ok	ok	ok	no	1	
+American-M3 Lee (early).txt	4111	squad	ok	ok	ok	ok	no	1	
+American-M3 Lee.txt	4114	squad	ok	ok	ok	ok	no	1	
+American-M3 Light Tank.txt	3766	squad	ok	ok	ok	ok	no	1	
+American-M36 Tank Destroyer.txt	3786	squad	ok	ok	ok	ok	no	1	
+American-M36B1 Tank Destroyer.txt	4127	squad	ok	ok	ok	ok	no	1	
+American-M36B2 Tank Destroyer.txt	3689	squad	ok	ok	ok	ok	no	1	
+American-M3A1 GMC.txt	3248	squad	ok	ok	ok	ok	no	1	
+American-M3A1 Satan.txt	3581	squad	ok	ok	ok	ok	no	1	
+American-M4 Sherman (early).txt	4117	squad	ok	ok	ok	ok	no	1	
+American-M4 Sherman (late).txt	4063	squad	ok	ok	ok	ok	no	1	
+American-M4 Sherman (mid).txt	4049	squad	ok	ok	ok	ok	no	1	
+American-M4(105) Sherman.txt	4131	squad	ok	ok	ok	ok	no	1	
+American-M4A1 Sherman (early).txt	4078	squad	ok	ok	ok	ok	no	1	
+American-M4A1 Sherman (late).txt	4109	squad	ok	ok	ok	ok	no	1	
+American-M4A1 Sherman (mid).txt	4063	squad	ok	ok	ok	ok	no	1	
+American-M4A1 Sherman (very early).txt	4832	squad	ok	ok	ok	ok	no	1	
+American-M4A1(76)W Sherman HVSS.txt	4119	squad	ok	ok	ok	ok	no	1	
+American-M4A1(76)W Sherman VVSS.txt	4113	squad	ok	ok	ok	ok	no	1	
+American-M4A2 Sherman (early).txt	4041	squad	ok	ok	ok	ok	no	1	
+American-M4A2 Sherman (late).txt	4056	squad	ok	ok	ok	ok	no	1	
+American-M4A2 Sherman (mid).txt	4057	squad	ok	ok	ok	ok	no	1	
+American-M4A2(76)W Sherman.txt	4085	squad	ok	ok	ok	ok	no	1	
+American-M4A3 Sherman (early).txt	4061	squad	ok	ok	ok	ok	no	1	
+American-M4A3 Sherman (late).txt	4043	squad	ok	ok	ok	ok	no	1	
+American-M4A3 Sherman (mid).txt	4022	squad	ok	ok	ok	ok	no	1	
+American-M4A3(105) Sherman HVSS.txt	4166	squad	ok	ok	ok	ok	no	1	
+American-M4A3(105) Sherman VVSS.txt	4157	squad	ok	ok	ok	ok	no	1	
+American-M4A3(75)W Sherman.txt	4036	squad	ok	ok	ok	ok	no	1	
+American-M4A3(76)W Sherman.txt	4047	squad	ok	ok	ok	ok	no	1	
+American-M4A3E2 Sherman.txt	4079	squad	ok	ok	ok	ok	no	1	
+American-M4A3E2(76) Sherman.txt	4058	squad	ok	ok	ok	ok	no	1	
+American-M4A3E8(76) Sherman.txt	4062	squad	ok	ok	ok	ok	no	1	
+American-M4A3R2 Sherman.txt	4017	squad	ok	ok	ok	ok	no	1	
+American-M4A3R3 Sherman.txt	4121	squad	ok	ok	ok	ok	no	1	
+American-M4A3R5 Sherman.txt	3887	squad	ok	ok	ok	ok	no	1	
+American-M5A1 Light Tank.txt	4112	squad	ok	ok	ok	ok	no	1	
+American-M5A1 Satan.txt	3608	squad	ok	ok	ok	ok	no	1	
+American-M7 Priest.txt	4079	squad	ok	ok	ok	ok	no	1	
+American-M8 Armoured Car.txt	3594	squad	ok	ok	ok	ok	no	1	
+American-M8 HMC.txt	3492	squad	ok	ok	ok	ok	no	1	
+American-T17 Deerhound.txt	3991	squad	ok	ok	ok	ok	no	1	
+American-T19 HMC.txt	3627	squad	ok	ok	ok	ok	no	1	
+American-T26E5 Pershing.txt	4028	squad	ok	ok	ok	ok	no	1	
+American-T29 Heavy Tank.txt	4360	squad	ok	ok	ok	ok	no	1	
+American-T30 Heavy Tank.txt	4351	squad	ok	ok	ok	ok	no	1	
+American-T30 HMC.txt	3626	squad	ok	ok	ok	ok	no	1	
+American-T30E1 Heavy Tank.txt	4359	squad	ok	ok	ok	ok	no	1	
+American-T48 GMC.txt	3134	squad	ok	ok	ok	ok	no	1	
+British-A10 Cruiser Mk II IA CS.txt	3744	squad	ok	ok	ok	ok	no	1	
+British-A10 Cruiser Mk II IA.txt	3649	squad	ok	ok	ok	ok	no	1	
+British-A10 Cruiser Mk II.txt	3674	squad	ok	ok	ok	ok	no	1	
+British-A11 Infantry Mk I Matilda I.txt	2688	squad	ok	ok	ok	ok	no	1	
+British-A12 Infantry Mk II Matilda II CS.txt	3908	squad	ok	ok	ok	ok	no	1	
+British-A12 Infantry Mk II Matilda II Mk II.txt	4112	squad	ok	ok	ok	ok	no	1	
+British-A12 Infantry Mk II Matilda II Mk IV.txt	3839	squad	ok	ok	ok	ok	no	1	
+British-A13 Cruiser Mk III.txt	3493	squad	ok	ok	ok	ok	no	1	
+British-A13 Cruiser Mk IV.txt	3501	squad	ok	ok	ok	ok	no	1	
+British-A13 Cruiser Mk V Covenanter.txt	3300	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader CS.txt	3641	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk I.txt	3649	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk II.txt	3651	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk III AA Mk I.txt	3124	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk III AA Mk II.txt	3359	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk III AA Mk III.txt	3294	squad	ok	ok	ok	ok	no	1	
+British-A15 Cruiser Mk VI Crusader Mk III.txt	3298	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk I.txt	3810	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk II.txt	3677	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk IV.txt	3841	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk V.txt	3818	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk VII Crocodile.txt	3964	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill Mk VII.txt	4075	squad	ok	ok	ok	ok	no	1	
+British-A22 Infantry Mk IV Churchill NA 75.txt	3846	squad	ok	ok	ok	ok	no	1	
+British-A24 Cruiser Mk VII Cavalier.txt	4282	squad	ok	ok	ok	ok	no	1	
+British-A27L Cruiser Mk VIII Centaur.txt	4309	squad	ok	ok	ok	ok	no	1	
+British-A27M Cruiser Mk VIII Cromwell I.txt	4477	squad	ok	ok	ok	ok	no	1	
+British-A27M Cruiser Mk VIII Cromwell IV.txt	4299	squad	ok	ok	ok	ok	no	1	
+British-A30 Cruiser Mk VIII Challenger.txt	3645	squad	ok	ok	ok	ok	no	1	
+British-A34 Comet.txt	4401	squad	ok	ok	ok	ok	no	1	
+British-A41 Centurion Mk 1.txt	3643	squad	ok	ok	ok	ok	no	1	
+British-A41 Centurion Mk 2.txt	3616	squad	ok	ok	ok	ok	no	1	
+British-A43 Infantry Black Prince.txt	3852	squad	ok	ok	ok	ok	no	1	
+British-A9 Cruiser Mk I.txt	4540	squad	ok	ok	ok	ok	no	1	
+British-AEC Armoured Car Mk I.txt	3327	squad	ok	ok	ok	ok	no	1	
+British-AEC Armoured Car Mk II.txt	3551	squad	ok	ok	ok	ok	no	1	
+British-AEC Armoured Car Mk III.txt	3534	squad	ok	ok	ok	ok	no	1	
+British-Bishop.txt	2980	squad	ok	ok	ok	ok	no	1	
+British-Boys Gun Carrier.txt	3164	squad	ok	ok	ok	ok	no	1	
+British-Bren Gun Carrier.txt	2812	squad	ok	ok	ok	ok	no	1	
+British-Daimler Armoured Car.txt	3279	squad	ok	ok	ok	ok	no	1	
+British-Daimler Scout Car AT Rifle.txt	2588	squad	ok	ok	ok	ok	no	1	
+British-Daimler Scout Car.txt	2927	squad	ok	ok	ok	ok	no	1	
+British-Humber Armoured Car Mk I.txt	3043	squad	ok	ok	ok	ok	no	1	
+British-Humber Armoured Car Mk IV.txt	3189	squad	ok	ok	ok	ok	no	1	
+British-Humber Scout Car.txt	2524	squad	ok	ok	ok	ok	no	1	
+British-Kangaroo Churchill.txt	2295	squad	ok	ok	ok	ok	no	1	
+British-Kangaroo Priest.txt	2678	squad	ok	ok	ok	ok	no	1	
+British-Kangaroo Sherman.txt	3053	squad	ok	ok	ok	ok	no	1	
+British-Lanchester 6x4.txt	3838	squad	ok	ok	ok	ok	no	1	
+British-Light Tank Mk VIA.txt	2850	squad	ok	ok	ok	ok	no	1	
+British-Light Tank Mk VIB.txt	2972	squad	ok	ok	ok	ok	no	1	
+British-Light Tank Mk VIC.txt	2667	squad	ok	ok	ok	ok	no	1	
+British-Light Tank Mk VII Tetrarch.txt	3420	squad	ok	ok	ok	ok	no	1	
+British-Light Tank Mk VIII Harry Hopkins.txt	3400	squad	ok	ok	ok	ok	no	1	
+British-LVT-4.txt	4390	squad	ok	ok	ok	ok	no	1	
+British-M10 Achilles.txt	3920	squad	ok	ok	ok	ok	no	1	
+British-M10 Wolverine.txt	3913	squad	ok	ok	ok	ok	no	1	
+British-M3 Grant (early).txt	4222	squad	ok	ok	ok	ok	no	1	
+British-M3 Grant.txt	4225	squad	ok	ok	ok	ok	no	1	
+British-M5 Halftrack.txt	2775	squad	ok	ok	ok	ok	no	1	
+British-M7 Priest.txt	4197	squad	ok	ok	ok	ok	no	1	
+British-Morris CS9.txt	3429	squad	ok	ok	ok	ok	no	1	
+British-Morris LRC.txt	3939	squad	ok	ok	ok	ok	no	1	
+British-Sexton.txt	3520	squad	ok	ok	ok	ok	no	1	
+British-Sherman I.txt	4073	squad	ok	ok	ok	ok	no	1	
+British-Sherman IB.txt	4121	squad	ok	ok	ok	ok	no	1	
+British-Sherman IC Firefly.txt	3602	squad	ok	ok	ok	ok	no	1	
+British-Sherman IC Hybrid Firefly.txt	3565	squad	ok	ok	ok	ok	no	1	
+British-Sherman II.txt	4063	squad	ok	ok	ok	ok	no	1	
+British-Sherman IIA.txt	4116	squad	ok	ok	ok	ok	no	1	
+British-Sherman III.txt	4078	squad	ok	ok	ok	ok	no	1	
+British-Sherman V (early).txt	4079	squad	ok	ok	ok	ok	no	1	
+British-Sherman V.txt	4081	squad	ok	ok	ok	ok	no	1	
+British-Sherman VC Firefly.txt	3788	squad	ok	ok	ok	ok	no	1	
+British-Skink.txt	3342	squad	ok	ok	ok	ok	no	1	
+British-Staghound Mk I.txt	3983	squad	ok	ok	ok	ok	no	1	
+British-Staghound Mk II.txt	3634	squad	ok	ok	ok	ok	no	1	
+British-Staghound Mk III.txt	3588	squad	ok	ok	ok	ok	no	1	
+British-Stuart I.txt	3838	squad	ok	ok	ok	ok	no	1	
+British-Stuart VI.txt	4159	squad	ok	ok	ok	ok	no	1	
+British-Valentine Archer.txt	3363	squad	ok	ok	ok	ok	no	1	
+British-Valentine Mk II.txt	3446	squad	ok	ok	ok	ok	no	1	
+British-Valentine Mk IX.txt	3188	squad	ok	ok	ok	ok	no	1	
+British-Valentine Mk X.txt	3285	squad	ok	ok	ok	ok	no	1	
+British-Valentine Mk XI.txt	3337	squad	ok	ok	ok	ok	no	1	
+Chinese-BA-27.txt	3375	squad	ok	ok	ok	ok	no	1	
+Chinese-BA-6.txt	3633	squad	ok	ok	ok	ok	no	1	
+Chinese-Boys UC.txt	2795	squad	ok	ok	ok	ok	no	1	
+Chinese-Bren UC.txt	2877	squad	ok	ok	ok	ok	no	1	
+Chinese-BT-5.txt	3235	squad	ok	ok	ok	ok	no	1	
+Chinese-Carro Veloce L3-35.txt	2673	squad	ok	ok	ok	ok	no	1	
+Chinese-M3 Light Tank.txt	3872	squad	ok	ok	ok	ok	no	1	
+Chinese-M4A4 Sherman.txt	4078	squad	ok	ok	ok	ok	no	1	
+Chinese-M5A1 Light Tank.txt	4201	squad	ok	ok	ok	ok	no	1	
+Chinese-Renault AMR ZB MG.txt	2858	squad	ok	ok	ok	ok	no	1	
+Chinese-Renault AMR ZB.txt	2964	squad	ok	ok	ok	ok	no	1	
+Chinese-Renault FT-17 (female).txt	2948	squad	ok	ok	ok	ok	no	1	
+Chinese-Renault FT-17 (male).txt	3008	squad	ok	ok	ok	ok	no	1	
+Chinese-SdKfz 221.txt	2962	squad	ok	ok	ok	ok	no	1	
+Chinese-SdKfz 222.txt	3389	squad	ok	ok	ok	ok	no	1	
+Chinese-T-26B.txt	4264	squad	ok	ok	ok	ok	no	1	
+Chinese-Type 95 Ha-Go.txt	3706	squad	ok	ok	ok	ok	no	1	
+Chinese-Type 97 Chi-Ha.txt	3946	squad	ok	ok	ok	ok	no	1	
+Chinese-VCL M1931.txt	2859	squad	ok	ok	ok	ok	no	1	
+Chinese-VCL MKIV tankette.txt	2605	squad	ok	ok	ok	ok	no	1	
+Chinese-Vickers 6t MkEB.txt	3222	squad	ok	ok	ok	ok	no	1	
+Chinese-Vickers Artillery Tractor.txt	2126	squad	ok	ok	ok	ok	no	1	
+Finnish-BA-10M.txt	3741	squad	ok	ok	ok	ok	no	1	
+Finnish-BT-42.txt	3173	squad	ok	ok	ok	ok	no	1	
+Finnish-BT-5.txt	3579	squad	ok	ok	ok	ok	no	1	
+Finnish-BT-7.txt	3531	squad	ok	ok	ok	ok	no	1	
+Finnish-ISU-152.txt	3382	squad	ok	ok	ok	ok	no	1	
+Finnish-KV-1 Model 1940.txt	4183	squad	ok	ok	ok	ok	no	1	
+Finnish-Panzer IV Ausf J.txt	4593	squad	ok	ok	ok	ok	no	1	
+Finnish-Renault FT-17 (female).txt	2864	squad	ok	ok	ok	ok	no	1	
+Finnish-Renault FT-17 (male).txt	2908	squad	ok	ok	ok	ok	no	1	
+Finnish-StuG III Ausf G.txt	3884	squad	ok	ok	ok	ok	no	1	
+Finnish-T-26.txt	4033	squad	ok	ok	ok	ok	no	1	
+Finnish-T-26B.txt	4160	squad	ok	ok	ok	ok	no	1	
+Finnish-T-28 Model 1938.txt	5360	squad	ok	ok	ok	ok	no	1	
+Finnish-T-34-76 Model 1940.txt	3625	squad	ok	ok	ok	ok	no	1	
+Finnish-T-34-76 Model 1942.txt	3670	squad	ok	ok	ok	ok	no	1	
+Finnish-T-34-85 Model 1943.txt	3783	squad	ok	ok	ok	ok	no	1	
+Finnish-T-34-85 Model 1944.txt	4121	squad	ok	ok	ok	ok	no	1	
+Finnish-T-37A.txt	2683	squad	ok	ok	ok	ok	no	1	
+Finnish-T-38.txt	2707	squad	ok	ok	ok	ok	no	1	
+Finnish-T-50.txt	3486	squad	ok	ok	ok	ok	no	1	
+Finnish-Vickers 6T Bofors 37mm.txt	3136	squad	ok	ok	ok	ok	no	1	
+Finnish-Vickers 6T SA18.txt	3093	squad	ok	ok	ok	ok	no	1	
+Finnish-Vickers T-26E.txt	3170	squad	ok	ok	ok	ok	no	1	
+French-A15 Crusader Mk III.txt	3305	squad	ok	ok	ok	ok	no	1	
+French-Bren Gun Carrier.txt	2304	squad	ok	ok	ok	ok	no	1	
+French-Char 2C.txt	5593	squad	ok	ok	ok	ok	no	1	
+French-Char B1 bis (FFL).txt	4414	squad	ok	ok	ok	ok	no	1	
+French-Char B1 bis.txt	4384	squad	ok	ok	ok	ok	no	1	
+French-Char B1.txt	4373	squad	ok	ok	ok	ok	no	1	
+French-Char D1.txt	3258	squad	ok	ok	ok	ok	no	1	
+French-Char D2.txt	3237	squad	ok	ok	ok	ok	no	1	
+French-FCM 36.txt	3037	squad	ok	ok	ok	ok	no	1	
+French-Hotchkiss H35.txt	3135	squad	ok	ok	ok	ok	no	1	
+French-Hotchkiss H39.txt	3147	squad	ok	ok	ok	ok	no	1	
+French-Laffly AMD 50.txt	3553	squad	ok	ok	ok	ok	no	1	
+French-Laffly AMD 80.txt	3451	squad	ok	ok	ok	ok	no	1	
+French-Laffly W15TCC.txt	3378	squad	ok	ok	ok	ok	no	1	
+French-M10 Wolverine.txt	3858	squad	ok	ok	ok	ok	no	1	
+French-M20 Armoured Car.txt	3018	squad	ok	ok	ok	ok	no	1	
+French-M24 Chaffee.txt	4097	squad	ok	ok	ok	ok	no	1	
+French-M3 Halftrack.txt	2761	squad	ok	ok	ok	ok	no	1	
+French-M3 Light Tank.txt	3973	squad	ok	ok	ok	ok	no	1	
+French-M3A1 GMC.txt	2802	squad	ok	ok	ok	ok	no	1	
+French-M4 Sherman.txt	4321	squad	ok	ok	ok	ok	no	1	
+French-M4(105) Sherman.txt	4095	squad	ok	ok	ok	ok	no	1	
+French-M4A2 Sherman.txt	4182	squad	ok	ok	ok	ok	no	1	
+French-M4A3(76)W Sherman.txt	4050	squad	ok	ok	ok	ok	no	1	
+French-M4A4 Sherman.txt	4014	squad	ok	ok	ok	ok	no	1	
+French-M5A1 Light Tank.txt	4136	squad	ok	ok	ok	ok	no	1	
+French-M8 Armoured Car.txt	3579	squad	ok	ok	ok	ok	no	1	
+French-Panhard AMD 165.txt	3485	squad	ok	ok	ok	ok	no	1	
+French-Panhard AMD 178.txt	3503	squad	ok	ok	ok	ok	no	1	
+French-Panhard AMD 179.txt	2623	squad	ok	ok	ok	ok	no	1	
+French-Renault AMC 35.txt	3272	squad	ok	ok	ok	ok	no	1	
+French-Renault AMR 33.txt	2726	squad	ok	ok	ok	ok	no	1	
+French-Renault AMR 35 ZT1.txt	2735	squad	ok	ok	ok	ok	no	1	
+French-Renault AMR 35 ZT2.txt	2917	squad	ok	ok	ok	ok	no	1	
+French-Renault AMR 35.txt	2691	squad	ok	ok	ok	ok	no	1	
+French-Renault FT-17 (female).txt	2848	squad	ok	ok	ok	ok	no	1	
+French-Renault FT-17 (male).txt	2890	squad	ok	ok	ok	ok	no	1	
+French-Renault FT-31.txt	2810	squad	ok	ok	ok	ok	no	1	
+French-Renault R35.txt	3068	squad	ok	ok	ok	ok	no	1	
+French-Renault R40.txt	3070	squad	ok	ok	ok	ok	no	1	
+French-Schneider AMC P16.txt	3137	squad	ok	ok	ok	ok	no	1	
+French-SOMUA S35.txt	3335	squad	ok	ok	ok	ok	no	1	
+German-ADGZ.txt	4619	squad	ok	ok	ok	ok	no	1	
+German-Elefant Mk II.txt	4462	squad	ok	ok	ok	ok	no	1	
+German-Elefant.txt	3935	squad	ok	ok	ok	ok	no	1	
+German-Flakpanzer 38(t).txt	3625	squad	ok	ok	ok	ok	no	1	
+German-Flakpanzer I.txt	3085	squad	ok	ok	ok	ok	no	1	
+German-Flakpanzer IV Kugelblitz.txt	4143	squad	ok	ok	ok	ok	no	1	
+German-Flakpanzer IV Ostwind.txt	4001	squad	ok	ok	ok	ok	no	1	
+German-Flakpanzer IV Wirbelwind.txt	4236	squad	ok	ok	ok	ok	no	1	
+German-Flammpanzer 38(t).txt	3306	squad	ok	ok	ok	ok	no	1	
+German-Flammpanzer III.txt	4188	squad	ok	ok	ok	ok	no	1	
+German-Grille Ausf H.txt	3680	squad	ok	ok	ok	ok	no	1	
+German-Grille Ausf K.txt	3709	squad	ok	ok	ok	ok	no	1	
+German-Hummel.txt	3548	squad	ok	ok	ok	ok	no	1	
+German-Jagdpanther II.txt	4767	squad	ok	ok	ok	ok	no	1	
+German-Jagdpanther.txt	4756	squad	ok	ok	ok	ok	no	1	
+German-Jagdpanzer 38 Hetzer.txt	3548	squad	ok	ok	ok	ok	no	1	
+German-Jagdpanzer IV.txt	3704	squad	ok	ok	ok	ok	no	1	
+German-Jagdtiger.txt	4152	squad	ok	ok	ok	ok	no	1	
+German-Katzchen.txt	2112	squad	ok	ok	ok	ok	no	1	
+German-King Tiger.txt	4503	squad	ok	ok	ok	ok	no	1	
+German-Lowe Leichter.txt	3818	squad	ok	ok	ok	ok	no	1	
+German-Lowe Schwerer.txt	3869	squad	ok	ok	ok	ok	no	1	
+German-Marder I.txt	3500	squad	ok	ok	ok	ok	no	1	
+German-Marder II.txt	2913	squad	ok	ok	ok	ok	no	1	
+German-Marder III Ausf H.txt	3701	squad	ok	ok	ok	ok	no	1	
+German-Marder III Ausf M.txt	3676	squad	ok	ok	ok	ok	no	1	
+German-Marder III.txt	3687	squad	ok	ok	ok	ok	no	1	
+German-Maus.txt	4093	squad	ok	ok	ok	ok	no	1	
+German-Nashorn.txt	3760	squad	ok	ok	ok	ok	no	1	
+German-Neubaufahrzeug.txt	5277	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf A (early).txt	3746	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf A.txt	4094	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf D.txt	4474	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf D1.txt	3424	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf D2.txt	4543	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf F.txt	3940	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf G (early).txt	4042	squad	ok	ok	ok	ok	no	1	
+German-Panther Ausf G.txt	4120	squad	ok	ok	ok	ok	no	1	
+German-Panther II.txt	3945	squad	ok	ok	ok	ok	no	1	
+German-Panzer 35(t).txt	4022	squad	ok	ok	ok	ok	no	1	
+German-Panzer 38(t) Ausf C.txt	4069	squad	ok	ok	ok	ok	no	1	
+German-Panzer 38(t) Ausf E.txt	3958	squad	ok	ok	ok	ok	no	1	
+German-Panzer I Ausf A.txt	3285	squad	ok	ok	ok	ok	no	1	
+German-Panzer I Ausf B.txt	3142	squad	ok	ok	ok	ok	no	1	
+German-Panzer I Ausf C.txt	3053	squad	ok	ok	ok	ok	no	1	
+German-Panzer I Ausf F.txt	2821	squad	ok	ok	ok	ok	no	1	
+German-Panzer II (Flamm).txt	3855	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf C.txt	3499	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf D.txt	3290	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf F (late).txt	3254	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf F.txt	3449	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf J.txt	3350	squad	ok	ok	ok	ok	no	1	
+German-Panzer II Ausf L.txt	3253	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf E.txt	4452	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf F (early).txt	4303	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf F (late).txt	4555	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf G (early).txt	4362	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf G (late).txt	4390	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf H (early).txt	4493	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf H (late).txt	4355	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf J.txt	4775	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf L.txt	5388	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf M (early).txt	5323	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf M (late).txt	5348	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf N (early).txt	5302	squad	ok	ok	ok	ok	no	1	
+German-Panzer III Ausf N (late).txt	5331	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV 70(A).txt	3818	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV 70(V).txt	3751	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf A.txt	4255	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf B.txt	4133	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf C.txt	3981	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf D.txt	4486	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf E.txt	4724	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf F (early).txt	4711	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf F (late).txt	4738	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf F2.txt	5568	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf G (early).txt	5389	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf G (late).txt	5448	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf G.txt	5432	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf H.txt	5001	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf J (early).txt	4605	squad	ok	ok	ok	ok	no	1	
+German-Panzer IV Ausf J (late).txt	4701	squad	ok	ok	ok	ok	no	1	
+German-Panzerjaeger I.txt	3072	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 10-4.txt	2994	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 10-5.txt	3199	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 221 (sPzB 41).txt	2883	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 221.txt	3031	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 222.txt	3300	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 231 6 Rad.txt	3651	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 231.txt	3627	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 234-1.txt	3686	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 234-2.txt	4829	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 234-3.txt	3457	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 234-4.txt	3345	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 250-1 (early).txt	2740	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 250-1 (late).txt	2737	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 250-11.txt	3638	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 250-8.txt	3619	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 250-9.txt	3385	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-1 Ausf A.txt	3000	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-1 Ausf B.txt	3123	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-1 Ausf C.txt	3053	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-1 Ausf D.txt	2918	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-10 Ausf A.txt	3703	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-10 Ausf B.txt	3701	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-10 Ausf C.txt	3703	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-10 Ausf D.txt	3836	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-16.txt	4465	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-17 Ausf D.txt	3663	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-17.txt	3628	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-21.txt	3057	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-22.txt	3706	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-5.txt	2871	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-7.txt	3814	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-9 (early).txt	3729	squad	ok	ok	ok	ok	no	1	
+German-SdKfz 251-9 (late).txt	3894	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf A.txt	3488	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf B.txt	3565	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf C.txt	3565	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf D.txt	3567	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf E.txt	3552	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf F.txt	3583	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf F8.txt	3891	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf G (early).txt	4083	squad	ok	ok	ok	ok	no	1	
+German-StuG III Ausf G (late).txt	4077	squad	ok	ok	ok	ok	no	1	
+German-StuG IV.txt	3915	squad	ok	ok	ok	ok	no	1	
+German-StuH 42.txt	3998	squad	ok	ok	ok	ok	no	1	
+German-StuIG 33B.txt	3942	squad	ok	ok	ok	ok	no	1	
+German-Tiger Ausf E (early).txt	5282	squad	ok	ok	ok	ok	no	1	
+German-Tiger Ausf E (late).txt	4254	squad	ok	ok	ok	ok	no	1	
+German-Tiger Ausf E (mid).txt	4239	squad	ok	ok	ok	ok	no	1	
+German-Tiger Ausf H1.txt	5266	squad	ok	ok	ok	ok	no	1	
+Hungarian-35M Ansaldo.txt	2586	squad	ok	ok	ok	ok	no	1	
+Hungarian-38M Toldi I.txt	3319	squad	ok	ok	ok	ok	no	1	
+Hungarian-39M Csaba.txt	2954	squad	ok	ok	ok	ok	no	1	
+Hungarian-40M Csaba.txt	2770	squad	ok	ok	ok	ok	no	1	
+Hungarian-40M Nimrod.txt	3722	squad	ok	ok	ok	ok	no	1	
+Hungarian-40M Turan I.txt	4235	squad	ok	ok	ok	ok	no	1	
+Hungarian-41M Toldi II.txt	3293	squad	ok	ok	ok	ok	no	1	
+Hungarian-41M Turan II.txt	4230	squad	ok	ok	ok	ok	no	1	
+Hungarian-42M Toldi IIa.txt	3524	squad	ok	ok	ok	ok	no	1	
+Hungarian-43M Toldi III.txt	3644	squad	ok	ok	ok	ok	no	1	
+Hungarian-43M Zrinyi II.txt	3445	squad	ok	ok	ok	ok	no	1	
+Hungarian-Hotchkiss H39.txt	3129	squad	ok	ok	ok	ok	no	1	
+Hungarian-Jagdpanzer 38 Hetzer.txt	3467	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panther Ausf A.txt	4039	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panther Ausf G.txt	3930	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer 38(t) Ausf C.txt	3823	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer I Ausf B.txt	2903	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer III Ausf M.txt	5249	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer III Ausf N 1942.txt	5211	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer IV Ausf F.txt	4367	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer IV Ausf F2.txt	5230	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer IV Ausf G.txt	5432	squad	ok	ok	ok	ok	no	1	
+Hungarian-Panzer IV Ausf H.txt	4670	squad	ok	ok	ok	ok	no	1	
+Hungarian-StuG III Ausf G.txt	3918	squad	ok	ok	ok	ok	no	1	
+Hungarian-T-27.txt	2463	squad	ok	ok	ok	ok	no	1	
+Hungarian-T-34-76 Model 1940.txt	3506	squad	ok	ok	ok	ok	no	1	
+Hungarian-Tiger Ausf E.txt	4255	squad	ok	ok	ok	ok	no	1	
+Hungarian-TK3.txt	2498	squad	ok	ok	ok	ok	no	1	
+Hungarian-TKS.txt	2564	squad	ok	ok	ok	ok	no	1	
+Italian-Autoblinda AB40.txt	3522	squad	ok	ok	ok	ok	no	1	
+Italian-Autoblinda AB41.txt	3801	squad	ok	ok	ok	ok	no	1	
+Italian-Autoblinda AB43.txt	3575	squad	ok	ok	ok	ok	no	1	
+Italian-Autoblinda Lince.txt	2648	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato L6 Lf.txt	2933	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato L6-40.txt	2995	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato M11-39.txt	4100	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato M13-40.txt	4123	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato M14-41.txt	4061	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato M15-42.txt	3857	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Armato P26-40.txt	3649	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Veloce L3-33 Lf.txt	2951	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Veloce L3-33.txt	2572	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Veloce L3-35 cc.txt	2855	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Veloce L3-35.txt	2582	squad	ok	ok	ok	ok	no	1	
+Italian-Carro Veloce L3-38.txt	2567	squad	ok	ok	ok	ok	no	1	
+Italian-Fiat 3000 L5-21.txt	2764	squad	ok	ok	ok	ok	no	1	
+Italian-Fiat 3000 L5-30.txt	2847	squad	ok	ok	ok	ok	no	1	
+Italian-Fiat 665NM.txt	2306	squad	ok	ok	ok	ok	no	1	
+Italian-Lancia 1ZM.txt	3856	squad	ok	ok	ok	ok	no	1	
+Italian-M10 Wolverine.txt	3847	squad	ok	ok	ok	ok	no	1	
+Italian-M20 Armoured Car.txt	3025	squad	ok	ok	ok	ok	no	1	
+Italian-M24 Chaffee.txt	4095	squad	ok	ok	ok	ok	no	1	
+Italian-M3 Halftrack.txt	2892	squad	ok	ok	ok	ok	no	1	
+Italian-M4 Sherman.txt	4333	squad	ok	ok	ok	ok	no	1	
+Italian-M4(105) Sherman.txt	4177	squad	ok	ok	ok	ok	no	1	
+Italian-M4A2 Sherman.txt	4336	squad	ok	ok	ok	ok	no	1	
+Italian-M4A3(76)W Sherman.txt	4154	squad	ok	ok	ok	ok	no	1	
+Italian-M4A4 Sherman.txt	4129	squad	ok	ok	ok	ok	no	1	
+Italian-M5A1 Light Tank.txt	4141	squad	ok	ok	ok	ok	no	1	
+Italian-M8 Armoured Car.txt	3605	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 105-25.txt	3309	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 47-32.txt	3086	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 75-18 M40.txt	3456	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 75-18 M41.txt	3453	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 75-18 M42.txt	3456	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 75-34.txt	3718	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 75-46.txt	3347	squad	ok	ok	ok	ok	no	1	
+Italian-Semovente 90-53.txt	3148	squad	ok	ok	ok	ok	no	1	
+Italian-SPA-Viberti 42-47.txt	3251	squad	ok	ok	ok	ok	no	1	
+Italian-SPA-Viberti.txt	3264	squad	ok	ok	ok	ok	no	1	
+Japanese-Renault Otsu.txt	3047	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 1 Chi-He.txt	3985	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 1 Ho-Ha.txt	3601	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 1 Ho-Ki.txt	1801	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 1 Ho-Ni I.txt	3209	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 1 Ho-Ni II.txt	3428	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 2 Ho-I.txt	3723	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 2 Ka-Mi.txt	3497	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 2 Ke-To.txt	3516	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 3 Chi-Nu.txt	3960	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 3 Ho-Ni III.txt	3245	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 3 Ka-Chi.txt	3835	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 4 Chi-To.txt	4082	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 4 Ho-Ro.txt	3460	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 4 Ke-Nu.txt	3886	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 5 Chi-Ri.txt	4107	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 89 I-Go.txt	3969	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 94 TK.txt	2980	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 95 Ha-Go.txt	4318	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 97 Chi-Ha.txt	4477	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 97 Kai.txt	4427	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 97 Te-Ke.txt	3079	squad	ok	ok	ok	ok	no	1	
+Japanese-Type 98 Ke-Ni.txt	3547	squad	ok	ok	ok	ok	no	1	
+Polish-7TP (early).txt	3115	squad	ok	ok	ok	ok	no	1	
+Polish-7TP Twin (early).txt	3571	squad	ok	ok	ok	ok	no	1	
+Polish-7TP Twin.txt	3540	squad	ok	ok	ok	ok	no	1	
+Polish-7TP.txt	3092	squad	ok	ok	ok	ok	no	1	
+Polish-Renault R35 (early).txt	3084	squad	ok	ok	ok	ok	no	1	
+Polish-Renault R35.txt	3088	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 29 (early).txt	3986	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 29.txt	3963	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 34 (early).txt	2647	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 34 cannon (early).txt	2796	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 34 cannon.txt	2753	squad	ok	ok	ok	ok	no	1	
+Polish-SP wz 34.txt	2630	squad	ok	ok	ok	ok	no	1	
+Polish-TK3 (early).txt	2492	squad	ok	ok	ok	ok	no	1	
+Polish-TK3.txt	2477	squad	ok	ok	ok	ok	no	1	
+Polish-TKD.txt	2732	squad	ok	ok	ok	ok	no	1	
+Polish-TKS (early).txt	2575	squad	ok	ok	ok	ok	no	1	
+Polish-TKS.txt	2560	squad	ok	ok	ok	ok	no	1	
+Polish-TKSD (early).txt	2566	squad	ok	ok	ok	ok	no	1	
+Polish-TKSD.txt	2543	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type A wz 25 (early).txt	3576	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type A wz 25.txt	3545	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type A wz 30 (early).txt	3597	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type A wz 30.txt	3566	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type B (early).txt	3144	squad	ok	ok	ok	ok	no	1	
+Polish-Vickers 6 Ton Type B.txt	3121	squad	ok	ok	ok	ok	no	1	
+Romanian-BA-10M.txt	3759	squad	ok	ok	ok	ok	no	1	
+Romanian-BA-64.txt	2696	squad	ok	ok	ok	ok	no	1	
+Romanian-R-1.txt	3115	squad	ok	ok	ok	ok	no	1	
+Romanian-R-2.txt	3661	squad	ok	ok	ok	ok	no	1	
+Romanian-Renault R35 VDC (T26).txt	3060	squad	ok	ok	ok	ok	no	1	
+Romanian-Renault R35 VDC.txt	3092	squad	ok	ok	ok	ok	no	1	
+Romanian-Renault R35.txt	3067	squad	ok	ok	ok	ok	no	1	
+Romanian-SdKfz 222.txt	3335	squad	ok	ok	ok	ok	no	1	
+Romanian-SdKfz 250-1.txt	2813	squad	ok	ok	ok	ok	no	1	
+Romanian-SdKfz 251.txt	2842	squad	ok	ok	ok	ok	no	1	
+Romanian-T-60.txt	3014	squad	ok	ok	ok	ok	no	1	
+Romanian-T3.txt	5080	squad	ok	ok	ok	ok	no	1	
+Romanian-T4 G (early).txt	5451	squad	ok	ok	ok	ok	no	1	
+Romanian-T4 G.txt	5382	squad	ok	ok	ok	ok	no	1	
+Romanian-T4 J.txt	4428	squad	ok	ok	ok	ok	no	1	
+Romanian-TACAM R-2.txt	3585	squad	ok	ok	ok	ok	no	1	
+Romanian-TACAM T-60.txt	3161	squad	ok	ok	ok	ok	no	1	
+Romanian-Tancuri FT (female).txt	2830	squad	ok	ok	ok	ok	no	1	
+Romanian-Tancuri FT (male).txt	2874	squad	ok	ok	ok	ok	no	1	
+Romanian-Tancuri T38.txt	3793	squad	ok	ok	ok	ok	no	1	
+Romanian-TAs.txt	3765	squad	ok	ok	ok	ok	no	1	
+Russian-BA-10M.txt	3755	squad	ok	ok	ok	ok	no	1	
+Russian-BA-11.txt	3764	squad	ok	ok	ok	ok	no	1	
+Russian-BA-20.txt	2706	squad	ok	ok	ok	ok	no	1	
+Russian-BA-27.txt	3318	squad	ok	ok	ok	ok	no	1	
+Russian-BA-6.txt	3954	squad	ok	ok	ok	ok	no	1	
+Russian-BA-64.txt	2996	squad	ok	ok	ok	ok	no	1	
+Russian-BAI M.txt	3693	squad	ok	ok	ok	ok	no	1	
+Russian-BT-2.txt	3244	squad	ok	ok	ok	ok	no	1	
+Russian-BT-5.txt	3732	squad	ok	ok	ok	ok	no	1	
+Russian-BT-7.txt	3683	squad	ok	ok	ok	ok	no	1	
+Russian-BT-7A.txt	3322	squad	ok	ok	ok	ok	no	1	
+Russian-FAI.txt	2915	squad	ok	ok	ok	ok	no	1	
+Russian-IS-1.txt	3936	squad	ok	ok	ok	ok	no	1	
+Russian-IS-2 Model 1943.txt	3793	squad	ok	ok	ok	ok	no	1	
+Russian-IS-2 Model 1944.txt	3715	squad	ok	ok	ok	ok	no	1	
+Russian-IS-3.txt	3146	squad	ok	ok	ok	ok	no	1	
+Russian-ISU-122.txt	3088	squad	ok	ok	ok	ok	no	1	
+Russian-ISU-122S.txt	3095	squad	ok	ok	ok	ok	no	1	
+Russian-ISU-152.txt	3298	squad	ok	ok	ok	ok	no	1	
+Russian-KhT-26.txt	3762	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1 Model 1939.txt	3625	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1 Model 1940.txt	4350	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1 Model 1941 (ZIS-5).txt	4209	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1 Model 1941.txt	4258	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1 Model 1942.txt	4450	squad	ok	ok	ok	ok	no	1	
+Russian-KV-1S.txt	4590	squad	ok	ok	ok	ok	no	1	
+Russian-KV-2.txt	4253	squad	ok	ok	ok	ok	no	1	
+Russian-KV-8 Flamethrower.txt	4349	squad	ok	ok	ok	ok	no	1	
+Russian-KV-85.txt	4070	squad	ok	ok	ok	ok	no	1	
+Russian-M17 Halftrack.txt	3392	squad	ok	ok	ok	ok	no	1	
+Russian-M3 Lee.txt	4361	squad	ok	ok	ok	ok	no	1	
+Russian-M3 Light Tank.txt	3937	squad	ok	ok	ok	ok	no	1	
+Russian-M3A1E1 Scout.txt	3909	squad	ok	ok	ok	ok	no	1	
+Russian-M4A2 Sherman.txt	4121	squad	ok	ok	ok	ok	no	1	
+Russian-M4A2(76)W Sherman.txt	4119	squad	ok	ok	ok	ok	no	1	
+Russian-M5 Halftrack.txt	2781	squad	ok	ok	ok	ok	no	1	
+Russian-OT-27.txt	2461	squad	ok	ok	ok	ok	no	1	
+Russian-OT-34-76 Model 1942.txt	3531	squad	ok	ok	ok	ok	no	1	
+Russian-OT-34-76 Model 1943.txt	3529	squad	ok	ok	ok	ok	no	1	
+Russian-OT-34-85 Model 1943.txt	3710	squad	ok	ok	ok	ok	no	1	
+Russian-SU-100.txt	3252	squad	ok	ok	ok	ok	no	1	
+Russian-SU-101.txt	3136	squad	ok	ok	ok	ok	no	1	
+Russian-SU-102.txt	3029	squad	ok	ok	ok	ok	no	1	
+Russian-SU-122.txt	3106	squad	ok	ok	ok	ok	no	1	
+Russian-SU-152.txt	3195	squad	ok	ok	ok	ok	no	1	
+Russian-SU-57 Halftrack.txt	3145	squad	ok	ok	ok	ok	no	1	
+Russian-SU-76i.txt	3413	squad	ok	ok	ok	ok	no	1	
+Russian-SU-76M.txt	3542	squad	ok	ok	ok	ok	no	1	
+Russian-SU-85.txt	3305	squad	ok	ok	ok	ok	no	1	
+Russian-T-18.txt	3032	squad	ok	ok	ok	ok	no	1	
+Russian-T-18M 45mm.txt	2780	squad	ok	ok	ok	ok	no	1	
+Russian-T-18M.txt	3265	squad	ok	ok	ok	ok	no	1	
+Russian-T-20 Komsomolets.txt	2603	squad	ok	ok	ok	ok	no	1	
+Russian-T-24.txt	4753	squad	ok	ok	ok	ok	no	1	
+Russian-T-26.txt	4101	squad	ok	ok	ok	ok	no	1	
+Russian-T-27.txt	2446	squad	ok	ok	ok	ok	no	1	
+Russian-T-28 Model 1934.txt	5629	squad	ok	ok	ok	ok	no	1	
+Russian-T-28 Model 1938.txt	5625	squad	ok	ok	ok	ok	no	1	
+Russian-T-28 Model E.txt	5513	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-57.txt	3541	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-76 Model 1940.txt	3893	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-76 Model 1941.txt	3925	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-76 Model 1942.txt	4190	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-76 Model 1943.txt	4258	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-85 Model 1943.txt	3678	squad	ok	ok	ok	ok	no	1	
+Russian-T-34-85 Model 1944.txt	4220	squad	ok	ok	ok	ok	no	1	
+Russian-T-35.txt	8042	squad	ok	ok	ok	ok	no	1	
+Russian-T-37A.txt	2880	squad	ok	ok	ok	ok	no	1	
+Russian-T-38.txt	2904	squad	ok	ok	ok	ok	no	1	
+Russian-T-40.txt	3132	squad	ok	ok	ok	ok	no	1	
+Russian-T-44-100.txt	3929	squad	ok	ok	ok	ok	no	1	
+Russian-T-44.txt	3540	squad	ok	ok	ok	ok	no	1	
+Russian-T-50.txt	3519	squad	ok	ok	ok	ok	no	1	
+Russian-T-60 1942.txt	3462	squad	ok	ok	ok	ok	no	1	
+Russian-T-60.txt	3414	squad	ok	ok	ok	ok	no	1	
+Russian-T-70.txt	3701	squad	ok	ok	ok	ok	no	1	
+Russian-T-80.txt	3220	squad	ok	ok	ok	ok	no	1	
+Russian-Valentine.txt	3259	squad	ok	ok	ok	ok	no	1	
+Russian-ZiS-30.txt	3746	squad	ok	ok	ok	ok	no	1	
+Russian-ZSU-37.txt	3662	squad	ok	ok	ok	ok	no	1	
+WEAPON_AT_RIFLE_36M.txt	579	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_BOYS.txt	542	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_EW_141.txt	581	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_HANYANG_88_SMK.txt	535	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_L_39.txt	622	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_MAUSER_M1918.txt	529	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_PTRD.txt	518	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_PTRS.txt	585	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_PZB_38.txt	520	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_PZB_39.txt	520	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_SOLOTHURN.txt	580	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_SOLOTHURN_1000.txt	582	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_TYPE_97.txt	700	weapon	ok	ok	ok	ok	no	0	
+WEAPON_AT_RIFLE_WZOR_35.txt	553	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_1000_POUND.txt	289	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_100_KG.txt	352	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_100_POUND.txt	286	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_10_KG.txt	349	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_12_KG.txt	351	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_250_KG.txt	353	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_250_POUND.txt	288	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_500_KG.txt	346	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_500_POUND.txt	288	weapon	ok	ok	ok	ok	no	0	
+WEAPON_BOMB_50_KG.txt	350	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_2A70.txt	725	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_D_10.txt	1068	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_D_10_S.txt	1069	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_D_10_T.txt	1069	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_D_10_T2S.txt	994	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_TYPE_59.txt	1092	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_TYPE_69.txt	795	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_100_TYPE_86.txt	795	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_14.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_47_F2.txt	794	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_CN_105_F1.txt	808	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_HOWITZER.txt	661	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_JSW.txt	998	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_JSW_HOWITZER.txt	704	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_L25.txt	622	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_L7.txt	1020	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_L70.txt	737	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_LEFH18_L28.txt	741	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_M68.txt	895	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_MAVAG.txt	650	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_T5.txt	766	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_80.txt	797	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_83.txt	798	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_88.txt	797	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_88A.txt	797	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_88B.txt	798	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_105_TYPE_91.txt	843	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_115_2A20.txt	931	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_GIAT.txt	712	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_JSW.txt	784	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_L1.txt	679	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_L11A5.txt	781	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_L30A1.txt	781	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_L_44.txt	789	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_L_55.txt	789	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_M256.txt	781	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_SA_46.txt	684	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_120_TYPE_89.txt	658	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_122_A_19.txt	709	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_122_D_25T.txt	710	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_122_M_30.txt	843	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46_1.txt	928	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46_2.txt	928	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46M.txt	927	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46M_1.txt	929	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46M_2.txt	929	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A46M_5.txt	929	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_2A82_1M.txt	929	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_KBA_3.txt	927	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_TYPE_88C.txt	789	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_125_TYPE_99A.txt	792	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_128_KWK44_L55.txt	773	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_128_PAK44.txt	764	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_130_M_46.txt	689	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_130_M_65.txt	703	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_149_19.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_150_SFH18_L30.txt	525	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_150_SFH18_L32.txt	531	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_150_SIG_33.txt	633	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_150_TYPE_38.txt	727	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_150_TYPE_4.txt	726	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_152_M162.txt	686	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_152_M81E1.txt	870	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_152_M_10.txt	631	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_152_ML_20.txt	872	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_152_TYPE_83.txt	693	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_155_JSW_HOWITZER.txt	559	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_155_T7.txt	825	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_155_T7E1.txt	827	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_155_TYPE_89.txt	692	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_15_MG151.txt	635	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_17PDR_OQF.txt	884	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_HISPANO.txt	546	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_HO_3.txt	625	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_HO_5.txt	623	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_KWK30_L55.txt	734	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_KWK38_L55.txt	734	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_MG151.txt	633	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_MG151_TRIPLE.txt	673	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_MG_FF.txt	609	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_MG_FF_M.txt	619	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_OERLIKON.txt	647	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_OERLIKON_TWIN.txt	689	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_POLSTEN.txt	526	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_POLSTEN_QUAD.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_SHVAK.txt	625	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_ST5.txt	510	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_TNSH.txt	625	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_TYPE_98.txt	627	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20_WZ38.txt	517	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_20PDR_OQF.txt	851	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_23_2A13.txt	828	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_23_2A7.txt	827	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_23_NS_37.txt	632	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_23_VYA_23.txt	633	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_25_HOTCHKISS.txt	421	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_25_SA35.txt	416	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_25_SA37.txt	416	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_25MM.txt	656	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_25PDR_OQF.txt	731	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_28_SPZB41.txt	549	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_2PDR_OQF.txt	660	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_30_2A42.txt	732	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_30_2A72.txt	732	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_30_GAU_8_AVENGER.txt	520	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_36M.txt	896	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_36M.txt	770	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_61_K.txt	613	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_B_3.txt	647	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_BOFORS.txt	527	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_KWK34T_L40.txt	661	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_KWK36_L45.txt	779	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_KWK38T_L47.txt	664	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_L40.txt	549	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_L45.txt	550	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_L54.txt	464	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M1936.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M1A2.txt	692	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M28.txt	722	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M3.txt	752	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M5.txt	752	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_M6.txt	772	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_PAK36.txt	770	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_SA18.txt	771	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_SA38.txt	724	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_1.txt	584	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_100.txt	586	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_11.txt	551	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_14.txt	473	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_94.txt	582	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_94_AT_GUN.txt	423	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_TYPE_98.txt	413	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_37_WZ36.txt	531	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_38M.txt	961	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3_7_INCH_HOWITZER.txt	533	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3_7_INCH_OQF.txt	648	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3INCH_M5.txt	827	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3INCH_M7.txt	840	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3INCH_OQF.txt	640	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_3PDR_OQF.txt	652	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_40_36M.txt	611	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_40_37M.txt	639	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_40_BOFORS_L60.txt	636	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_40_MAVAG.txt	649	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_40M.txt	514	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_42_PAK41.txt	522	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_45_19K.txt	936	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_45_20K.txt	944	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_45_53K.txt	936	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_45_M42.txt	936	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_1939.txt	737	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_36M.txt	618	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_L32.txt	843	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_L40.txt	749	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_PAK38_T.txt	757	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_SA34.txt	644	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_SA35.txt	631	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_SA37.txt	638	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_TYPE_1.txt	622	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_TYPE_1_TANK_GUN.txt	627	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_47_WZ25.txt	673	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_4_5INCH_OQF.txt	842	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_50_KWK38_L42.txt	853	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_50_KWK39_L60.txt	969	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_50_PAK38.txt	960	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57_M1.txt	868	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57_TYPE_90.txt	732	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57_TYPE_97.txt	732	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57_ZIS_2.txt	939	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57_ZIS_4.txt	939	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_57MM_MAXIM_NORDENFELT.txt	554	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_6PDR_OQF_HOTCHKISS.txt	577	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_6PDR_OQF_L43.txt	826	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_6PDR_OQF_L50.txt	1027	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_70_TYPE_92.txt	637	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_73_2A28_GROM.txt	730	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_73_TYPE_85.txt	692	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_13.txt	517	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_41M.txt	755	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_HOWITZER.txt	648	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_K51_L24.txt	774	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_KWK37_L24.txt	777	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_KWK40_L43.txt	903	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_KWK40_L48.txt	903	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_KWK42_L70.txt	748	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_KWK44_L36_5.txt	779	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_L18.txt	746	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_L32.txt	635	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_L34.txt	744	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_L46.txt	637	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_LEIG18.txt	629	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M1897.txt	890	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M1897A4.txt	860	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M1943.txt	885	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M2.txt	847	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M3.txt	867	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_M6.txt	845	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_PAK39.txt	875	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_PAK40.txt	875	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_PAK41.txt	542	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_SA32.txt	643	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_SA35.txt	648	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_SA50.txt	658	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_TYPE_3.txt	725	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_TYPE_5.txt	722	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_TYPE_88.txt	537	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_TYPE_90.txt	729	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75_TYPE_99.txt	644	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75MM_OQF.txt	827	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_75MM_SCHNEIDER_BLOCKHAUS.txt	537	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_F_22.txt	853	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_F_32.txt	841	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_F_34.txt	955	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_KT_28.txt	758	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_L23A1.txt	671	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_L_10.txt	756	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_L_11.txt	839	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_M1A1.txt	845	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_M1A1C.txt	846	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_M1A2.txt	825	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_M32A1.txt	868	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_PAK36R.txt	963	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_S_1.txt	646	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_USV.txt	964	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_ZIS_3.txt	832	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76_ZIS_5.txt	842	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_76MM_MOUNTAIN_GUN_M1909.txt	559	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_77MM_OQF.txt	976	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_80_PAW_600.txt	660	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_85_52_K.txt	811	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_85_D_5T.txt	811	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_85_S_53.txt	815	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_85_TYPE_62.txt	894	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_88_FLAK36.txt	672	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_88_KWK36_L56.txt	880	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_88_KWK43_L71.txt	865	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_88_PAK43.txt	856	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_88_RAKETENWERFER.txt	500	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_BK.txt	1049	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_CN_90_F1.txt	705	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_CN_90_F3.txt	705	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_CN_90_F4.txt	705	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_COCKERILL.txt	713	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_L53.txt	634	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_M2.txt	824	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_M3.txt	980	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_M41.txt	1036	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_SA_1945.txt	660	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_T15.txt	824	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_90_TYPE_61.txt	807	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_95MM_OQF.txt	681	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_BREDA_20_65.txt	722	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_FLAK_30.txt	725	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_FLAK_38.txt	726	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_FLAK_43.txt	727	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_FLAK_VIERLING_38.txt	771	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_M242_BUSHMASTER.txt	653	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_MK101.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_MK103.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_MK103_TWIN.txt	662	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_MK108.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_MK20_RH202.txt	754	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CANNON_RARDEN.txt	738	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_BERTHIER.txt	527	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_M1.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_M2.txt	517	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_M_28.txt	521	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_M_39.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_CARBINE_MODEL_38.txt	526	weapon	ok	ok	ok	ok	no	0	
+WEAPON_FLAMETHROWER_PORTABLE.txt	617	weapon	ok	ok	ok	ok	no	0	
+WEAPON_FLAMETHROWER_TANK.txt	623	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_1914.txt	364	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_36M.txt	343	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_38M.txt	347	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_69.txt	343	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_DM51.txt	388	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_EIHANDGRANATE39.txt	366	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_F1.txt	362	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_F_1.txt	363	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_GAMMON.txt	343	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_GRANATE39.txt	331	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_L109A1.txt	395	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_L2A1.txt	393	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_30MM.txt	615	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_40MM.txt	615	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_AG36.txt	645	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_GEW.txt	614	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_GM_94.txt	733	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_GP_25.txt	687	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_GRB_39.txt	737	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_HK69A1.txt	647	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_HOWA_TYPE_96.txt	703	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_M1.txt	619	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_M2.txt	619	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_M203.txt	641	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_M7.txt	750	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_MILKOR_MGL.txt	694	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_QLZ_87.txt	708	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_QTS_11.txt	647	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_RG_6.txt	737	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_SCHIESSBECHER.txt	614	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_SICHUANMADE_47.txt	615	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_TYPE_100.txt	630	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_TYPE_27.txt	575	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_TYPE_28.txt	755	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_TYPE_89.txt	608	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_LAUNCHER_VB.txt	616	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_M26.txt	383	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_MAN.txt	384	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_MK2.txt	357	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_MK3.txt	357	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_MOLOTOV_COCKTAIL.txt	631	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_RPG43.txt	328	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE.txt	632	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_AN_M8.txt	397	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_FRANGIBLE.txt	360	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_M18.txt	388	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_M32.txt	394	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_MLE1916.txt	396	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_N39.txt	395	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_NO77.txt	390	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_RGD1.txt	392	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SMOKE_SRCM35.txt	373	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_SRCM.txt	332	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_STIELHANDGRANATE.txt	351	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_TYPE_18.txt	387	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_TYPE_23.txt	361	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_TYPE_97.txt	363	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_WZ33.txt	341	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_WZ40.txt	337	weapon	ok	ok	ok	ok	no	0	
+WEAPON_GRENADE_WZ42.txt	362	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_31M.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_50CAL.txt	573	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_50CAL_AN_M2.txt	579	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_50CAL_QUAD.txt	603	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_50CAL_TWIN.txt	602	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BEREZIN_UB.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BESA.txt	574	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_M1931.txt	558	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_M1937.txt	553	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_M1937_DUAL.txt	595	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_M1938.txt	552	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_M1938_DUAL.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_BREDA_SAFAT.txt	569	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_DSHK.txt	626	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_FIAT_REVELLI_M1914.txt	559	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_FIAT_REVELLI_M1914_DUAL.txt	596	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_FIAT_REVELLI_M1935.txt	557	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_HOTCHKISS_1930.txt	585	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_KPVT.txt	627	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_M1907.txt	547	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_M1917.txt	566	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_MAXIM.txt	558	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_MAXIM_M_09_21.txt	635	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_MG08.txt	590	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_MG131.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_MLE_1907.txt	560	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_NSV.txt	626	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_QJG_02.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_QJZ_89.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_SG43.txt	628	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_1.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_24.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_3.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_30.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_92.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_TYPE_93.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_VICKERS_303.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_VICKERS_50.txt	676	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_WZ25.txt	586	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_WZ30.txt	553	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_ZB_37.txt	574	weapon	ok	ok	ok	ok	no	0	
+WEAPON_HMG_ZB_53.txt	558	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_31M.txt	502	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_8_38M.txt	511	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_8_40M.txt	511	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_AA_52.txt	580	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BAR.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BERGMANN_MG15NA.txt	590	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BESA.txt	586	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BREDA_M1930.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BREDA_SAFAT.txt	566	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BREN.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BREN_MK3.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_BROWNING_FN_M36.txt	568	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_CHAUCHAT.txt	582	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_DARNE.txt	556	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_DP27.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_DT.txt	560	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_FEDOROV_AVTOMAT.txt	579	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_FEDOROV_AVTOMAT_TWIN.txt	605	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_GEBAUER_1918.txt	511	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_GEBAUER_1926.txt	518	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_HOTCHKISS_1914.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_HOTCHKISS_M1909.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_HOTCHKISS_MK1.txt	598	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_JINMADE_CZECH_MG.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_KE_7.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_L3A1.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_L7.txt	600	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_L_41.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_LEWIS.txt	581	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_LS_26.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M1918A2.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M1919.txt	610	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M1941.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M240.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M2429.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M249.txt	590	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_M60.txt	586	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MADSEN.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG13.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG13_SMK.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG13_TWIN.txt	607	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG15.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG17.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG3.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG34.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG34_PANZERLAUF.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG34_PANZERLAUF_TWIN.txt	607	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG37.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG4.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG42.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MG5.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_MINIMI.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PK.txt	622	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PKM.txt	623	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PKP.txt	630	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PKS.txt	623	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PKT.txt	621	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_PV_1.txt	557	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_QJB_95.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_QJB_95_1.txt	596	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_QJY_88.txt	595	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_REIBEL.txt	556	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_RPK.txt	626	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_SCHWARZLOSE_6_5MM.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_SCHWARZLOSE_8MM.txt	585	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_SHKAS.txt	559	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_62.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_74.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_89.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_91.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_96.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_97.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_TYPE_99.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_VICKERS_303.txt	566	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_WZ28.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_WZ33.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_ZB_26.txt	573	weapon	ok	ok	ok	ok	no	0	
+WEAPON_LMG_ZB_30.txt	581	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MLRS_M26.txt	602	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_120_43M.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_120_PM_38.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_120MM_KRH_40.txt	536	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_2_INCH.txt	535	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_36M.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_39M.txt	524	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_3_INCH.txt	536	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_45MM_BRIXIA.txt	525	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_4_2_INCH.txt	537	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_4_2_INCH_M2.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_5CM.txt	539	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_60_M2.txt	525	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_81_M1.txt	526	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_81MM_KRH_38.txt	533	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_81MM_M35.txt	525	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_82MM.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_BRANDT_1935.txt	531	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_BRANDT_2731.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_GW34.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_GW36.txt	533	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_GW42.txt	536	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_L16_81MM.txt	557	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_M1942.txt	533	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_MO_120_RT.txt	552	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_2.txt	520	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_20.txt	526	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_31.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_63.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_82.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_87.txt	552	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_89.txt	523	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_90.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_96.txt	555	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_97.txt	524	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_98.txt	520	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_TYPE_99.txt	522	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_WZ31.txt	524	weapon	ok	ok	ok	ok	no	0	
+WEAPON_MORTAR_WZ36.txt	536	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_37M.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_BERETTA_M1934.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_BHP.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_CF_07.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_COLT.txt	555	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_ENFIELD.txt	576	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_GLOCK_17.txt	597	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_GLOCK_19.txt	597	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_HK_USP.txt	595	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_JINMADE_TYPE_17.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_L9A1.txt	600	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_L_35.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_LUGER_P08.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_M1892.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_M1912.txt	514	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_MAKAROV.txt	630	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_MAUSER_C96.txt	602	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_MAUSER_M1932.txt	568	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_NAMBU.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_NP_22.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_NP_22A.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_NP_34.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_NP_56.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_P38.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_QSZ_92.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_QSZ_92G.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_TOKAREV.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_PISTOL_WZ35.txt	526	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RECOILLESS_RIFLE_LG_40.txt	666	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RECOILLESS_RIFLE_M18.txt	710	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RECOILLESS_RIFLE_M20.txt	705	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_35M.txt	456	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AK_12.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AK_15.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AK_47.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AK_74.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AR_15.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ARISAKA.txt	523	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ARMAGUERRA_M39.txt	576	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_AS_VAL.txt	614	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_BERTHIER.txt	517	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_BREDA_PG.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_CARCANO.txt	524	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_CHUANMADE_79.txt	539	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ENFIELD_M1917.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_FAMAS_F1.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_FAMAS_G2.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_FG_42.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_G3.txt	582	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_GARAND.txt	621	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_GEWEHR41.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_GEWEHR43.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_GEWEHR98.txt	551	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HANYANG_88.txt	531	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HK_416.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HK_417.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HK_G36.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HK_G36C.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HOWA_TYPE_20.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HOWA_TYPE_64.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_HOWA_TYPE_89.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_JINMADE_TYPE_65.txt	532	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_KARABINER_98K.txt	532	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_L129A1.txt	573	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_LEBEL_1886.txt	523	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_LEE_ENFIELD.txt	525	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_LIAOMADE_TYPE_13.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M14.txt	579	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M16.txt	580	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M1941.txt	566	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M4.txt	581	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M_28.txt	517	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_M_39.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_MAS36.txt	515	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_MAS49.txt	584	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_MODEL_1930G.txt	530	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBS_06.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBU_191.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_03.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_191.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_192.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_95.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_95_1.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_95B.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_QBZ_95B_1.txt	590	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SA80.txt	592	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SCAR_H.txt	582	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SCAR_L.txt	583	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SKS.txt	623	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SLR.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SPRINGFIELD.txt	534	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_STEYR_AUG.txt	590	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_STG44.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SVD.txt	622	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SVT_38.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_SVT_40.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_TYPE_38.txt	515	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_TYPE_56.txt	583	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_VSS.txt	620	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_WINCHESTER_M1895.txt	548	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_WZ29.txt	519	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ZB24.txt	527	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ZH29.txt	567	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RIFLE_ZHONGZHENG.txt	528	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_16.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_18.txt	650	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_22.txt	652	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_26.txt	652	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_27.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_28.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_29.txt	592	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_30.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_32.txt	592	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_3_KG.txt	560	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_7.txt	722	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_70MM_TYPE_4.txt	539	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_AT4.txt	737	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_BAZOOKA_M1.txt	649	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_BAZOOKA_M1A1.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_BAZOOKA_M20.txt	705	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_BAZOOKA_M9.txt	673	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_BAZOOKA_M9A1.txt	675	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_CARL_GUSTAF.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_FGM_148_JAVELIN.txt	652	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_LAW_80.txt	618	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_LRAC_F1.txt	554	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_M3_MAAWS.txt	550	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_M47_DRAGON.txt	642	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_M67.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_M72_LAW.txt	608	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_100.txt	568	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_150.txt	592	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_3.txt	560	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_30.txt	574	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_30K.txt	579	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_44.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERFAUST_60.txt	566	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PANZERSCHRECK.txt	508	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PF_69.txt	608	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PF_89.txt	608	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PF_98.txt	549	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_PIAT.txt	473	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_RP-3.txt	669	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_RP_3.txt	669	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_RS_82.txt	661	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_TYPE_01_LMAT.txt	644	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_TYPE_64_MAT.txt	646	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_TYPE_79_JYU_MAT.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_RPG_TYPE_87_CHU_MAT.txt	651	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_BENELLI_M4.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_HK_512.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_KS_23.txt	628	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_M26.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_MOSSBERG_500.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_MOSSBERG_590.txt	593	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_MTS225.txt	629	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_NEOSTEAD_2000.txt	594	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_QBS_09.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_REMINGTON_870.txt	600	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_SAIGA_12.txt	631	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SHOTGUN_TOZ_34.txt	629	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_39M.txt	546	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_BERETTA_M1938.txt	561	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_BJC_16.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_BLYSKAWICA.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_CHUANMADE_TOMMYGUN.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_CS_LS5.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_CS_LS7.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_DAGUMADE.txt	569	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_JH_16.txt	588	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_JINMADE_TOMMYGUN.txt	554	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_KP_31.txt	557	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_LIAOMADE_BERGMAN.txt	577	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M1921.txt	560	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M1928A1.txt	562	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M1932.txt	571	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M1938.txt	558	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M1941.txt	556	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M3.txt	551	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_M55.txt	555	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MAS38.txt	557	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MAT49.txt	591	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MINEBEA_PM_9.txt	597	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP18.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP28.txt	587	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP34.txt	564	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP38.txt	568	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP40.txt	572	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP5.txt	589	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_MP7.txt	586	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_PPD.txt	569	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_PPD_34.txt	569	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_PPS_43.txt	569	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_PPSH.txt	570	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_QCQ_05.txt	583	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_QCW_05.txt	583	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_STEN.txt	575	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_STERLING.txt	575	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_THOMPSON.txt	563	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_TYPE_100_40.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_TYPE_100_44.txt	565	weapon	ok	ok	ok	ok	no	0	
+WEAPON_SMG_UZI.txt	585	weapon	ok	ok	ok	ok	no	0	

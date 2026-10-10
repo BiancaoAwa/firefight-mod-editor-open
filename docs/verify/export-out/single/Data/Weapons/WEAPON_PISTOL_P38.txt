@@ -1,0 +1,28 @@
+<weapon>
+	<name>P38 Pistol</name>
+	<type>WEAPON_PISTOL</type>
+	<ammo>
+		<type>
+			<flavour>FLAVOUR_BALL</flavour>
+			<mass>0.008</mass>
+			<name>9x19mm Parabellum</name>
+			<speed>350</speed>
+		</type>
+	</ammo>
+	<dimensions>
+		<barrel_length>12</barrel_length>
+		<calibre>9</calibre>
+	</dimensions>
+	<magazine>
+		<capacity>8</capacity>
+		<sound_reload>reload_magazine</sound_reload>
+	</magazine>
+	<shoot>
+		<reload>RELOAD_SEMI_AUTOMATIC</reload>
+		<rof>120</rof>
+		<sound_shoot>shoot_pistol</sound_shoot>
+	</shoot>
+	<usage>
+		<countries>GERMANY</countries>
+	</usage>
+</weapon>

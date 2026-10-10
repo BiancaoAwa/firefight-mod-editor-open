@@ -1,0 +1,1412 @@
+{
+  "query": {
+    "tag": null,
+    "value": "weapon_pistol_p38",
+    "path": null,
+    "ignore_case": true
+  },
+  "count": 200,
+  "truncated": true,
+  "matches": [
+    {
+      "path": "Data/Infantry/German-Fallschirmjaegers 1.txt",
+      "line": 117,
+      "tag": "type",
+      "document_path": "squad/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-Fallschirmjaegers 1.txt",
+      "line": 121,
+      "tag": "for",
+      "document_path": "squad/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-Fallschirmjaegers 2.txt",
+      "line": 117,
+      "tag": "type",
+      "document_path": "squad/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-Fallschirmjaegers 2.txt",
+      "line": 121,
+      "tag": "for",
+      "document_path": "squad/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-Flamethrower.txt",
+      "line": 23,
+      "tag": "type",
+      "document_path": "squad/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-Flamethrower.txt",
+      "line": 26,
+      "tag": "for",
+      "document_path": "squad/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-HMG34.txt",
+      "line": 36,
+      "tag": "type",
+      "document_path": "squad/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-HMG34.txt",
+      "line": 38,
+      "tag": "for",
+      "document_path": "squad/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-HMG42.txt",
+      "line": 38,
+      "tag": "type",
+      "document_path": "squad/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Infantry/German-HMG42.txt",
+      "line": 40,
+      "tag": "for",
+      "document_path": "squad/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 64,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 65,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 70,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 71,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 117,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 118,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 123,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 124,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 142,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 143,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 162,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-ADGZ.txt",
+      "line": 163,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 67,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 68,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 118,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 119,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 141,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 142,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 147,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 148,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 153,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 154,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 159,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant Mk II.txt",
+      "line": 160,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 65,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 66,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 71,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 72,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 126,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 127,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 132,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 133,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 138,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 139,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 144,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Elefant.txt",
+      "line": 145,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 62,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 63,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 68,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 69,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 74,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 75,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 132,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer 38(t).txt",
+      "line": 133,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer I.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer I.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer I.txt",
+      "line": 111,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer I.txt",
+      "line": 112,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 99,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 100,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 132,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 133,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 138,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 139,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 144,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Kugelblitz.txt",
+      "line": 145,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 99,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 100,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 131,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 132,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 137,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 138,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 143,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Ostwind.txt",
+      "line": 144,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 66,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 67,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 102,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 103,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 134,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 135,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 140,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 141,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 146,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flakpanzer IV Wirbelwind.txt",
+      "line": 147,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 100,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 101,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 106,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 107,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 112,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer 38(t).txt",
+      "line": 113,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 67,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 68,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 102,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 103,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 132,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 133,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 138,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 139,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 144,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Flammpanzer III.txt",
+      "line": 145,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 102,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 103,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 108,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 109,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 114,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 115,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 133,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf H.txt",
+      "line": 134,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 64,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 65,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 103,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 104,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 109,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 110,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 115,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 116,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 134,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Grille Ausf K.txt",
+      "line": 135,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 62,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 63,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 100,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 101,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 106,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 107,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 112,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 113,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 131,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Hummel.txt",
+      "line": 132,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 62,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 63,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 104,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 105,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 133,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 134,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 139,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther II.txt",
+      "line": 140,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 62,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 63,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 104,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 105,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 127,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 128,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 133,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 134,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 139,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanther.txt",
+      "line": 140,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 102,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 103,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 108,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 109,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 114,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer 38 Hetzer.txt",
+      "line": 115,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 104,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 105,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 110,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 111,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 116,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdpanzer IV.txt",
+      "line": 117,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 64,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 65,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 101,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 102,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 124,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 125,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 130,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 131,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 136,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 137,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 142,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Jagdtiger.txt",
+      "line": 143,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Katzchen.txt",
+      "line": 64,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Katzchen.txt",
+      "line": 65,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 65,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 66,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 100,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 101,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 135,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 136,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 141,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 142,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 147,
+      "tag": "type",
+      "document_path": "squad/vehicle/turret/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-King Tiger.txt",
+      "line": 148,
+      "tag": "for",
+      "document_path": "squad/vehicle/turret/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 63,
+      "tag": "type",
+      "document_path": "squad/vehicle/hull/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 64,
+      "tag": "for",
+      "document_path": "squad/vehicle/hull/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 102,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 103,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 108,
+      "tag": "type",
+      "document_path": "squad/vehicle/fixed_weapon/man/weapon/type",
+      "value": "WEAPON_PISTOL_P38"
+    },
+    {
+      "path": "Data/Vehicles/German-Marder I.txt",
+      "line": 109,
+      "tag": "for",
+      "document_path": "squad/vehicle/fixed_weapon/man/ammo/for",
+      "value": "WEAPON_PISTOL_P38"
+    }
+  ]
+}

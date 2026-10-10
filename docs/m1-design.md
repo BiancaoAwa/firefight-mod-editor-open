@@ -115,17 +115,18 @@ Expressing that needs a scalar array, which §2.5 shows no stock file requires. 
 ```
 core/
 ├── __init__.py
-├── textio.py      single text I/O exit point (cp1252, no BOM, CRLF out, tab indent)
+├── textio.py      single text I/O exit point (cp1252 + utf-8 fallback, no BOM, source newline out)
 ├── errors.py      exception types with file/line context
-├── xmlmodel.py    element tree plus raw-text retention
-├── xmlread.py     tolerant reader
+├── xmlmodel.py    element tree plus layout retention (prefix/suffix/raw_value)
+├── xmlread.py     tolerant reader (parsed text + layout in one scan)
 ├── tomlmodel.py   TOML document model (ordered)
 ├── tomlread.py    in-house TOML reader (documented subset only)
 ├── tomlwrite.py   in-house TOML writer
 ├── schema.py      path-keyed schema for squad / weapon / aircraft
-└── convert.py     xml_to_toml / toml_to_xml
+└── convert.py     xml_to_toml / toml_to_xml (canonical) / tree_to_xml (source layout)
 tools/
-└── m1_roundtrip.py   corpus-wide round-trip harness
+├── m1_roundtrip.py      corpus-wide round-trip harness
+└── export_fidelity.py   corpus-wide byte-for-byte export harness
 tests/
 ├── test_errors.py
 ├── test_schema.py
@@ -134,21 +135,30 @@ tests/
 ├── test_tomlread.py
 ├── test_tomlwrite.py
 ├── test_convert.py
+├── test_roundtrip_bytes.py
 └── fixtures/
 ```
+
+The tree above records the M1 layout as designed. After the module merge the current names
+are `core/xml.py` (was `xmlmodel.py` + `xmlread.py`), `core/toml.py` (was `tomlmodel.py` +
+`tomlread.py` + `tomlwrite.py`), `core/cli/commands.py` (absorbed `documents.py`) and
+`core/web/server.py` (absorbed `pages.py`); `tests/test_xml.py` replaces `test_xmlread.py`
+and `tests/test_toml.py` replaces `test_tomlread.py` + `test_tomlwrite.py`. The section
+headings below keep the module names that were current when they were written.
 
 ### 3.2 Text I/O (`core/textio.py`)
 
 Single exit point, per invariant 3.
 
 ```python
-def read_source(path: Path) -> SourceText
+def read_source(path: Path) -> SourceText      # SourceText.raw keeps the original characters
 def write_source(path: Path, text: str) -> None
 def normalize_newlines(text: str) -> str      # CRLF/CR/LF -> LF internally
-def to_export_newlines(text: str) -> str      # LF -> CRLF on export (decision D3)
+def to_export_newlines(text: str) -> str      # LF -> CRLF (still used for list files)
+def encode_export(text, file, encoding, newline="\r\n")   # newline="" keeps the text as it is
 ```
 
-Rules: decode `cp1252`, record whether a BOM was present (always assert absent for stock), normalise line endings to LF in memory, never re-encode anything that the source could not encode, and always write CRLF with no BOM. A `UnicodeEncodeError` during export is a hard error mapped to `ExportEncodingError` (acceptance item 4).
+Rules: decode `cp1252`, record whether a BOM was present (always assert absent for stock), normalise line endings to LF **for the parsed `text`** while `SourceText.raw` keeps the exact characters the file had, never re-encode anything that the source could not encode, and write with no BOM. Export writes the newline style of the source file; CRLF is the default for text that has no source (decision D3, revised 2026-10-11). A `UnicodeEncodeError` during export is a hard error mapped to `ExportEncodingError` (acceptance item 4).
 
 ### 3.3 Tolerant XML reader (`core/xmlread.py`)
 
@@ -164,6 +174,8 @@ Scanner, not a grammar. Rules, each derived from a measurement:
 4. Whitespace-only text between elements is discarded; non-whitespace text is retained as the element's value.
 5. Nesting is tracked with a stack; a closing tag that does not match the innermost open tag unwinds to the nearest matching open tag (never raises on ragged input), and the unwind is reported as a warning on the document.
 6. Each node records `tag`, `children`, `value`, and `line` (1-based).
+7. The scan keeps two accumulators: `content` (comments removed, newlines normalised to LF) becomes the TOML source, and `layout` keeps the original characters. Every element records the gap before its own tag as `prefix`, the gap inside a leaf as `raw_value` and the gap before its closing tag as `suffix`; the document records `header`, `footer`, `newline` and `indent`. `None` means "no captured layout", which makes the writer fall back to the canonical form ([toml-mapping.md](toml-mapping.md) §4.1).
+8. `XmlElement.text()` returns the raw gap when there is one and the parsed value otherwise, so the writer needs no special case for edited and unedited elements.
 
 `XmlDocument` also exposes the original text, used for the "was it edited" test in later milestones.
 
@@ -201,6 +213,8 @@ This is the only order TOML can express, and §2.1 shows the source order is unr
 
 Schema order itself is the order observed in stock, so most files come out in an order close to the original.
 
+**This order governs the TOML text only.** The XML writer no longer uses it: since 2026-10-11 `core/convert.py::tree_to_xml` reproduces the captured source layout, so an exported file is byte-identical to the file it was read from ([toml-mapping.md](toml-mapping.md) §4.1 and §8.6). The canonical writer stays in use for documents that have no source text, i.e. a `.toml` project file.
+
 ### 3.6 Revised acceptance comparison
 
 [toml-mapping.md](toml-mapping.md) §8.1 said "compare node by node on an ordered tree". The measurements in §2.1 and §2.2 make a literal ordered comparison impossible for 807 files, so the criterion is refined to the semantic one the project owner already verified:
@@ -210,6 +224,8 @@ Schema order itself is the order observed in stock, so most files come out in an
 * Reported separately as informational, not pass/fail: the count of files whose rendered order happens to equal the source order.
 
 Everything else is compared exactly: tag names, nesting, leaf text (a bare `&` is not equal to `&amp;`), and the number of occurrences.
+
+The semantic comparison remains the floor, and it is now joined by a stricter gate for files that came from disk: the export is compared **byte for byte** with the source (`tools/export_fidelity.py`, 1840 of 1840 identical on the stock corpus; layout cases in `tests/test_roundtrip_bytes.py`). The semantic comparison still decides the case where no source layout exists.
 
 ### 3.7 Conversion
 
@@ -284,6 +300,8 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 **Failure to keep in mind**: a `mixed` row (`weapon/dimensions`) resolves to `table`, because §2.6 fixes one shape for the field and renders the empty instances as empty tables.
 
 **Corpus harness** (`tools/m1_roundtrip.py`): for all 1840 files, run XML → TOML → XML and compare per §3.6, then TOML → XML → TOML and compare fields. It prints a per-file verdict to `docs/m1-roundtrip.tsv` and a summary, and exits non-zero on any failure.
+
+**Byte-fidelity harness** (`tools/export_fidelity.py`, added 2026-10-11): export the whole data directory through the real CLI and compare every file byte for byte with the source, classifying any difference (newline-only, order-changed, content-changed, missing) and printing the first differing line. Exits non-zero unless all files are identical; 1840 of 1840 on the stock corpus. The individual layout cases are pinned by `tests/test_roundtrip_bytes.py`.
 
 **Result of that run** (2026-10-09, CPython 3.14.5): 1792 files modelled, 48 skipped by scope, **0 failures**; the exact-text match rate is 0 of 1792 and the three measured causes are listed in [m1-report.md](m1-report.md) §3.1. In short: the canonical writer drops blank lines, expands elements that stock writes inline, and orders differently-named siblings canonically — none of which the §3.6 comparison treats as a difference.
 

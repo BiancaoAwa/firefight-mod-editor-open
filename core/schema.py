@@ -1,8 +1,6 @@
 """Path-keyed schema for the three stock XML roots.
 
-The declarations below were derived from the measurement recorded in
-``docs/baseline/path-inventory.tsv``; ``tests/test_schema.py`` keeps the two in
-agreement.  ``mod.txt`` is outside M1 (see ``docs/m1-design.md`` section 2.7).
+Derived from ``docs/baseline/path-inventory.tsv`` and checked by ``tests/test_schema.py``.
 """
 
 from dataclasses import dataclass

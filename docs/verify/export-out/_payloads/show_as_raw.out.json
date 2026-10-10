@@ -1,0 +1,6 @@
+{
+  "path": "Data/Weapons/WEAPON_PISTOL_P38.txt",
+  "format": "xml",
+  "text": "<weapon>\n\n\t<name>P38 Pistol</name>\n\t<type>WEAPON_PISTOL</type>\n\n\t<dimensions>\n\t\t<calibre>9</calibre>\n\t\t<barrel_length>12</barrel_length>\n\t</dimensions>\n\n\t<shoot>\n\t\t<sound_shoot>shoot_pistol</sound_shoot>\n\t\t<rof>120</rof>\n\t\t<reload>RELOAD_SEMI_AUTOMATIC</reload>\n\t</shoot>\n\n\t<magazine>\n\t\t<capacity>8</capacity>\n\t\t<sound_reload>reload_magazine</sound_reload>\n\t</magazine>\n\n\t<ammo>\n\t\t<type><flavour>FLAVOUR_BALL</flavour><speed>350</speed><mass>0.008</mass><name>9x19mm Parabellum</name></type>\n\t</ammo>\n\n\t<usage>\n\t\t<countries>GERMANY</countries>\n\t</usage>\n\n</weapon>\n",
+  "warnings": []
+}

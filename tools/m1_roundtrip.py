@@ -13,14 +13,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core import textio, xmlread  # noqa: E402
+from core import textio, xml
 from core.convert import toml_to_xml, xml_to_toml  # noqa: E402
 from core.errors import FfError  # noqa: E402
 from core.schema import schema_for  # noqa: E402
-from core.tomlmodel import TomlTable  # noqa: E402
-from core.tomlread import parse as toml_parse  # noqa: E402
-from core.tomlwrite import render as toml_render  # noqa: E402
-from core.xmlmodel import signature  # noqa: E402
+from core.toml import TomlTable
+from core.toml import parse as toml_parse
+from core.toml import render as toml_render
+from core.xml import signature
 
 SKIP_PREFIXES = ("equipment_", "surnames_")
 HEADER = "file\tsize\troot\txml_to_toml\ttoml_reparse\ttoml_to_xml\tcp1252\torder_match\twarnings\tnote"
@@ -29,7 +29,7 @@ HEADER = "file\tsize\troot\txml_to_toml\ttoml_reparse\ttoml_to_xml\tcp1252\torde
 def run_file(path: Path) -> tuple[list[str], bool]:
     """Run the round trip for one file; returns a report row and a pass flag."""
     source = textio.read_source(path)
-    document = xmlread.parse(source.text, str(path))
+    document = xml.parse(source.text, str(path))
     schema = schema_for(document.root.tag)
     if schema is None:
         return [], False
@@ -50,7 +50,7 @@ def run_file(path: Path) -> tuple[list[str], bool]:
         textio.encode_export(exported, str(path))
     except FfError as error:
         encoded = error.__class__.__name__
-    exported_document = xmlread.parse(exported, str(path) + " (export)")
+    exported_document = xml.parse(exported, str(path) + " (export)")
     equivalent = signature(exported_document.root) == signature(document.root)
     order_match = textio.normalize_newlines(exported) == textio.normalize_newlines(source.text)
     note = "" if stable else "TOML text not idempotent"

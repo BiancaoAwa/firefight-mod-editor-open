@@ -1,0 +1,11 @@
+# 单位图片引用的搜索目录（相对 Images/ 前缀已含）
+Images/Units/AT Guns
+Images/Units/HMGs
+Images/Units/Mortars
+Images/Units/Recoilless Rifles
+Images/Units/Vehicles/Hulls
+Images/Units/Vehicles/Turrets
+Images/Units/Vehicles/Profiles
+Images/Uniforms
+Images/Game
+Images/Chooser/Custom Game/Flags

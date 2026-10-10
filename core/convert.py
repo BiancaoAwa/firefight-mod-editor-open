@@ -1,18 +1,15 @@
-"""XML ↔ TOML conversion.
+"""XML to TOML conversion and back, with the path-keyed schema deciding shape.
 
-Shape comes from the path-keyed schema, never from a single file's data, so a
-field cannot change shape between files (docs/toml-mapping.md section 2).  Leaf
-text is kept verbatim next to its parsed value, so an export never rewrites a
-decimal (docs/toml-mapping.md section 3).
+Leaf text is kept verbatim and a repeated table element becomes an array (docs/toml-mapping.md sections 2, 3).
 """
 
 import re
 
 from core.errors import SchemaError
 from core.schema import Node, Schema, schema_for
-from core.tomlmodel import TomlArrayEntry, TomlTable, TomlValue
-from core.tomlwrite import quote_string
-from core.xmlmodel import XmlDocument, XmlElement
+from core.toml import TomlArrayEntry, TomlTable, TomlValue
+from core.toml import quote_string
+from core.xml import XmlDocument, XmlElement
 
 INTEGER_RE = re.compile(r"^-?\d+$")
 FLOAT_RE = re.compile(r"^-?\d+\.\d+$")
@@ -58,16 +55,14 @@ def _child_node(node: Node | None, name: str) -> Node | None:
     return wildcard
 
 
-def _grouped_children(element: XmlElement, node: Node | None) -> list[str]:
-    """Return tags in canonical order: schema order first, then the rest."""
-    counts: dict[str, int] = {}
-    for child in element.children:
-        counts[child.tag] = counts.get(child.tag, 0) + 1
+def _grouped_children(element: XmlElement, node: Node | None = None) -> list[str]:
+    """Return tags in source order: first appearance wins, same tag stays grouped.
+
+    The schema no longer decides sibling order, because that reordered 1792 of
+    1840 shipped files on export (docs/toml-mapping.md section 5).  Same-named
+    siblings stay together, as the TOML mapping requires.
+    """
     names: list[str] = []
-    if node is not None:
-        for child_node in node.children:
-            if child_node.name != "*" and child_node.name in counts:
-                names.append(child_node.name)
     for child in element.children:
         if child.tag not in names:
             names.append(child.tag)
@@ -100,7 +95,10 @@ def _element_table(element: XmlElement, node: Node | None, path: tuple[str, ...]
             table.entries.append((name, TomlArrayEntry(items=items)))
         else:
             if count > 1:
-                raise SchemaError(child_path, f"single-instance table occurs {count} times in one parent instance")
+                warnings.append(f"{'/'.join(child_path)}: table repeats {count} times, stored as an array")
+                items = [_element_table(kid, child_node, child_path, warnings) for kid in kids]
+                table.entries.append((name, TomlArrayEntry(items=items)))
+                continue
             table.entries.append((name, _element_table(kids[0], child_node, child_path, warnings)))
     return table
 
@@ -157,3 +155,39 @@ def _render(element: XmlElement, depth: int, lines: list[str]) -> None:
     for child in element.children:
         _render(child, depth + 1, lines)
     lines.append(f"{prefix}</{element.tag}>")
+
+
+def tree_to_xml(
+    root: XmlElement,
+    header: str = "",
+    footer: str = "",
+    newline: str = "\r\n",
+    indent: str = INDENT,
+) -> str:
+    """Render a parsed tree back to stock XML, keeping the source layout.
+
+    Used for stock entities: everything the reader recorded (blank lines,
+    comments, indentation, inline branches, the file's own newlines) is written
+    back verbatim, so an untouched entity round-trips byte for byte.  Elements
+    without recorded layout (built from a TOML document) fall back to the
+    canonical shape of :func:`toml_to_xml`.
+    """
+    parts: list[str] = [header]
+    _render_tree(root, 0, parts, newline, indent)
+    parts.append(footer)
+    return "".join(parts)
+
+
+def _render_tree(element: XmlElement, depth: int, parts: list[str], newline: str, indent: str) -> None:
+    parts.append(element.prefix if element.prefix is not None else (newline + indent * depth if depth else ""))
+    if element.self_closing and not element.children:
+        parts.append(f"<{element.tag}/>")
+        return
+    if not element.children:
+        parts.append(f"<{element.tag}>{element.text()}</{element.tag}>")
+        return
+    parts.append(f"<{element.tag}>")
+    for child in element.children:
+        _render_tree(child, depth + 1, parts, newline, indent)
+    parts.append(element.suffix if element.suffix is not None else newline + indent * depth)
+    parts.append(f"</{element.tag}>")

@@ -1,9 +1,6 @@
 """Exception types that carry file and position context.
 
-Only unrecoverable conditions raise.  Recoverable ones (ragged close tags,
-unknown tags, unknown enum-shaped values, dropped comments) are collected on the
-document as warnings and never reach this module; see ``docs/m1-design.md``
-section 3.9.
+Only unrecoverable conditions raise; recoverable ones become warnings (docs/m1-design.md section 3.9).
 """
 
 
