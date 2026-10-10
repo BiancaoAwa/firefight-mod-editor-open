@@ -9,11 +9,17 @@ import tempfile
 import shutil
 
 # private
+def _new_temp_path(suffix):
+    """原子创建空临时文件并返回其路径"""
+    fd, path = tempfile.mkstemp(suffix=suffix)
+    os.close(fd)
+    return path
+
 def _get_androidmanifest(input_apk):
     if not os.path.exists(input_apk):
         raise Exception("%s not exists"%(input_apk))
 
-    tmp_xml = tempfile.mktemp('.xml')
+    tmp_xml = _new_temp_path('.xml')
     with open(tmp_xml, "wb") as output_stream:
         zip_stream = zipfile.ZipFile(input_apk, "r")
         xml_data = zip_stream.read("AndroidManifest.xml")
@@ -24,7 +30,7 @@ def _get_androidmanifest(input_apk):
 def modify_apk_attr(input_apk, attr_obj, new_attr_obj, output_apk=None):
     tmp_xml = _get_androidmanifest(input_apk)
     modify_xml_attr(tmp_xml, attr_obj, new_attr_obj)
-    tmp_apk = tempfile.mktemp('.apk')
+    tmp_apk = _new_temp_path('.apk')
     # zipfile不支持直接更新里面的某个文件
     # 现在的方案是把A中的所有文件重新写入一个新的zip中，过滤掉需要修改的部分
     with zipfile.ZipFile(input_apk, "r", compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zip_in:
@@ -39,7 +45,7 @@ def modify_apk_attr(input_apk, attr_obj, new_attr_obj, output_apk=None):
     zip_out.close()
     if not output_apk:
         output_apk = input_apk
-    os.rename(tmp_apk, output_apk)
+    os.replace(tmp_apk, output_apk)      # rename 在 Windows 上无法覆盖已存在的目标
 
 def get_apk_attr(input_apk, attr_obj):
     tmp_xml = _get_androidmanifest(input_apk)
