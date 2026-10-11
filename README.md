@@ -6,10 +6,11 @@ An open-source third-party mod editor compatible with *Firefight* by Sean O'Conn
 coverage and stricter round-trip fidelity than the tooling that ships with the game.
 
 Status: data core, XML/TOML round-trip, reference graph, the command line, the read-only
-browsing slice of the local web UI, and `set` — one field of one project document, leaving the
-rest of the file byte-identical ([cli.md](docs/cli.md) §4.1). `export` reproduces a stock file
-byte for byte, layout included — 1840 of 1840 files on the installed game
-(`tools/export_fidelity.py`). No event log, no undo, no packaging yet.
+browsing slice of the local web UI, and the MVP editing loop — `set` changes one field of one
+project document and leaves the rest of the file byte-identical, and `log`, `undo` and `redo`
+record and revert it from the bytes kept under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2).
+`export` reproduces a stock file byte for byte, layout included — 1840 of 1840 files on the
+installed game (`tools/export_fidelity.py`). No `add`/`remove`, no batch edit, no packaging yet.
 
 ## Quick start
 

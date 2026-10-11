@@ -2,12 +2,14 @@
 
 # Command line
 
-Status: **read-only except two writers**. `set` changes one field of one project document, and
-`export` writes stock XML into a directory the caller names; every other command only prints a
-result. Both writers keep the source around what they touch: `set` guarantees it per field
-(§4.1) and `export` per file (order, blank lines, indentation, comments and newline style — see
-§9 and toml-mapping §4). `web` serves the same read-only results as pages on `127.0.0.1`
-(docs/web.md). No event log, no undo, no packaging: none of those exists yet.
+Status: **read-only except three writers**. `set` changes one field of one project document,
+`undo` and `redo` put back and re-apply what the log records, and `export` writes stock XML into
+a directory the caller names; every other command only prints a result. The writers keep the
+source around what they touch: `set` guarantees it per field (§4.1), `undo` and `redo` write
+recorded bytes rather than a re-serialisation (§4.2), and `export` per file (order, blank lines,
+indentation, comments and newline style — see §9 and toml-mapping §4). `web` serves the same
+read-only results as pages on `127.0.0.1` (docs/web.md). No packaging: that stage does not exist
+yet.
 
 ## 1. Invocation
 
@@ -33,9 +35,9 @@ A scope root is the directory that holds `Data/`, `Images/` and `Sounds/`; passi
 `Data` directory itself is accepted and normalized to its parent. For an installed game
 that is the directory containing `Firefight.exe`. The `Firefight` scope is never written:
 the editor does not edit the game directory, and `export` writes only under `to=`. A project
-is written only by `set --write`, and only inside the project directory (§4.1). The local
-config `.ff-editor.local.toml` (keys `firefight`, `mod`, `workspace`) is
-read from the nearest ancestor directory and belongs in `.gitignore`.
+is written only by `set`, `undo` and `redo` with `--write`, and only inside the project
+directory (§4.1, §4.2). The local config `.ff-editor.local.toml` (keys `firefight`, `mod`,
+`workspace`) is read from the nearest ancestor directory and belongs in `.gitignore`.
 
 ## 3. Paths and selectors
 
@@ -62,13 +64,17 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
 | `set` | | change one field of one document; needs `--write` (§4.1) |
+| `log` | | the log segments and the newest records inside them; read-only (§4.2) |
+| `undo` | | put back what the last writes replaced; needs `--write` (§4.2) |
+| `redo` | | re-apply what the last undo reverted; needs `--write` (§4.2) |
 | `export` | `emit` | write the selection as stock XML under `to=<dir>`, source bytes for files read from disk |
 | `web` | `serve` | serve the read-only pages on `127.0.0.1` until Ctrl-C (docs/web.md) |
 | `version` | | editor version, interpreter, resolved scopes |
 
 Options: `root=`, `workspace=`, `to=`, `as=`, `field=`, `type=`, `kind=`, `path=`,
 `limit=` (default 200 rows), `ignore_case=1`, `--json`. `set` also takes the bare flags
-`--write` (write the change) and `--dry-run` (report it without writing anything, §4.1).
+`--write` (write the change) and `--dry-run` (report it without writing anything, §4.1);
+`undo` and `redo` take `--write` and an optional count (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
@@ -110,13 +116,44 @@ python -m core.cli Mod set <document> field=<a.b.c> value=<text> --write [--dry-
 * `--dry-run` computes and reports the whole result without writing anything, not even
   `.editor/` itself.
 
+### 4.2 The event log, undo and redo
+
+```
+python -m core.cli Mod log [count] [--json]
+python -m core.cli Mod undo [count] --write [--json]
+python -m core.cli Mod redo [count] --write [--json]
+```
+
+* Every written `set` appends one record to `.editor/log/<segment start local time>.jsonl` and
+  stores the bytes it replaced and the bytes it left under `.editor/baseline/<sha256>`. The
+  record names the change (`id`, `segment`, `timestamp`, `actor`, `result`, `target`,
+  `document`, `entity`, `field`, `before`, `after`, `digest_before`, `digest_after`,
+  `bytes_before`, `bytes_after`, `dry_run`); the field list and the byte layout are in
+  docs/project-layout.md §8.
+* A segment is sealed after five idle minutes and the next record opens a new one, so segment
+  files read in filename order are in chronological order. `log` lists the segments and the
+  newest `count` records (default 20); it is read-only and creates nothing.
+* `undo [count]` restores the recorded bytes of the last `count` applied changes (default 1),
+  newest first, and appends one record per revert naming the change it reverted. `redo [count]`
+  re-applies the most recently reverted changes. A revert of a revert is what `undo` after
+  `redo` is, so `undo` → `redo` → `undo` returns byte-identical content.
+* The whole invocation is planned before anything is written: a missing baseline, a document
+  that changed on disk after the recorded change, a document that is gone, a count larger than
+  the log and a log with nothing to revert are all refused with code 2, and no part of the
+  invocation is written. Recorded bytes that are gone or no longer hash to their name are a
+  hard failure with code 1.
+* `undo` and `redo` need `--write`, hold the same `.editor/lock` as `set`, refuse the
+  `Firefight` scope, and are confined to the project directory. A refusal is final and nothing
+  is retried.
+* A new `set` discards what could be redone, as a fresh edit does in an editor.
+
 ## 5. Exit codes
 
 | Code | Meaning |
 |---|---|
 | 0 | the command ran and found nothing to report |
-| 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line) |
-| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path |
+| 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2) |
+| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2) |
 | 130 | interrupted (Ctrl-C) |
 
 ## 6. Warnings
@@ -171,7 +208,9 @@ address it bound.
 
 ## 9. Limits of this slice
 
-* No writes, no project directories, no `.editor/` state, no event log, no undo.
+* No project-file commands, no `add`/`remove`, no batch edit, no packaging. Writes are one leaf
+  of one document at a time; the log and the baseline are per project, and `Firefight` is never
+  written.
 * `export` keeps the source layout: sibling order, blank lines, indentation, `//` comments
   and the file's own newline style all come from the source text (toml-mapping §4). Files
   without source text — a `.toml` project document — use the canonical writer instead

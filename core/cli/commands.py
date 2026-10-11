@@ -1,7 +1,8 @@
-"""Commands over one scope: read-only queries, ``set`` and ``export``.
+"""Commands over one scope: read-only queries, the writing commands and ``export``.
 
-Each command returns a JSON payload and its text rendering; ``set`` changes one field
-of one project document and ``export`` writes XML under ``to=`` (docs/cli.md).
+Each command returns a JSON payload and its text rendering; ``set`` changes one field of one
+project document, ``log``, ``undo`` and ``redo`` read and revert the event log, and ``export``
+writes XML under ``to=`` (docs/cli.md).
 """
 
 import platform
@@ -196,6 +197,7 @@ def element_value(element: XmlElement) -> str | None:
 VERSION = "0.1.0"
 CATEGORIES = ("infantry", "vehicle", "weapon", "at_gun", "aircraft", "equipment", "surnames", "other")
 DEFAULT_LIMIT = 200
+LOG_ROWS = 20
 
 
 @dataclass
@@ -765,8 +767,109 @@ def _set_text(report: dict) -> str:
     if enum.get("category"):
         detail = f"{enum['category']}: {enum['values']} value(s)" if enum.get("table") else f"{enum['category']}: not checked"
         rows.append(["enum", detail])
+    if report.get("event"):
+        rows.append(["event", report["event"]])
     state = "written" if report["written"] else "not written (dry run)"
     return table_of(["item", "value"], rows, f"{report['path']}: {state}")
+
+
+def cmd_log(ctx: Context) -> Result:
+    """List the log segments of this project and the newest records inside them."""
+    from core import edit, journal
+
+    project_root = edit.project_root_of(ctx.scope.root)
+    limit = _count(ctx, default=LOG_ROWS, name="log")
+    events = journal.read_events(project_root)
+    found: dict[str, list[dict]] = {}
+    for event in events:
+        found.setdefault(str(event.get("segment", "")), []).append(event)
+    segment_rows = [
+        [name, len(items), items[0].get("timestamp", ""), items[-1].get("timestamp", "")]
+        for name, items in found.items()
+    ]
+    record_rows = [
+        [
+            event.get("timestamp", ""),
+            event.get("result", ""),
+            event.get("document", ""),
+            event.get("field", ""),
+            f"{event.get('before', '')} -> {event.get('after', '')}",
+            event.get("id", ""),
+        ]
+        for event in events[-limit:]
+    ]
+    summary = (
+        f"{len(events)} record(s) in {len(found)} segment(s) under {journal.EDITOR_DIR}/{journal.LOG_DIR}"
+    )
+    text = "\n\n".join(
+        [
+            table_of(["segment", "records", "first", "last"], segment_rows, summary),
+            table_of(["time", "result", "document", "field", "before -> after", "id"], record_rows),
+        ]
+    )
+    return Result(
+        {
+            "scope": ctx.scope.name,
+            "root": str(project_root),
+            "segments": [
+                {"segment": name, "records": len(items)} for name, items in found.items()
+            ],
+            "events": events[-limit:],
+            "shown": len(events[-limit:]),
+            "total": len(events),
+        },
+        text,
+    )
+
+
+def cmd_undo(ctx: Context) -> Result:
+    """Put back what the last writes replaced; needs --write."""
+    return _restore(ctx, "undo")
+
+
+def cmd_redo(ctx: Context) -> Result:
+    """Re-apply what the last undo reverted; needs --write."""
+    return _restore(ctx, "redo")
+
+
+def _restore(ctx: Context, result: str) -> Result:
+    """Run one undo or redo, or refuse it before anything is written."""
+    from core import edit, history
+
+    if ctx.scope.name == "Firefight":
+        raise UsageError(f"the stock scope is read-only; {result} refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError(f"{result} needs --write")
+    count = _count(ctx, default=1, name=result)
+    project_root = edit.project_root_of(ctx.scope.root)
+    try:
+        restores = history.plan_undo(project_root, count) if result == "undo" else history.plan_redo(project_root, count)
+        payload = history.apply(project_root, restores)
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    payload["scope"] = ctx.scope.name
+    return Result(payload, _restore_text(payload))
+
+
+def _restore_text(payload: dict) -> str:
+    """Rows of one undo or redo invocation."""
+    rows = [
+        [item["document"], item["field"], item["before"], item["after"], item["event"], item["target"]]
+        for item in payload["documents"]
+    ]
+    done = "undone" if payload["result"] == "undo" else "redone"
+    summary = f"{payload['count']} document(s) {done}"
+    return table_of(["document", "field", "before", "after", "event", "target"], rows, summary)
+
+
+def _count(ctx: Context, *, default: int, name: str) -> int:
+    """The record or change count named by the selector, else ``default``."""
+    selector = ctx.selector.strip()
+    if not selector:
+        return default
+    if not selector.isdigit() or int(selector) < 1:
+        raise UsageError(f"{name} takes a count of at least 1, not {selector!r}")
+    return int(selector)
 
 
 def cmd_export(ctx: Context) -> Result:
@@ -853,6 +956,9 @@ COMMANDS = {
     "deps": cmd_deps,
     "check": cmd_check,
     "set": cmd_set,
+    "log": cmd_log,
+    "undo": cmd_undo,
+    "redo": cmd_redo,
     "export": cmd_export,
     "version": cmd_version,
     "web": cmd_web,

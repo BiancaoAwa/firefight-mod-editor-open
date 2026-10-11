@@ -4,30 +4,22 @@ A write changes one leaf of one document and leaves every other byte as it stand
 document is re-rendered from the layout the reader recorded (the same renderer ``export``
 uses); a TOML document is rewritten on the value's own source line.  The plan is computed
 first and nothing is touched until ``apply_plan`` re-checks the file fingerprint, so a
-refused edit leaves the disk unchanged (docs/cli.md section 4).
+refused edit leaves the disk unchanged (docs/cli.md section 4).  A written plan leaves one
+event and the bytes it replaced in ``core.journal`` state, which ``core.history`` reverts.
 """
 
-import contextlib
 import hashlib
-import json
-import os
-import tempfile
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
-from core import textio, toml, xml
+from core import journal, textio, toml, xml
 from core.enums import Enums, categories_of, split_value
-from core.errors import FfError
+from core.errors import EditRefused, FfError
 from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 
-EDITOR_DIR = ".editor"
-LOCK_NAME = "lock"
 MOD_FOLDER = "Mod"  # docs/project-layout.md section 2
-LOCK_STALE_SECONDS = 1800
 INTEGER_RE = toml.INTEGER_RE
 FLOAT_RE = toml.FLOAT_RE
 BOOLEANS = {
@@ -43,16 +35,13 @@ BOOLEANS = {
 XML_BOOLEAN_STYLES = ("true", "false")
 
 
-class EditRefused(FfError):
-    """A write the editor refuses; the CLI reports it as a usage error, exit code 2."""
-
-
 @dataclass(frozen=True)
 class EditPlan:
     """A validated change that has not been written yet."""
 
     path: Path
     relative: str
+    entity: str
     field: str
     before: str
     after: str
@@ -75,6 +64,14 @@ def project_root_of(data_root: Path) -> Path:
     (docs/project-layout.md section 2).
     """
     return data_root.parent if data_root.name == MOD_FOLDER else data_root
+
+
+def entity_of(document, relative: str) -> str:
+    """The name a document declares, else its file stem."""
+    for child in document.root.children:
+        if child.tag == "name" and child.text().strip():
+            return child.text().strip()
+    return Path(relative).stem
 
 
 def plan_set(
@@ -103,6 +100,7 @@ def plan_set(
     if node.shape != "leaf":
         raise EditRefused(f"{field}: {node.shape} is not a field")
     warnings: list[str] = []
+    entity = entity_of(document, document.relative)
     source = textio.read_source(document.path, warnings)
     if document.format == "toml":
         target = _resolve_toml(root_table(document.table, document.root_tag), segments, field)
@@ -125,6 +123,7 @@ def plan_set(
     return EditPlan(
         path=document.path,
         relative=document.relative,
+        entity=entity,
         field=field,
         before=before,
         after=value,
@@ -140,28 +139,53 @@ def plan_set(
     )
 
 
-def apply_plan(plan: EditPlan, project_root: Path, *, dry_run: bool = False) -> dict:
+def apply_plan(
+    plan: EditPlan, project_root: Path, *, dry_run: bool = False, actor: str = "cli", now: float | None = None
+) -> dict:
     """Write a plan under the project lock, or report it when ``dry_run``.
 
-    A dry run creates nothing, including the lock and the editor directory.  A
-    real write re-checks the fingerprint recorded in the plan and refuses when
-    the document changed meanwhile.
+    A dry run creates nothing, including the lock, the editor directory and the
+    log record.  A real write re-checks the fingerprint recorded in the plan,
+    refuses when the document changed meanwhile, keeps the bytes it replaces and
+    the bytes it leaves in the baseline, and appends one event naming both.
     """
     if dry_run:
         return report(plan, written=False, dry_run=True)
-    _confine(plan.path, project_root)
-    editor = project_root / EDITOR_DIR
-    editor.mkdir(parents=True, exist_ok=True)
-    with _lock(editor):
+    relative = journal.confine(plan.path, project_root)
+    with journal.hold_lock(project_root, tool="core.cli set"):
         _check_unchanged(plan)
-        _atomic_write(plan)
-    return report(plan, written=True, dry_run=False)
+        before = plan.path.read_bytes()
+        after = plan.data
+        journal.store_blob(project_root, before)
+        journal.store_blob(project_root, after)
+        journal.write_atomic(plan.path, after)
+        event = journal.append(
+            project_root,
+            {
+                "actor": actor,
+                "result": "set",
+                "target": None,
+                "document": relative,
+                "entity": plan.entity,
+                "field": plan.field,
+                "before": plan.before,
+                "after": plan.after,
+                "digest_before": journal.digest_of(before),
+                "digest_after": journal.digest_of(after),
+                "bytes_before": len(before),
+                "bytes_after": len(after),
+                "dry_run": False,
+            },
+            now=now,
+        )
+    return report(plan, written=True, dry_run=False, event=event)
 
 
-def report(plan: EditPlan, *, written: bool, dry_run: bool) -> dict:
+def report(plan: EditPlan, *, written: bool, dry_run: bool, event: dict | None = None) -> dict:
     """The machine payload of a set invocation."""
     payload = {
         "path": plan.relative,
+        "entity": plan.entity,
         "field": plan.field,
         "before": plan.before,
         "after": plan.after,
@@ -174,6 +198,7 @@ def report(plan: EditPlan, *, written: bool, dry_run: bool) -> dict:
         "enum": plan.enum,
         "dry_run": dry_run,
         "written": written,
+        "event": event["id"] if event else None,
         "warnings": list(plan.warnings),
     }
     return payload
@@ -479,76 +504,8 @@ def _assignment_at(line: str) -> int | None:
 # --- writing ----------------------------------------------------------------
 
 
-def _confine(path: Path, project_root: Path) -> None:
-    """Refuse a target outside the project, and a target inside the editor directory."""
-    try:
-        relative = path.resolve().relative_to(project_root.resolve())
-    except ValueError:
-        raise EditRefused(f"{path.name} is outside the project directory {project_root.name!r}") from None
-    if EDITOR_DIR in relative.parts:
-        raise EditRefused(f"{path.name}: the editor directory is not editable")
-
-
 def _check_unchanged(plan: EditPlan) -> None:
     """Refuse when the document changed after the plan was staged."""
     if hashlib.sha256(plan.path.read_bytes()).hexdigest() != plan.digest:
         raise EditRefused(f"{plan.relative}: the document changed after the change was staged; nothing was written")
 
-
-def _atomic_write(plan: EditPlan) -> None:
-    """Write a sibling temporary file and replace the target with it."""
-    handle, name = tempfile.mkstemp(prefix=".ff-edit-", suffix=".tmp", dir=plan.path.parent)
-    try:
-        with os.fdopen(handle, "wb") as stream:
-            stream.write(plan.data)
-        os.replace(name, plan.path)
-    except BaseException:
-        Path(name).unlink(missing_ok=True)
-        raise
-
-
-def lock_state(project_root: Path) -> dict:
-    """The current lock as recorded, with its age; never removes it."""
-    lock = project_root / EDITOR_DIR / LOCK_NAME
-    state: dict = {"path": f"{EDITOR_DIR}/{LOCK_NAME}", "held": lock.exists()}
-    if not lock.exists():
-        return state
-    state["age_seconds"] = round(time.time() - lock.stat().st_mtime, 1)
-    state["stale"] = state["age_seconds"] > LOCK_STALE_SECONDS
-    try:
-        state.update(json.loads(lock.read_text(encoding="utf-8")))
-    except (OSError, ValueError):
-        state["content"] = "unreadable"
-    return state
-
-
-def _holder(editor: Path) -> str:
-    """One-line description of the lock holder, for a refusal message."""
-    state = lock_state(editor.parent)
-    parts = [f"{key}={state[key]}" for key in ("pid", "started") if key in state]
-    if not parts:
-        parts = [state.get("content", "unknown owner")]
-    if state.get("stale"):
-        parts.append("stale")
-    return " ".join(str(part) for part in parts)
-
-
-@contextlib.contextmanager
-def _lock(editor: Path) -> Iterator[None]:
-    """Hold ``.editor/lock`` for one write; a held lock refuses, it is never stolen."""
-    lock = editor / LOCK_NAME
-    payload = {
-        "pid": os.getpid(),
-        "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "tool": "core.cli set",
-    }
-    try:
-        handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError:
-        raise EditRefused(f"{EDITOR_DIR}/{LOCK_NAME} is held ({_holder(editor)}); nothing was written") from None
-    try:
-        os.write(handle, json.dumps(payload, ensure_ascii=False).encode("utf-8"))
-        yield
-    finally:
-        os.close(handle)
-        lock.unlink(missing_ok=True)

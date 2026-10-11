@@ -3,7 +3,8 @@
 # Local web UI
 
 Status: **read-only browsing**. The UI renders the same results as the CLI and can write
-nothing. Editing — typed edits, the event log and undo — is not implemented yet.
+nothing. Editing — typed edits and the event log — exists in the CLI only
+([cli.md](cli.md) §4.1, §4.2); the web editing panel is a later stage.
 
 The whole UI is served by the Python standard library — no new dependency, no build step,
 no JavaScript, no external asset, no cookie. Every page is server-rendered HTML, so the
