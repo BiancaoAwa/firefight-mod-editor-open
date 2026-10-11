@@ -63,6 +63,8 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 | [cli.md](docs/cli.zh-CN.md) | 命令行：作用域、选择器、命令、选项、退出码、实测结果 |
 | [web.md](docs/web.zh-CN.md) | 本地只读 Web 界面：路由、选项、设计规则、限制 |
 | [project-layout.md](docs/project-layout.zh-CN.md) | 里程碑、模块布局、权限、事件日志规划 |
+| [plan.md](docs/plan.zh-CN.md) | 排好顺序的更新计划：MVP 定义、S1–S9 阶段、验收用例 B1–B20 |
+| [mcp.md](docs/mcp.zh-CN.md) | AI MCP 交付面：协议修订、工具、资源、权限、错误映射 |
 | [refs.md](docs/refs.zh-CN.md) | 引用规则与覆盖情况 |
 | [toml-mapping.md](docs/toml-mapping.zh-CN.md) | 原版 XML 如何映射到 TOML 编辑模型 |
 | [m1-design.md](docs/m1-design.md) | 数据内核设计 |

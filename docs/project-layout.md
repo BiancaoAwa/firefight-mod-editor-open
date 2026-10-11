@@ -242,6 +242,10 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 | M7 | Local web UI | Capability-equivalent to the CLI |
 | M8 | Distribution | Install package and usage documentation |
 
+The order of work, the smallest complete capability and the acceptance cases are fixed in `docs/plan.md`;
+the table above remains the definition of the milestones themselves. The AI MCP surface is specified in
+`docs/mcp.md`.
+
 ## 10. Dependency policy
 
 * **Standard library first**, fully local and usable offline (the project owner asked for "as local as possible").
