@@ -30,6 +30,9 @@ Commands
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
   set              change one field of one document (needs --write)
+  log              log segments and the newest records inside them
+  undo             put back what the last writes replaced (needs --write)
+  redo             re-apply what the last undo reverted (needs --write)
   export (emit)    render stock XML under to=<directory>
   version          editor, interpreter and resolvable scopes
   web    (serve)   serve the read-only web UI on 127.0.0.1 (blocks until Ctrl-C)
@@ -49,7 +52,7 @@ Options
   token=<text>     web UI access token; links then need ?t=<text>
   pagesize=<n>     web UI rows per page (default 200)
   browser=1        web UI: open the default browser on start
-  --write          set: write the change into the document
+  --write          set, undo and redo: write the change into the document
   --dry-run        set: report the change without writing anything
   --json           print the machine payload instead of the text table
 """

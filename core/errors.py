@@ -48,6 +48,10 @@ class SchemaError(FfError):
         super().__init__(f"{'/'.join(self.path)}: {message}")
 
 
+class EditRefused(FfError):
+    """A write the editor refuses; the CLI reports it as a usage error (exit code 2)."""
+
+
 class ExportEncodingError(FfError):
     """A string cannot be encoded to the export code page (cp1252)."""
 

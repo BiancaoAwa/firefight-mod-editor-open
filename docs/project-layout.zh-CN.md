@@ -57,7 +57,8 @@ AI 层经 [mcp.md](mcp.zh-CN.md) 规定的 MCP 服务取得同样的能力。
     │   └── 20261009T031500.jsonl
     ├── refs.toml               交叉引用缓存
     ├── index.toml              实体索引与搜索缓存
-    ├── baseline/               未编辑实体的原版来源快照（保证「原样回显」）
+    ├── baseline/               每次写入所替换的每个版本，按 sha256 存放（见 §8）
+    ├── lock                    一次写入期间持有
     └── notes.toml              从原版 `//` 注释中提取的可读说明（可选）
 ```
 
@@ -147,13 +148,16 @@ python -m core.cli <作用域> <命令> <操作> <路径...> [key=value ...] [--
 python -m core.cli Mod list Vehicles                       # 列出本模组的车辆
 python -m core.cli Firefight show Infantry/"American-Infantry Section 1"
 python -m core.cli Mod set Infantry/"American-Infantry Section 1" field=description.quality value=QUALITY_ELITE --write
+python -m core.cli Mod log                                 # 分段与最新记录
+python -m core.cli Mod undo 1 --write                      # 回退最后一次写入所替换的内容
+python -m core.cli Mod redo 1 --write                      # 重做最后一次撤销所回退的内容
 python -m core.cli Mod refs Weapons/WEAPON_AT_RIFLE_L_39   # 查询引用（谁引用了它）
 python -m core.cli Mod check                               # 完整校验
 python -m core.cli Mod export --out dist/ --format mod-zip
 ```
 
-`set` 把字段作为选项传入（`field=` 与 `value=`），因为任何含 `=` 的 token 都按 `key=value` 选项解析；它需要
-`--write`，并拒绝 `Firefight` 作用域（docs/cli.md §4.1）。事件日志类命令（`log`、`undo`）属于事件日志阶段，尚不存在。
+`set` 把字段作为选项传入（`field=` 与 `value=`），因为任何含 `=` 的 token 都按 `key=value` 选项解析；`set`、`undo`
+与 `redo` 需要 `--write`，并拒绝 `Firefight` 作用域（docs/cli.md §4.1、§4.2）。
 
 `--json` 适用于所有命令，以便 UI 与 AI 调用。
 
@@ -166,8 +170,8 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 | `danger-full-access` | 可写工程目录之外（导出到任意路径等），**每次都需要人工批准** |
 
 * 操作逐条进入批准队列；**拒绝之后绝不重试**；任何失败都按 fail-closed 处理。
-* 命令行用标志表达档位：需要写入的命令必须带 `--write`，指向工程目录之外的写入被拒绝（`set` 把自己限制在 `Mod/` 与
-  `.editor/` 内，docs/cli.md §4.1）。
+* 命令行用标志表达档位：需要写入的命令必须带 `--write`，指向工程目录之外的写入被拒绝（`set`、`undo` 与 `redo`
+  都把自己限制在工程目录内，docs/cli.md §4.1、§4.2）。
 * 所有 AI 动作都写入 `.editor/log/`，记录是谁做的改动。
 * 任何写入型命令都产生事件（不变量 2）。
 
@@ -182,6 +186,16 @@ python -m core.cli Mod export --out dist/ --format mod-zip
   * 分段只追加；封存仅表示「不再写这个文件」，不产生额外标记。
   * 回滚与时间旅行按文件名字顺序读分段，而该顺序即时间顺序。
   * 分段文件没有大小上限；5 分钟规则是**唯一**的切分条件（不是进程启动/停止，也不是自然日）。
+* **一条记录**是每行一个 JSON 对象，字段顺序为：`id`（`<分段名>:<行号>`）、`segment`、`timestamp`（带偏移的本地
+  ISO 8601）、`actor`（`cli` 或 `mcp`）、`result`（`set`、`undo` 或 `redo`）、`target`（undo/redo 所回退记录的
+  `id`，否则 `null`）、`document`（相对于工程的 POSIX 路径）、`entity`、`field`、`before`、`after`、
+  `digest_before`、`digest_after`、`bytes_before`、`bytes_after`（均为 sha256 十六进制）与 `dry_run`（恒为
+  `false`：空跑不是事件）。
+* **字节级回滚**：每次写入都把文档写入前与写入后的内容存到 `.editor/baseline/<sha256>`，按内容寻址、跨改动去重，
+  因此 `undo` 与 `redo` 写的是记录下来的字节，而不是重新序列化的结果。摘要对应的字节丢失、或字节与其摘要不符时命令
+  失败；记录之后文档在磁盘上被改动时拒绝回退，而不是覆盖它。
+* **状态靠重放而非另存**：当前生效的改动即日志中被记录、且未被更晚的 `undo` 回退的那些；一次 `undo` 会追加一条自己
+  的记录并指向它所回退的改动，因此日志始终是唯一事实来源，不会有独立索引与之漂移。新的 `set` 会丢弃可重做的内容。
 
 ## 9. 依赖策略
 

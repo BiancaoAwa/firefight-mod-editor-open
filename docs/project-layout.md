@@ -55,7 +55,8 @@ A project is a **folder named after the mod** and can be exported to, or importe
     │   └── 20261009T031500.jsonl
     ├── refs.toml               cross-reference cache
     ├── index.toml              entity index and search cache
-    ├── baseline/               stock source snapshots of unedited entities (guarantees "echo back unchanged")
+    ├── baseline/               every version a write replaced, under its sha256 (see §8)
+    ├── lock                    held for the duration of one write
     └── notes.toml              human-readable notes extracted from stock `//` comments (optional)
 ```
 
@@ -198,15 +199,17 @@ Examples:
 python -m core.cli Mod list Vehicles                       # list this mod's vehicles
 python -m core.cli Firefight show Infantry/"American-Infantry Section 1"
 python -m core.cli Mod set Infantry/"American-Infantry Section 1" field=description.quality value=QUALITY_ELITE --write
+python -m core.cli Mod log                                 # segments and the newest records
+python -m core.cli Mod undo 1 --write                      # put back what the last write replaced
+python -m core.cli Mod redo 1 --write                      # re-apply what the last undo reverted
 python -m core.cli Mod refs Weapons/WEAPON_AT_RIFLE_L_39   # query references (who refers to it)
 python -m core.cli Mod check                               # full validation
 python -m core.cli Mod export --out dist/ --format mod-zip
 ```
 
 `set` takes its field as an option (`field=` and `value=`), because every token containing `=`
-is parsed as a `key=value` option; it needs `--write` and refuses the `Firefight` scope
-(docs/cli.md §4.1). The event-log commands (`log`, `undo`) belong to the event-log stage and do
-not exist yet.
+is parsed as a `key=value` option; `set`, `undo` and `redo` need `--write` and refuse the
+`Firefight` scope (docs/cli.md §4.1, §4.2).
 
 `--json` applies to every command so that the UI and AI can call it.
 
@@ -220,8 +223,8 @@ not exist yet.
 
 * Operations enter an approval queue one by one; **a refusal is never retried**; every failure is handled fail-closed.
 * The CLI expresses the tier with a flag: a command that writes needs `--write`, and a write
-  outside the project directory is refused (`set` confines itself to `Mod/` and `.editor/`,
-  docs/cli.md §4.1).
+  outside the project directory is refused (`set`, `undo` and `redo` confine themselves to the
+  project directory, docs/cli.md §4.1, §4.2).
 * All AI actions are written to `.editor/log/`, recording who made the change.
 * Any command that writes produces an event (invariant 2).
 
@@ -236,6 +239,21 @@ not exist yet.
   * A segment is appended to only; sealing merely means "no further writes to this file" and produces no extra marker.
   * Rollback and time travel work across segments by reading them in filename order, which equals chronological order.
   * Segment files have no size limit; the 5-minute rule is the **only** split condition (not process start/stop, not calendar day).
+* **A record** is one JSON object per line, in this order: `id` (`<segment stem>:<line number>`),
+  `segment`, `timestamp` (local ISO 8601 with offset), `actor` (`cli` or `mcp`), `result` (`set`,
+  `undo` or `redo`), `target` (the `id` an undo or redo reverts, else `null`), `document`
+  (project-relative POSIX path), `entity`, `field`, `before`, `after`, `digest_before`,
+  `digest_after`, `bytes_before`, `bytes_after` (all sha256, hex) and `dry_run` (always `false`:
+  a dry run is not an event).
+* **Byte-level rollback**: every write stores the document before and after it under
+  `.editor/baseline/<sha256>`, content-addressed and deduplicated across changes, so `undo` and
+  `redo` write recorded bytes rather than a re-serialisation. A digest whose bytes are gone, or
+  whose bytes no longer hash to their name, fails the command; a document that moved on disk
+  after the recorded change refuses the revert instead of overwriting it.
+* **State is replayed, not stored**: the changes currently applied are those the log names and no
+  later `undo` reverts; an `undo` appends one record of its own naming the change it reverted, so
+  the log remains the only source of truth and no separate index can drift from it. A new `set`
+  discards what could be redone.
 
 ## 9. Dependency policy
 
