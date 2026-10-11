@@ -1,6 +1,7 @@
-"""Commands over one scope: read-only queries plus export.
+"""Commands over one scope: read-only queries, ``set`` and ``export``.
 
-Each command returns a JSON payload and its text rendering; ``export`` writes XML under ``to=`` (docs/cli.md).
+Each command returns a JSON payload and its text rendering; ``set`` changes one field
+of one project document and ``export`` writes XML under ``to=`` (docs/cli.md).
 """
 
 import platform
@@ -689,6 +690,85 @@ def cmd_check(ctx: Context) -> Result:
     )
 
 
+def cmd_set(ctx: Context) -> Result:
+    """Change one field of one document; needs --write and never writes the stock scope.
+
+    The change is validated and rendered before anything is touched; ``--dry-run``
+    reports it without writing (docs/cli.md section 4).
+    """
+    from core import edit, enums as enums_core
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; set refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("set needs --write; add --dry-run to inspect the change without writing")
+    field = ctx.options.get("field", "")
+    if not field:
+        raise UsageError("set needs field=<a.b.c>")
+    if "value" not in ctx.options:
+        raise UsageError("set needs value=<text>")
+    path, relative = single_document(ctx)
+    project_root = edit.project_root_of(scope.root)
+    document = load_document(path, relative)
+    try:
+        plan = edit.plan_set(
+            document,
+            field,
+            ctx.options["value"],
+            enums=enums_core.load_enums(project_root),
+            declared=lambda: declared_enum_values(scope),
+        )
+        report = edit.apply_plan(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    report["scope"] = scope.name
+    return Result(report, _set_text(report))
+
+
+def declared_enum_values(scope: Scope) -> dict[str, set[str]]:
+    """Enumeration values the documents of this project already declare.
+
+    The packager validator learns values from the files instead of rejecting
+    everything outside its own tables; an edit accepts the same set.
+    """
+    from core.enums import categories_of, split_value
+
+    found: dict[str, set[str]] = {}
+    for path in entity_files(scope):
+        try:
+            document = load_document(path)
+        except FfError:
+            continue
+        for key_path, entry in flatten(document.table):
+            if not isinstance(entry.value, str):
+                continue
+            for category in categories_of(document.root_tag, key_path):
+                for part in split_value((category,), entry.value):
+                    if part:
+                        found.setdefault(category, set()).add(part)
+    return found
+
+
+def _set_text(report: dict) -> str:
+    """Rows of one set invocation."""
+    rows = [
+        ["path", report["path"]],
+        ["field", report["field"]],
+        ["before", report["before"]],
+        ["after", report["after"]],
+        ["encoding", report["encoding"]],
+        ["newline", report["newline"]],
+        ["bytes", f"{report['bytes_before']} -> {report['bytes_after']}"],
+    ]
+    enum = report.get("enum") or {}
+    if enum.get("category"):
+        detail = f"{enum['category']}: {enum['values']} value(s)" if enum.get("table") else f"{enum['category']}: not checked"
+        rows.append(["enum", detail])
+    state = "written" if report["written"] else "not written (dry run)"
+    return table_of(["item", "value"], rows, f"{report['path']}: {state}")
+
+
 def cmd_export(ctx: Context) -> Result:
     """Render the selected entities as stock XML under the directory in to=."""
     scope = ctx.scope
@@ -772,6 +852,7 @@ COMMANDS = {
     "refs": cmd_refs,
     "deps": cmd_deps,
     "check": cmd_check,
+    "set": cmd_set,
     "export": cmd_export,
     "version": cmd_version,
     "web": cmd_web,

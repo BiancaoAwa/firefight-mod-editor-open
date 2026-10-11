@@ -29,6 +29,7 @@ Commands
   refs   (graph)   outgoing references of the selection
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
+  set              change one field of one document (needs --write)
   export (emit)    render stock XML under to=<directory>
   version          editor, interpreter and resolvable scopes
   web    (serve)   serve the read-only web UI on 127.0.0.1 (blocks until Ctrl-C)
@@ -48,8 +49,12 @@ Options
   token=<text>     web UI access token; links then need ?t=<text>
   pagesize=<n>     web UI rows per page (default 200)
   browser=1        web UI: open the default browser on start
+  --write          set: write the change into the document
+  --dry-run        set: report the change without writing anything
   --json           print the machine payload instead of the text table
 """
+
+BARE_FLAGS = {"--write": "write", "--dry-run": "dry-run"}
 
 
 @dataclass
@@ -73,6 +78,8 @@ def parse_argv(argv: list[str]) -> Invocation:
             json_flag = True
         elif token in ("--help", "-h", "help"):
             help_flag = True
+        elif token in BARE_FLAGS:
+            options[BARE_FLAGS[token]] = "1"
         elif token.startswith("--") and "=" in token:
             name, value = token[2:].split("=", 1)
             options[name] = value
@@ -80,7 +87,7 @@ def parse_argv(argv: list[str]) -> Invocation:
             name, value = token.split("=", 1)
             options[name] = value
         elif token.startswith("-") and token != "-":
-            raise UsageError(f"unknown flag {token!r}; options use key=value, plus --json and --help")
+            raise UsageError(f"unknown flag {token!r}; options use key=value, plus --json, --help, --write and --dry-run")
         else:
             positionals.append(token)
     return Invocation(options, positionals, json_flag, help_flag)

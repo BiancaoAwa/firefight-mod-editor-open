@@ -146,13 +146,14 @@ python -m core.cli <作用域> <命令> <操作> <路径...> [key=value ...] [--
 ```
 python -m core.cli Mod list Vehicles                       # 列出本模组的车辆
 python -m core.cli Firefight show Infantry/"American-Infantry Section 1"
-python -m core.cli Mod set Infantry/"American-Infantry Section 1" description.quality=QUALITY_ELITE
+python -m core.cli Mod set Infantry/"American-Infantry Section 1" field=description.quality value=QUALITY_ELITE --write
 python -m core.cli Mod refs Weapons/WEAPON_AT_RIFLE_L_39   # 查询引用（谁引用了它）
 python -m core.cli Mod check                               # 完整校验
-python -m core.cli Mod log --last 20                       # 最近 20 条事件
-python -m core.cli Mod undo 3                              # 回滚最近 3 条事件
 python -m core.cli Mod export --out dist/ --format mod-zip
 ```
+
+`set` 把字段作为选项传入（`field=` 与 `value=`），因为任何含 `=` 的 token 都按 `key=value` 选项解析；它需要
+`--write`，并拒绝 `Firefight` 作用域（docs/cli.md §4.1）。事件日志类命令（`log`、`undo`）属于事件日志阶段，尚不存在。
 
 `--json` 适用于所有命令，以便 UI 与 AI 调用。
 
@@ -165,6 +166,8 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 | `danger-full-access` | 可写工程目录之外（导出到任意路径等），**每次都需要人工批准** |
 
 * 操作逐条进入批准队列；**拒绝之后绝不重试**；任何失败都按 fail-closed 处理。
+* 命令行用标志表达档位：需要写入的命令必须带 `--write`，指向工程目录之外的写入被拒绝（`set` 把自己限制在 `Mod/` 与
+  `.editor/` 内，docs/cli.md §4.1）。
 * 所有 AI 动作都写入 `.editor/log/`，记录是谁做的改动。
 * 任何写入型命令都产生事件（不变量 2）。
 
