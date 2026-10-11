@@ -2,12 +2,12 @@
 
 # Command line
 
-Status: **read-only**. Every command except `export` prints a result and writes nothing;
-`export` writes stock XML into a directory the caller names, and for a file that came from
-disk it reproduces the source bytes exactly (order, blank lines, indentation, comments and
-newline style — see §9 and toml-mapping §4). `web` serves the same read-only results as
-pages on `127.0.0.1` (docs/web.md). No project storage, no event log, no packaging, no
-editing: none of those exists yet.
+Status: **read-only except two writers**. `set` changes one field of one project document, and
+`export` writes stock XML into a directory the caller names; every other command only prints a
+result. Both writers keep the source around what they touch: `set` guarantees it per field
+(§4.1) and `export` per file (order, blank lines, indentation, comments and newline style — see
+§9 and toml-mapping §4). `web` serves the same read-only results as pages on `127.0.0.1`
+(docs/web.md). No event log, no undo, no packaging: none of those exists yet.
 
 ## 1. Invocation
 
@@ -31,9 +31,10 @@ A scope root is a directory holding `Data/`, `Images/` and `Sounds/`.
 
 A scope root is the directory that holds `Data/`, `Images/` and `Sounds/`; passing the
 `Data` directory itself is accepted and normalized to its parent. For an installed game
-that is the directory containing `Firefight.exe`. Nothing is written
-to a scope: the editor never edits the game directory, and `export` writes only under
-`to=`. The local config `.ff-editor.local.toml` (keys `firefight`, `mod`, `workspace`) is
+that is the directory containing `Firefight.exe`. The `Firefight` scope is never written:
+the editor does not edit the game directory, and `export` writes only under `to=`. A project
+is written only by `set --write`, and only inside the project directory (§4.1). The local
+config `.ff-editor.local.toml` (keys `firefight`, `mod`, `workspace`) is
 read from the nearest ancestor directory and belongs in `.gitignore`.
 
 ## 3. Paths and selectors
@@ -60,18 +61,54 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `refs` | `graph` | outgoing references of the selection, grouped by kind |
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
+| `set` | | change one field of one document; needs `--write` (§4.1) |
 | `export` | `emit` | write the selection as stock XML under `to=<dir>`, source bytes for files read from disk |
 | `web` | `serve` | serve the read-only pages on `127.0.0.1` until Ctrl-C (docs/web.md) |
 | `version` | | editor version, interpreter, resolved scopes |
 
 Options: `root=`, `workspace=`, `to=`, `as=`, `field=`, `type=`, `kind=`, `path=`,
-`limit=` (default 200 rows), `ignore_case=1`, `--json`. Unknown options, unknown scopes
-and missing paths are usage errors. `key=value` options may appear in any order; `--json`
-may appear anywhere.
+`limit=` (default 200 rows), `ignore_case=1`, `--json`. `set` also takes the bare flags
+`--write` (write the change) and `--dry-run` (report it without writing anything, §4.1).
+Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
+appear in any order; `--json` may appear anywhere.
 
 `web` adds four options of its own: `port=` (default 8765), `token=<text>` (required in
 every URL as `?t=<text>` when set), `pagesize=` (default 200 rows per page) and `browser=1`
 (open the default browser instead of only printing the address).
+
+### 4.1 Writing one field
+
+```
+python -m core.cli Mod set <document> field=<a.b.c> value=<text> --write [--dry-run]
+```
+
+* `field=` is a dotted path inside the document, relative to its root element. A repeated
+  element or array needs an index segment, for example `ammo.type.0.flavour`; without it an
+  ambiguous path is refused rather than guessed.
+* The field must be declared by the schema of the document root, and the value must fit it: a
+  boolean accepts `yes`/`no` (written in the document's own spelling), a number is written in
+  the style the field already uses, and a string is written verbatim.
+* An enumerated value comes from the table that ships with the editor
+  (`tools/FirefightModPackager/enums_ext.txt`) or from a document of the same project; a value
+  no table and no document declares is refused, and a field with no table is written without
+  an enum check.
+* Fidelity: a `.txt` document is re-rendered by the same layout-preserving writer `export`
+  uses, and a `.toml` document is rewritten on the value's own source line. Sibling lines,
+  comments, blank lines and the file's newline style survive, and a trailing `//` comment on
+  the edited leaf survives too.
+* Atomic: the new bytes go to a sibling temporary file and `os.replace` moves them over the
+  original, so no half-written document is observable.
+* Locked: the write holds `.editor/lock` for its duration. A lock another writer holds
+  refuses the second writer instead of interleaving, is never removed by a process that did
+  not create it, and a stale lock is reported rather than stolen.
+* Guarded: a document that changed on disk after the change was staged is refused instead of
+  overwritten.
+* Refusals are final — nothing is retried, and the file, the lock and `.editor/` stay as they
+  were. `set` without `--write`, a write aimed at the `Firefight` scope, an unknown field, a
+  value of the wrong type and a held lock all exit with code 2; a value the document encoding
+  cannot hold exits with code 1.
+* `--dry-run` computes and reports the whole result without writing anything, not even
+  `.editor/` itself.
 
 ## 5. Exit codes
 

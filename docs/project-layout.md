@@ -197,13 +197,16 @@ Examples:
 ```
 python -m core.cli Mod list Vehicles                       # list this mod's vehicles
 python -m core.cli Firefight show Infantry/"American-Infantry Section 1"
-python -m core.cli Mod set Infantry/"American-Infantry Section 1" description.quality=QUALITY_ELITE
+python -m core.cli Mod set Infantry/"American-Infantry Section 1" field=description.quality value=QUALITY_ELITE --write
 python -m core.cli Mod refs Weapons/WEAPON_AT_RIFLE_L_39   # query references (who refers to it)
 python -m core.cli Mod check                               # full validation
-python -m core.cli Mod log --last 20                       # the 20 most recent events
-python -m core.cli Mod undo 3                              # roll back the 3 most recent events
 python -m core.cli Mod export --out dist/ --format mod-zip
 ```
+
+`set` takes its field as an option (`field=` and `value=`), because every token containing `=`
+is parsed as a `key=value` option; it needs `--write` and refuses the `Firefight` scope
+(docs/cli.md §4.1). The event-log commands (`log`, `undo`) belong to the event-log stage and do
+not exist yet.
 
 `--json` applies to every command so that the UI and AI can call it.
 
@@ -216,6 +219,9 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 | `danger-full-access` | May write outside the project directory (exporting to an arbitrary path and so on), with **human approval required every time** |
 
 * Operations enter an approval queue one by one; **a refusal is never retried**; every failure is handled fail-closed.
+* The CLI expresses the tier with a flag: a command that writes needs `--write`, and a write
+  outside the project directory is refused (`set` confines itself to `Mod/` and `.editor/`,
+  docs/cli.md §4.1).
 * All AI actions are written to `.editor/log/`, recording who made the change.
 * Any command that writes produces an event (invariant 2).
 
