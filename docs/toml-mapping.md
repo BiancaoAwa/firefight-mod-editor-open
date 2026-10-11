@@ -3,7 +3,7 @@
 # XML ↔ TOML mapping specification (draft v0)
 
 > Status: merged into `main`, with the M1 refinements noted in [m1-design.md](m1-design.md). This document defines the bidirectional mapping that M1 implements.
-> The underlying facts come from [m0-baseline.md](m0-baseline.md) and are all measured.
+> The underlying facts are measured on the installed game data.
 
 ## 1. General principles
 
@@ -11,7 +11,7 @@
 2. **Acceptance criteria** (agreed): `XML → TOML → XML` must be **semantically equivalent** to stock, not byte-identical; `TOML → XML → TOML` must be lossless at field level.
 3. **No third-party dependencies**: following the project owner's instruction to write a TOML implementation specialised for this editor, the code is written in-house (see §6) with no `tomlkit` or `tomli`.
 4. **Fidelity first**: an unedited entity must be exportable exactly as it was. To achieve this, the project stores a **stock source snapshot** per entity (see [project-layout.md](project-layout.md)) and echoes the snapshot back when an unedited entity is exported.
-5. **Conservative export, tolerant import** (decision D6): the export side follows stock as closely as possible, while the import side may be more robust. Details in §4 and §5.
+5. **Conservative export, tolerant import**: the export side follows stock as closely as possible, while the import side may be more robust. Details in §4 and §5.
 
 ## 2. Element → TOML mapping rules
 
@@ -65,7 +65,7 @@ The table above describes what the syntax would allow. **The schema overrides it
 
 Statistical evidence: within one parent element the **same child-element set occurs in several orders** (`<vehicle>` shows 28 sets over 109 orderings), which indicates that sibling order carries no semantics. The project owner has verified this on a running installation: exchanging the order of sibling blocks under the same parent still loads correctly.
 
-Conventions (decision D6: conservative export, tolerant import):
+Conventions (conservative export, tolerant import):
 
 * **Between repeated blocks of the same name** (`[[man]]`, `[[turret]]`, `[[ammo]]` …): order is **strictly preserved**, and array order is the original order. This is a zero-cost safe choice.
 * **Between siblings of different names**: export renders in **stock order** and never rearranges on its own. An unedited entity goes through snapshot echo and therefore keeps its original order naturally.
@@ -93,10 +93,10 @@ Consequence for editing: a value change keeps the whole file's layout; a structu
 | `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); optionally collected into `.editor/notes.toml` on first import for human inspection |
 | Bare `&` (16 stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
 | Numeric tags `<1>` in `mod.txt` | See §2.1; `mod_setting.toml` is implemented separately |
-| Line endings | Normalised on import; **export keeps the newline style of the source file** (decision D3, revised 2026-10-11). Stock is CRLF in 1824 of 1840 files and LF in the other 16, and all 1840 now come back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
+| Line endings | Normalised on import; **export keeps the newline style of the source file** (revised 2026-10-11). Stock is CRLF in 1824 of 1840 files and LF in the other 16, and all 1840 now come back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
 | Indentation | Export keeps the source indentation (tabs, depth equal to element nesting depth); an element without captured layout falls back to tabs at its nesting depth |
 | Blank lines | Authored grouping, captured per element as part of its `prefix` (§4.1) and reproduced as-is |
-| `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO, see [project-layout.md](project-layout.md) §11 D2) |
+| `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO in [project-layout.md](project-layout.md) §4) |
 
 ## 6. Scope of the in-house TOML implementation (`core/toml`)
 
@@ -118,13 +118,13 @@ Following the "specialised for this editor" requirement, only the subset this ed
 
 Rationale: none of these has a counterpart in the stock data structures, and raising an error is safer than the silent corruption that half-support would cause.
 
-The exclusions are measured, not assumed: no stock file repeats a leaf inside one parent instance ([m1-design.md](m1-design.md) §2.5), so a scalar array is never needed to represent stock data. `mod.txt` is the one file that would need it, and its schema is deferred to M5 for exactly this reason ([m1-design.md](m1-design.md) §2.7).
+The exclusions are measured, not assumed: no stock file repeats a leaf inside one parent instance ([m1-design.md](m1-design.md) §2.5), so a scalar array is never needed to represent stock data. `mod.txt` is the one file that would need it, and its schema is deferred to project-file support for exactly this reason ([m1-design.md](m1-design.md) §2.7).
 
 ## 7. Mapping examples
 
 ### 7.1 Complete `<aircraft>` example
 
-Source (`Aircraft/German-Junkers Ju 87 Stuka G.txt`, see [m0-baseline.md](m0-baseline.md) §3.1):
+Source (`Aircraft/German-Junkers Ju 87 Stuka G.txt`):
 
 ```toml
 # Mod/Data/Aircraft/German-Junkers Ju 87 Stuka G.toml
@@ -280,7 +280,7 @@ The source excerpt also establishes two facts:
 1. **XML → TOML → XML**: run over **all 1840 files** and produce XML that is **semantically equivalent** to stock. The comparison is defined as: parse both sides permissively into element trees, compare **siblings of different names as an unordered multiset** and **repeated blocks of the same name as an ordered sequence**; compare tag names, nesting and leaf text exactly, with a bare `&` never equal to `&amp;`. The count of files whose rendered order happens to equal the source order is reported as information, not as a gate. Rationale for the refinement in [m1-design.md](m1-design.md) §3.6. Since 2026-10-11 that count is 1840 of 1840 and a stronger gate is in place: see item 6.
 2. **TOML → XML → TOML**: lossless at field level, including fixed-point decimals such as `0.12`, `yes/no` values and mixed-case keys.
 3. The round trip must **cover the 16 files containing a bare `&`, the 59 aircraft and the single `recoilless_rifle`** (boundary samples).
-4. Encoding: every exported file must encode in the encoding it was read with — UTF-8 strict first, cp1252 fallback, ASCII reported as cp1252 (0 failures; §7.1 of [m1-report.md](m1-report.md)). Stock data is not uniformly cp1252: 13 files store `×` as UTF-8. cp1252 encodability of the export is recorded as information, not as a gate.
+4. Encoding: every exported file must encode in the encoding it was read with — UTF-8 strict first, cp1252 fallback, ASCII reported as cp1252 (0 failures). Stock data is not uniformly cp1252: 13 files store `×` as UTF-8. cp1252 encodability of the export is recorded as information, not as a gate.
 5. The in-house TOML implementation **must raise an error rather than degrade silently** on unsupported syntax (with unit tests).
 6. **Byte fidelity (added 2026-10-11)**: `export` reproduces a file read from disk **byte for byte**, including sibling order, blank lines, indentation, `//` comments and newline style, because the reader captures the source layout (§4.1). Gate: `python tools/export_fidelity.py --data "<Firefight>/Data"` exits non-zero unless every file is identical (1840 of 1840 on the stock corpus), and `tests/test_roundtrip_bytes.py` pins the individual layout cases (CRLF, LF, missing trailing newline, trailing blank line, comment before an element, inline branch, multiline leaf, self-closing element, declaration, deep indentation, cp1252 text, stray text). The semantic criterion of item 1 stays the floor and must keep holding for documents rendered without source layout (a `.toml` project file).
 

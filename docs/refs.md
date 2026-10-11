@@ -1,6 +1,6 @@
 > Language: **English** | [中文](refs.zh-CN.md)
 
-# Reference graph (M2, first slice)
+# Reference graph
 
 `core/refs.py` answers three questions about a scope (stock data or one mod project):
 
@@ -9,7 +9,7 @@
 3. whether a target exists under a scope root (`TargetIndex`, `unresolved`, `summary`).
 
 Collection is pure: an `XmlElement` and its source path go in, references come out. Nothing
-is written and no text encoding is involved, so this slice runs on the M1 model as is.
+is written and no text encoding is involved, so this part runs on the data model as is.
 
 ## 1. Rule table
 
@@ -60,7 +60,7 @@ differs.
 
 ## 3. Measured coverage
 
-Local run over the stock `Data/` tree of Firefight 13.2.0.0 (the same 1792 files that M1
+Local run over the stock `Data/` tree of Firefight 13.2.0.0 (the same 1792 files the data core
 models; `equipment_*.txt` and `Surnames/` excluded):
 
 | kind | references | distinct targets | unresolved |
@@ -114,8 +114,8 @@ summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
 - No cross-scope lookup (a mod project reference pointing at stock data), no workspace
   registry: both arrive with the CLI scopes.
 - No severity model and no report rendering: `unresolved` returns references; deciding
-  whether a dangling reference is an error, a warning or a deliberate override is M2's
-  second slice, together with the checker.
+  whether a dangling reference is an error, a warning or a deliberate override belongs with
+  the checker.
 - Comparisons are exact and case-folded only where §2 says so; no glob or wildcard targets.
 
 Tests: `tests/test_refs.py` (21 cases); the full suite is `python -m unittest discover -s tests

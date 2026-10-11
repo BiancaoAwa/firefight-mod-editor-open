@@ -1,8 +1,0 @@
-python.exe : name what to look for: value=<token>
-At line:7 char:3
-+   & $py $cli @argv 1> $so 2> $se
-+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (name what to look for: value=<token>:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-run 'ff help' for usage

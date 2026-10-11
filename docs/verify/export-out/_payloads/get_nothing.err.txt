@@ -1,8 +1,0 @@
-python.exe : nothing to read; pass a document path or field=<a.b.c>
-At line:7 char:3
-+   & $py $cli @argv 1> $so 2> $se
-+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (nothing to read...r field=<a.b.c>:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-run 'ff help' for usage

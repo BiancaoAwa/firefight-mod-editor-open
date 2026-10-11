@@ -4,8 +4,8 @@
 
 面向 Sean O'Connor 的 *Firefight* 的第三方开源模组编辑器：覆盖面比游戏自带工具更广，往返保真更严格。
 
-当前状态：数据内核、XML/TOML 往返、引用图与命令行（M0–M3），以及本地 Web 界面的只读浏览部分（M7）。
-编辑功能属于 M4，**尚未实现**：除 `export` 外的所有命令只输出结果、不写文件。`export` 能按字节复现原版文件
+当前状态：数据内核、XML/TOML 往返、引用图、命令行，以及本地 Web 界面的只读浏览部分。
+编辑功能**尚未实现**：除 `export` 外的所有命令只输出结果、不写文件。`export` 能按字节复现原版文件
 （含排版），在已安装的游戏数据上是 1840/1840（见 `tools/export_fidelity.py`）。
 
 ## 快速开始
@@ -30,8 +30,8 @@ python -m core.cli Firefight web  "root=<游戏目录>"   # 只读页面，127.0
 
 ```
 core/     代码：core/cli（命令行）、core/web（Web 界面）、schema、解析器、模型
-docs/     规范与报告
-tests/    测试套件（231 条，不需要游戏安装、不联网）
+docs/     规范：编辑器做什么、如何构建
+tests/    测试套件（不需要游戏安装、不联网）
 tools/    辅助工具：往返与保真度脚本、FirefightModPackager、
           launcher/（发行版 ff-web.cmd / ff-ai.cmd 背后的实现）
 ```
@@ -40,16 +40,16 @@ tools/    辅助工具：往返与保真度脚本、FirefightModPackager、
 `ff.py`。
 
 发行版随附的**编辑器文件夹**——启动器、`skills/`、`docs/`、`core/`、`launcher/`、内置的 `Firefight/`
-数据副本与 `Mods/`——见 [project-layout.md](docs/project-layout.zh-CN.md) §12；上面的仓库是源码树，形状有意不同。
+数据副本与 `Mods/`——见 [project-layout.md](docs/project-layout.zh-CN.md) §10；上面的仓库是源码树，形状有意不同。
 
 ## 测试
 
 ```
-python -m unittest discover -s tests -t .      # 231 条，不联网、不需要游戏安装
+python -m unittest discover -s tests -t .      # 不联网、不需要游戏安装
 ```
 
 需要真实语料的测试用例是针对原版安装与已发布的 WW3 工程手工运行的，实测数字见
-[m1-report.md](docs/m1-report.md) 与 [cli.md](docs/cli.zh-CN.md) §7。两个脚本需要游戏目录：
+[cli.md](docs/cli.zh-CN.md) §7。两个脚本需要游戏目录：
 
 ```
 python tools/m1_roundtrip.py  --data "<游戏>/Data"          # XML -> TOML -> XML，语义等价
@@ -62,14 +62,11 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 |---|---|
 | [cli.md](docs/cli.zh-CN.md) | 命令行：作用域、选择器、命令、选项、退出码、实测结果 |
 | [web.md](docs/web.zh-CN.md) | 本地只读 Web 界面：路由、选项、设计规则、限制 |
-| [project-layout.md](docs/project-layout.zh-CN.md) | 里程碑、模块布局、权限、事件日志规划 |
-| [plan.md](docs/plan.zh-CN.md) | 排好顺序的更新计划：MVP 定义、S1–S9 阶段、验收用例 B1–B20 |
+| [project-layout.md](docs/project-layout.zh-CN.md) | 工程布局、命令行规范、权限、事件日志、依赖策略 |
 | [mcp.md](docs/mcp.zh-CN.md) | AI MCP 交付面：协议修订、工具、资源、权限、错误映射 |
 | [refs.md](docs/refs.zh-CN.md) | 引用规则与覆盖情况 |
 | [toml-mapping.md](docs/toml-mapping.zh-CN.md) | 原版 XML 如何映射到 TOML 编辑模型 |
 | [m1-design.md](docs/m1-design.md) | 数据内核设计 |
-| [m1-report.md](docs/m1-report.md) | 真实数据上的往返实测 |
-| [m0-baseline.md](docs/m0-baseline.md) | 原版数据的基线清单 |
 
 ## 制作模组
 

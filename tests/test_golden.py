@@ -24,7 +24,8 @@ def read_fixture(folder: Path, name: str) -> str:
 
 class GoldenTest(unittest.TestCase):
     def folders(self) -> list[Path]:
-        return sorted(path for path in FIXTURES.iterdir() if path.is_dir())
+        """Golden fixture folders: each holds a ``stock.txt`` and its ``mapped.toml``."""
+        return sorted(path for path in FIXTURES.iterdir() if (path / "stock.txt").is_file())
 
     def test_fixtures_exist(self):
         self.assertEqual([path.name for path in self.folders()], ["aircraft", "squad", "weapon"])

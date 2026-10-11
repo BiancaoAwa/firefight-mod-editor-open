@@ -2,7 +2,7 @@
 
 # Project layout, data-file responsibilities and CLI specification (draft v0)
 
-> Status: merged into `main`. Section 11 records the items the project owner has decided; entries marked "default" are choices adopted provisionally while the project owner has not yet ruled on them, and may be overruled.
+> Status: merged into `main`. Entries marked "default" are choices adopted provisionally while the project owner has not yet ruled on them, and may be overruled. Rules the project owner has settled are stated in the section they belong to.
 
 ## 1. Layering and invariants
 
@@ -20,7 +20,9 @@ Three invariants:
 
 1. **Anything the UI can do, the CLI must be able to do** (the UI is only a view onto the CLI and API).
 2. **Every write must produce an event** (reversible and auditable).
-3. **Text I/O has a single exit point**: cp1252 / no BOM / tab indentation / **line endings always CRLF** (see [m0-baseline.md](m0-baseline.md); CRLF is a project-owner decision, see §11 D3).
+3. **Text I/O has a single exit point**: cp1252 / no BOM / tab indentation; a document read from disk keeps its source bytes, and text without a source is written CRLF with tabs (see [toml-mapping.md](toml-mapping.md) §4.1 and §5).
+
+The AI layer reaches the same capabilities through the MCP server specified in [mcp.md](mcp.md).
 
 ## 2. Project directory structure
 
@@ -80,7 +82,7 @@ license = "CC BY-SA 4.0"
 
 ## 4. `mod_setting.toml` (= the stock `mod.txt`)
 
-The measured `mod.txt` structure (10170 bytes / 428 lines / 12 nations) is described in [m0-baseline.md](m0-baseline.md) §2.4. A mapping example:
+The structure of `mod.txt` is measured on the installed 13.2.0.0 sample: 10170 bytes, 428 lines, 12 nations. A mapping example:
 
 ```toml
 [mod_setting]
@@ -150,7 +152,8 @@ Key points
 
 * `<1>`..`<7>` become quoted TOML keys, because a TOML bare key may not start with a digit. `mod.txt` is not well-formed XML, so its parser is implemented separately.
 * A repeated `<equipment>` is merged into one array, rendered back as one `<equipment>` per array element on export.
-* `<units>` / `<filename>` inside `<nationality>` (one occurrence each in WW3): **preserved and passed through unchanged**, with the original value stored in TOML. The project owner classifies them as **a feature of the stock editor itself**, defers them as a TODO and does not interpret their semantics in v1 (see §11 D2).
+* `<units>` / `<filename>` inside `<nationality>` (one occurrence each in WW3): **preserved and passed through unchanged**, with the original value stored in TOML. The project owner classifies them as **a feature of the stock editor itself** and does not interpret their semantics in v1.
+  * TODO: reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` (in WW3 they are `NATIONALITY_TAIWANESE` and `Taiwanese-`, apparently a unit-file prefix filter for that nationality) and expose them as editable fields in the UI.
 
 ## 5. Packaged output layout
 
@@ -167,7 +170,7 @@ Key points
 
 * Packaging must compare against the stock baseline of the **target game version**: a file that already exists in the target version may be reused and need not be packed (the project owner confirmed this is what "anything stock does not report an error" means).
 * **v1 does not do APK packaging** (confirmed by the project owner).
-* The default prefix is **`Mod/`** with README/LICENSE at the zip root (decision D1). It can be changed in `mod.toml`; **the import side must accept any prefix** (`.Mod/`, `<mod name>/` and a flat, prefixless layout must all be recognised), using the same test as the existing tool's `find_mod_root()`: the project root is the shallowest directory containing `mod.txt`.
+* The default prefix is **`Mod/`** with README/LICENSE at the zip root. It can be changed in `mod.toml`; **the import side must accept any prefix** (`.Mod/`, `<mod name>/` and a flat, prefixless layout must all be recognised), using the same test as the existing tool's `find_mod_root()`: the project root is the shallowest directory containing `mod.txt`.
 * The PC-side root name has been verified by the project owner on a running installation: relative to the directory holding the game executable (`Firefight/`), it is **`Mod/`**, matching `assets/Mod/` on Android, so the exported root name `Mod/` is supported on both sides.
 * The WW3 distribution uses `.Mod/` with its documents inside `.Mod/`; that is a **project folder naming habit**, not the standard install layout.
 
@@ -222,64 +225,26 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 * Dual track: a human-facing change description plus a machine-facing structured event. [default]
 * Form: event sourcing with periodic snapshots (`.editor/baseline/` provides unchanged echo-back of unedited entities).
 * Deliberate exception: the log uses **JSONL** (append-only, O(1)); TOML cannot be appended to, so logging in TOML would be O(N²).
-* **Segmentation (decision D4)**: one file per segment, with the rule "**seal the current segment after 5 minutes without a new event, and start a new segment on the next event**".
+* **Segmentation**: one file per segment, with the rule "**seal the current segment after 5 minutes without a new event, and start a new segment on the next event**".
   * Path: `.editor/log/<segment start local time>.jsonl`, for example `20261009T012000.jsonl`.
   * A segment is appended to only; sealing merely means "no further writes to this file" and produces no extra marker.
   * Rollback and time travel work across segments by reading them in filename order, which equals chronological order.
   * Segment files have no size limit; the 5-minute rule is the **only** split condition (not process start/stop, not calendar day).
 
-## 9. Milestones (aligned with the conclusions in [m0-baseline.md](m0-baseline.md))
-
-| Milestone | Content | Acceptance |
-|---|---|---|
-| **M0** (this one) | Baseline survey, schema reverse-engineering, mapping specification | This document plus [m0-baseline.md](m0-baseline.md) and [toml-mapping.md](toml-mapping.md), with reproducible data |
-| M1 | Tolerant XML ↔ in-house TOML, both directions | All of [toml-mapping.md](toml-mapping.md) §8 passes |
-| M2 | Reference graph and bidirectional validation | Bidirectional references inside a mod are fully checked; dangling references are locatable |
-| M3 | CLI | Every command in §6 works and `--json` is stable |
-| M4 | Event log and rollback | Any change is reversible and auditable |
-| M5 | Project files and import/export | Folder ↔ zip/7z round trip is lossless |
-| M6 | Packaging and multi-mod | The output loads in the game (**final verification by the project owner**); parallel mods plus cross-mod references |
-| M7 | Local web UI | Capability-equivalent to the CLI |
-| M8 | Distribution | Install package and usage documentation |
-
-The order of work, the smallest complete capability and the acceptance cases are fixed in `docs/plan.md`;
-the table above remains the definition of the milestones themselves. The AI MCP surface is specified in
-`docs/mcp.md`.
-
-## 10. Dependency policy
+## 9. Dependency policy
 
 * **Standard library first**, fully local and usable offline (the project owner asked for "as local as possible").
 * The UI uses web technology (confirmed by the project owner); any front-end library must be listed and approved before being introduced.
 * No TOML library such as tomlkit or tomli (the project owner confirmed an in-house implementation).
 * Target runtime: Windows; a Python core with a built-in web UI.
 
-## 11. Decision record
-
-| Id | Date | Question | Decision | Status |
-|---|---|---|---|---|
-| D1 | 2026-10-09 | Root layout of the install-package zip | **`Mod/` prefix with README/LICENSE at the zip root**; import accepts any prefix | Settled |
-| D2 | 2026-10-09 | `<nationality><units>`/`<filename>` in WW3 `mod.txt` | A **feature of the stock editor itself**; **tracked as a TODO**, passed through unchanged and uninterpreted in v1 | Settled, work outstanding |
-| D3 | 2026-10-09 | Exported line endings | **Always CRLF** | Settled; its known cost (the 16 bare-LF files are not byte-identical to stock after export) is explicitly accepted by the project owner |
-| D4 | 2026-10-09 | Log segmentation | **One file per segment**, sealed and replaced after 5 minutes without a new event | Settled |
-| D5 | 2026-10-09 | Location of caches and editor data | **`.editor/`** under the project root, travelling with the project and excluded from the install package | Settled |
-| D6 | 2026-10-09 | Strictness of export versus import | **Conservative export, tolerant import**: the export side follows stock as closely as possible (sibling order follows stock), while the import side is more robust (tolerant parsing, accepting any sibling order and illegal characters) | Settled |
-
-**Known cost of D3**: 16 of the 1840 stock files use **bare LF** (measured), so after normalisation to CRLF those 16 files differ from stock in line endings on first export. The difference does not affect the agreed acceptance criterion (XML semantic equivalence, not byte identity), but the exported artifact is not byte-identical to stock for those 16 files. The project owner has explicitly accepted this trade-off.
-
-**What D6 means in detail:**
-
-* Export: sibling blocks are rendered in stock order; repeated blocks within a group (`[[man]]`, `[[turret]]`, `[[ammo]]` …) keep their order strictly; nothing is rearranged on the editor's own initiative.
-* Import: no failure is caused by sibling order, a bare `&`, a numeric tag name or mixed case; shape decisions are fixed by the schema and never depend on a single file's data.
-
-**TODO from D2**: reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` (in WW3 they are `NATIONALITY_TAIWANESE` and `Taiwanese-`, apparently a unit-file prefix filter for that nationality) and expose them as editable fields in the UI.
-
-## 12. Repository layout and the editor folder
+## 10. Repository layout and the editor folder
 
 Two layouts exist and they are deliberately different: the **repository** is the source tree
 on GitHub, the **editor folder** is what an installation looks like — the same shape whether
 the editor ships as loose code or as a packed executable.
 
-### 12.1 Repository (GitHub: `core/ docs/ tests/ tools/`)
+### 10.1 Repository (GitHub: `core/ docs/ tests/ tools/`)
 
 ```
 <repo>/
@@ -287,8 +252,8 @@ the editor ships as loose code or as a packed executable.
 │   ├── cli/       command line: scope resolution, commands, main
 │   ├── web/       the local read-only web UI: server
 │   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph
-├── docs/          specification and reports: English file plus *.zh-CN.md mirror (this file lives here)
-├── tests/         the suite (231 tests, no game install, no network)
+├── docs/          specification: what the editor does and how it is built, English plus *.zh-CN.md mirror (this file lives here)
+├── tests/         the suite (no game install, no network)
 ├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
 │                  FirefightModPackager/, and launcher/ (the implementation behind
 │                  ff-web.cmd / ff-ai.cmd)
@@ -303,7 +268,7 @@ can be found without an installed game.
 The CLI entry is the module `core.cli`, started from the repository root; there is no
 `ff.py` at the top level, so `python -m core.cli <scope> <command> ...` is the only form.
 
-### 12.2 Editor folder (a release: loose code or packed)
+### 10.2 Editor folder (a release: loose code or packed)
 
 ```
 <editor>/
@@ -330,10 +295,11 @@ Rules that follow from this layout:
 * `Mods/` is the workspace root for `<name>` scopes and `mod.toml` marks a mod project.
 * A mod project is a **partial overlay**: it may only replace files the game already reads,
   so `Mod/Data`, `Mod/Images` and `Mod/Sounds` mirror the game folders exactly.
-* `.editor/` travels with a project, is excluded from any package (D5), and holds the
+* `.editor/` travels with a project, is excluded from any package, and holds the
   caches (`refs.toml`, `index.toml`), the event log and the baseline snapshots.
-* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`; its renderer is M5, so a
-  fixture project may carry a deliberately partial file, marked as such inside the file.
+* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`; its renderer is not
+  implemented yet, so a fixture project may carry a deliberately partial file, marked as
+  such inside the file.
 * Both launchers run the CLI as `python -m core.cli`, which resolves the `core` package from
   the current directory, so the entry works in both layouts while the code sits one level
   down in `core/`.
