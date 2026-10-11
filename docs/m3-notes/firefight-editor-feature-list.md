@@ -134,8 +134,19 @@ Deliberately not built, with the reasons in `docs\web.md`: a collapsible entity 
 
 ### 2.5 Decisions still open
 
-1. What to build next: **(a)** the M4 editing engine (`set` + event log + `undo`, then into the web UI); **(b)** refine browsing (field source lines, click-to-line, collapsible tree); **(c)** something else, for example a minimal `mod.toml` fixture so the `Mod` scope is clickable everywhere.
+1. **Resolved 2026-10-11**: what to build next is option **(a)**, the M4 editing-engine slice, now fixed as
+   M4a with its order, stages and acceptance cases in `docs/plan.md`. The original options are kept as a
+   record: **(a)** the M4 editing engine (`set` + event log + `undo`, then into the web UI); **(b)** refine
+   browsing (field source lines, click-to-line, collapsible tree); **(c)** something else, for example a
+   minimal `mod.toml` fixture so the `Mod` scope is clickable everywhere.
 2. Whether the release `dist\` shape and the workspace README should be published as a tagged release.
+   (Still open.)
+
+### 2.6 AI MCP
+
+The third delivery surface beside the CLI and the DSH plugin: an MCP server inside this repository,
+`python -m core.mcp`, stdio, calling the commands in-process. Its boundary against the plugin, protocol
+revisions, tool table, permissions, error mapping and non-goals are in `docs/mcp.md`.
 
 ---
 

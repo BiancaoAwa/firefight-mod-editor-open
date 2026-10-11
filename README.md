@@ -72,6 +72,8 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 | [cli.md](docs/cli.md) | command line: scopes, selectors, commands, options, exit codes, measured results |
 | [web.md](docs/web.md) | the local read-only web UI: routes, options, design rules, limits |
 | [project-layout.md](docs/project-layout.md) | milestones, module layout, permissions, event log plan |
+| [plan.md](docs/plan.md) | the ordered update plan: MVP definition, stages S1–S9, acceptance cases B1–B20 |
+| [mcp.md](docs/mcp.md) | the AI MCP surface: protocol revisions, tools, resources, permissions, error mapping |
 | [refs.md](docs/refs.md) | reference rules and coverage |
 | [toml-mapping.md](docs/toml-mapping.md) | how stock XML maps onto the TOML editing model |
 | [m1-design.md](docs/m1-design.md) | data core design |

@@ -192,6 +192,8 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 | M7 | 本地 Web 界面 | 能力与命令行等价 |
 | M8 | 发行 | 安装包与使用文档 |
 
+工作顺序、最小完整能力与验收用例在 `docs/plan.md` 中确定；上表仍是各里程碑本身的定义。AI MCP 交付面见 `docs/mcp.md`。
+
 ## 10. 依赖策略
 
 * **标准库优先**，完全本地、可离线使用（项目方要求「尽量本地」）。
