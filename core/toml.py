@@ -306,9 +306,17 @@ def _write_body(lines: list[str], table: TomlTable, path: list[str]) -> None:
             lines.append(f"{_key(name)} = {entry.raw}")
     for name, entry in table.entries:
         if isinstance(entry, TomlTable):
+            _separate(lines)
             lines.append(_header(path + [name], False))
             _write_body(lines, entry, path + [name])
         elif isinstance(entry, TomlArrayEntry):
             for item in entry.items:
+                _separate(lines)
                 lines.append(_header(path + [name], True))
                 _write_body(lines, item, path + [name])
+
+
+def _separate(lines: list[str]) -> None:
+    """One blank line before a table header, so a rendered document stays readable."""
+    if lines and lines[-1] != "":
+        lines.append("")

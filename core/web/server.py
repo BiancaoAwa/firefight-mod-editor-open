@@ -1,16 +1,20 @@
 """Local web UI: one page per command, rendered on the server from the CLI payloads.
 
-Single-threaded, GET only, no JavaScript and no writes; the route table is in ``docs/web.md``.
+GET only and no JavaScript; a page may run a writing command, and the command's own gate
+(`--write`, project confinement, the stock-scope rule) is what decides (docs/web.md).
 """
 
 import json
+import os
 import shlex
 import socket
 import sys
 import threading
 import time
 import traceback
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from core.errors import FfError
@@ -18,6 +22,9 @@ from core.errors import FfError
 from core.cli.commands import ALIASES, DEFAULT_LIMIT, VERSION, Context, command_names, run_command
 from core.cli.main import parse_argv
 from core.cli.scope import UsageError, resolve_all, resolve_scope, split_spec
+# the two resolvers that recognise a project and an editor folder; using them keeps the
+# rules in one place (docs/project-layout.md section 10.1)
+from core.cli.scope import _editor_root, _project_root
 import re
 from html import escape
 from urllib.parse import parse_qsl, urlencode
@@ -58,7 +65,7 @@ select { font-family: inherit; font-size: 13px; }
 .crumbs { margin-bottom: 6px; color: #444; }
 """.strip()
 
-FOOTER = "服务端渲染 · 无 JavaScript · 数据与 <code>ff --json</code> 完全一致 · 本界面只读"
+FOOTER = "服务端渲染 · 无 JavaScript · 数据与 <code>ff --json</code> 完全一致 · 写入由命令自身的门决定"
 
 
 def esc(value) -> str:
@@ -261,18 +268,22 @@ DEFAULT_PORT = 8765
 RESERVED = ("scope", "t", "command", "selector", "page")
 TEXT_VIEWS = ("raw", "toml", "xml")
 
-# Commands the UI refuses: one writes files outside the scope, the other would try to bind a
-# second port. Everything else is read-only by construction (docs/cli.md).
-WRITING_COMMANDS = ("export", "web")
+# Commands the UI refuses: `web` would try to bind a second port inside a request. Everything
+# else, writing commands included, may be run from a page; the command's own gate decides
+# whether the write happens (docs/cli.md section 4).
+REFUSED_COMMANDS = ("web",)
+
+# The permission flag of the writing commands: a page that means to write passes it on.
+WRITE_OPTION = "write"
 
 
-def read_only_command(name: str) -> str:
-    """Canonical name of a command the UI may run, or a UsageError."""
+def web_command(name: str) -> str:
+    """Canonical name of a command a page may run, or a UsageError."""
     canonical = ALIASES.get(name, name)
     if canonical not in command_names():
         raise UsageError(f"没有这个命令：{name}；可用：{', '.join(command_names())}")
-    if canonical in WRITING_COMMANDS:
-        raise UsageError(f"{canonical} 在浏览器里不可用（它会写文件）；请在命令行里运行")
+    if canonical in REFUSED_COMMANDS:
+        raise UsageError(f"{canonical} 不能在页面里运行（它会在一次请求里再起一个服务）；请在命令行里运行")
     return canonical
 
 
@@ -348,7 +359,11 @@ class App:
         return Url(scope=scope_name or self.default_scope, token=self.token)
 
     def call(self, command: str, scope, selector: str = "", **options):
-        """Run one CLI command in-process and return its Result."""
+        """Run one CLI command in-process and return its Result.
+
+        A page that means to write passes ``write=1``; the command's own gate is what decides
+        whether the write happens, so a refusal reads the same as it does on the command line.
+        """
         clean = {key: str(value) for key, value in options.items() if value not in (None, "")}
         selector = safe_selector(selector)
         spec = scope.name if not selector else f"{scope.name}/{selector}"
@@ -441,7 +456,7 @@ class Handler(BaseHTTPRequestHandler):
         page = self._error_page(
             "只支持 GET",
             f"{self.command} 不被支持",
-            "这个界面是只读的：用上面的导航栏浏览，或者退回命令行。",
+            "这个界面只用 GET：用上面的导航栏浏览，或者在命令行页里运行命令。",
         )
         self.respond(501, page)
 
@@ -899,16 +914,17 @@ class Handler(BaseHTTPRequestHandler):
         """The raw payload of one command, for cross-checking against the CLI."""
         scope = self.app.scope(query.get("scope", ""))
         command = query.get("command", "")
-        read_only_command(command)
+        web_command(command)
         result = self.app.call_from_query(command, scope, query)
         return json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
     def page_cmd(self, query: dict[str, str]) -> str:
-        """A command line: run one read-only CLI command and print what the CLI prints.
+        """A command line: run one CLI command and print exactly what the CLI prints.
 
         The line is what you would type after `python -m core.cli`, optionally starting with a scope
-        name (`Mod stats`). Quoting a path with a space works; `export` and `web` are refused
-        because the page must stay read-only.
+        name (`Mod stats`). Quoting a path with a space works; writing commands run here too and the
+        command's own gate decides whether they write; only `web` is refused, because it would bind a
+        second port inside a request.
         """
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
@@ -916,7 +932,7 @@ class Handler(BaseHTTPRequestHandler):
         as_json = query.get("json", "") in ("1", "yes", "true")
         body = h2("命令行")
         body += note("输入 python -m core.cli 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。")
-        body += note("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。这里是只读界面：export 与 web 会被拒绝。")
+        body += note("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。写入类命令会照常运行，是否落盘由命令自身的门决定；web 会被拒绝。")
         body += form(url("cmd"), [text_field("line", "命令", line, 80), checkbox("json", "JSON 输出", as_json)], "运行")
         examples = ["list weapon", "stats", "check", "deps value=WEAPON_PISTOL_P38", 'show "Data/Infantry/American-Rifle Squad.txt" as=toml']
         body += note_html("示例：" + " · ".join(link(url("cmd", line=item), item) for item in examples))
@@ -930,7 +946,7 @@ class Handler(BaseHTTPRequestHandler):
         invocation = parse_argv(tokens)
         if not invocation.positionals:
             raise UsageError("需要一个命令，例如 list weapon；把这一行补全再运行")
-        command = read_only_command(invocation.positionals[0])
+        command = web_command(invocation.positionals[0])
         selector = " ".join(invocation.positionals[1:])
         started = time.monotonic()
         result = self.app.call(command, scope, selector, **invocation.options)
@@ -969,12 +985,12 @@ class Handler(BaseHTTPRequestHandler):
             [link(url("deps"), "/deps"), "谁引用了某个取值", mono(f"ff {scope.name} deps value=<取值>")],
             [link(url("check"), "/check"), "读取错误、警告与悬空引用", mono(f"ff {scope.name} check <前缀>")],
             [link(url("stats"), "/stats"), "按分类、格式、根元素统计", mono(f"ff {scope.name} stats")],
-            [link(url("cmd"), "/cmd"), "一行命令，输出与 CLI 完全相同（只读命令）", mono(f"ff {scope.name} <命令> <选择器> 键=值")],
+            [link(url("cmd"), "/cmd"), "一行命令，输出与 CLI 完全相同（写入的命令由它自己的门决定）", mono(f"ff {scope.name} <命令> <选择器> 键=值")],
             [link(url("json", command="list", selector="all"), "/json"), "任何命令的原始 JSON", mono("加 --json 的同一个命令")],
         ]
         body += table(["页面", "做什么", "等价命令"], rows)
         body += h2("说明")
-        body += note("这个界面只读：所有页面都走同一套 CLI 查询代码，不写任何文件。写数据的能力还在设计里（事件日志与回滚里程碑）。")
+        body += note("页面跑的是与命令行相同的代码，写入类命令也一样：命令自身的门（--write、工程目录限制）决定是否落盘。只拒绝 web，因为它会在一次请求里再起一个服务。")
         body += note("链接里的 scope 参数指定作用域，t 参数是访问令牌（启动时带 token= 才需要）。")
         body += note("单线程服务，一次处理一个请求；Ctrl-C 或页面上的「退出」停止。")
         return self.shell("帮助", body, scope.name)
@@ -1062,11 +1078,111 @@ def make_server(app: App, port: int = DEFAULT_PORT, host: str = HOST) -> FfWebSe
     return FfWebServer((host, port), app)
 
 
+INSTANCE_NAME = "web.json"
+PROBE_TIMEOUT = 0.6
+PORT_ATTEMPTS = 25
+
+
+def state_root(cwd: Path) -> Path:
+    """Where the running-instance record lives: the editor folder, else the project, else cwd."""
+    editor = _editor_root(Path(cwd))
+    if editor is not None:
+        return Path(editor)
+    project = _project_root(Path(cwd))
+    return Path(project) if project is not None else Path(cwd)
+
+
+def instance_path(root: Path) -> Path:
+    """The record file of one editor folder or project."""
+    return Path(root) / ".editor" / INSTANCE_NAME
+
+
+def read_instance(root: Path) -> dict | None:
+    """The recorded instance when it is still answering, else ``None``.
+
+    A record left behind by a killed process is stale: the probe decides, so a crashed UI
+    never keeps the next one from starting.
+    """
+    try:
+        record = json.loads(instance_path(root).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    url = record.get("url") if isinstance(record, dict) else None
+    if not isinstance(url, str) or not url:
+        return None
+    return record if answers(url) else None
+
+
+def answers(url: str, timeout: float = PROBE_TIMEOUT) -> bool:
+    """True when the recorded address answers with a page."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            return 200 <= response.status < 300
+    except Exception:
+        return False
+
+
+def free_port(start: int = DEFAULT_PORT, host: str = HOST, attempts: int = PORT_ATTEMPTS) -> int:
+    """The first port at or above ``start`` that nothing is listening on."""
+    for port in range(start, start + attempts):
+        if not port_is_taken(port, host):
+            return port
+    raise FfError(f"no free port between {start} and {start + attempts - 1} on {host}")
+
+
+def write_instance(root: Path, record: dict) -> None:
+    """Record the running instance so a later `web` can reuse it."""
+    path = instance_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def clear_instance(root: Path, record: dict) -> None:
+    """Drop the record, unless another process has already replaced it."""
+    path = instance_path(root)
+    try:
+        current = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    if current.get("pid") == record.get("pid") and current.get("port") == record.get("port"):
+        path.unlink(missing_ok=True)
+
+
+def open_browser(options: dict[str, str], address: str) -> None:
+    """Open the page when the caller asked for a browser; a browser is a convenience."""
+    if options.get("browser") in (None, "", "0", "false", "no"):
+        return
+    try:
+        import webbrowser
+
+        webbrowser.open(address)
+    except Exception as error:
+        print(f"  (cannot open a browser automatically: {error})", flush=True)
+
+
 def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> str:
-    """Serve the UI until Ctrl-C; returns the address it listened on."""
+    """Serve the UI until Ctrl-C, or point at the instance that is already running.
+
+    An explicit ``port=`` always starts a server.  Without one, a recorded instance that still
+    answers is reused: its front end is opened and this process returns at once, so a second
+    backend never starts by accident.  Otherwise the first free port at or above the default is
+    taken (docs/cli.md section 4.4).
+    """
     token = options.get("token", "")
     size = _int_option(options, "pagesize", DEFAULT_LIMIT)
-    port = _int_option(options, "port", DEFAULT_PORT)
+    root = state_root(cwd)
+    if options.get("port") in (None, ""):
+        running = read_instance(root)
+        if running is not None:
+            address = str(running.get("url") or "")
+            print("Firefight 模组编辑器 Web UI · 已有实例在运行", flush=True)
+            print(f"  复用     pid {running.get('pid')} · 作用域 {running.get('scope') or scope_name}", flush=True)
+            print(f"  地址     {address}", flush=True)
+            open_browser(options, address)
+            return address
+        port = free_port(DEFAULT_PORT, host)
+    else:
+        port = _int_option(options, "port", DEFAULT_PORT)
     app = App(options, cwd, scope_name, page_size=size, token=token)
     try:
         server = make_server(app, port, host)
@@ -1075,17 +1191,22 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
     address = f"http://{host}:{server.server_port}/"
     if token:
         address += f"?t={token}"
+    record = {
+        "pid": os.getpid(),
+        "host": host,
+        "port": server.server_port,
+        "url": address,
+        "scope": scope_name,
+        "token": token,
+        "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }
+    write_instance(root, record)
     print(f"Firefight 模组编辑器 Web UI · 作用域 {scope_name}", flush=True)
     print(f"  根目录   {app.scope(scope_name).root}", flush=True)
     print(f"  地址     {address}", flush=True)
-    print("  只读界面，无 JavaScript；Ctrl-C 停止，或点页面上的「退出」", flush=True)
-    if options.get("browser") not in (None, "", "0", "false", "no"):
-        try:
-            import webbrowser
-
-            webbrowser.open(address)
-        except Exception as error:  # a browser is a convenience, not a requirement
-            print(f"  (cannot open a browser automatically: {error})", flush=True)
+    print(f"  实例记录 {instance_path(root)}", flush=True)
+    print("  无 JavaScript；Ctrl-C 停止，或点页面上的「退出」", flush=True)
+    open_browser(options, address)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -1098,4 +1219,5 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
             print("web: stopped by the quit link", flush=True)
     finally:
         server.server_close()
+        clear_instance(root, record)
     return address

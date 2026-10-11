@@ -5,12 +5,15 @@
 An open-source third-party mod editor compatible with *Firefight* by Sean O'Connor: broader
 coverage and stricter round-trip fidelity than the tooling that ships with the game.
 
-Status: data core, XML/TOML round-trip, reference graph, the command line, the read-only
-browsing slice of the local web UI, and the MVP editing loop — `set` changes one field of one
-project document and leaves the rest of the file byte-identical, and `log`, `undo` and `redo`
-record and revert it from the bytes kept under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2).
-`export` reproduces a stock file byte for byte, layout included — 1840 of 1840 files on the
-installed game (`tools/export_fidelity.py`). No `add`/`remove`, no batch edit, no packaging yet.
+Status: data core, XML/TOML round-trip, reference graph, the command line, the local web UI,
+the MVP editing loop — `set` changes one field of one project document and leaves the rest of
+the file byte-identical, and `log`, `undo` and `redo` record and revert it from the bytes kept
+under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2) — one-command import of the stock data as
+project documents (`convert`), the MCP server `python -m core.mcp`, which offers the reading
+commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI that runs the
+same commands, writing ones included. `export` reproduces a stock file byte for byte, layout
+included — 1840 of 1840 files on the installed game (`tools/export_fidelity.py`). No
+`add`/`remove`, no batch edit, no packaging yet.
 
 ## Quick start
 
@@ -21,7 +24,8 @@ python -m core.cli version
 python -m core.cli Firefight stats "root=<game directory>"
 python -m core.cli Firefight show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml --json
 python -m core.cli Firefight deps value=WEAPON_PISTOL_P38 "root=<game directory>"
-python -m core.cli Firefight web  "root=<game directory>"   # read-only pages on 127.0.0.1:8765
+python -m core.cli Firefight convert "to=<project directory>" --write
+python -m core.cli Firefight web  "root=<game directory>"   # pages on 127.0.0.1, first free port
 ```
 
 `<game directory>` is the directory that holds `Data/`, `Images/` and `Sounds/` — the one
@@ -36,7 +40,8 @@ still valid), `2` usage error, `130` interrupted.
 ## Repository layout
 
 ```
-core/     the code: core/cli (command line), core/web (web UI), schema, parsers, model
+core/     the code: core/cli (command line), core/mcp (stdio MCP server), core/web (web UI),
+          schema, parsers, model
 docs/     specification: what the editor does and how it is built
 tests/    the suite (no game install, no network)
 tools/    auxiliary tools: round-trip and fidelity harnesses, FirefightModPackager,
@@ -71,7 +76,7 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 | Document | Contents |
 |---|---|
 | [cli.md](docs/cli.md) | command line: scopes, selectors, commands, options, exit codes, measured results |
-| [web.md](docs/web.md) | the local read-only web UI: routes, options, design rules, limits |
+| [web.md](docs/web.md) | the local web UI: routes, options, design rules, limits |
 | [project-layout.md](docs/project-layout.md) | project layout, CLI specification, permissions, event log, dependency policy |
 | [mcp.md](docs/mcp.md) | the AI MCP surface: protocol revisions, tools, resources, permissions, error mapping |
 | [refs.md](docs/refs.md) | reference rules and coverage |
@@ -80,8 +85,12 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 
 ## Building a mod
 
-A mod is a directory containing `Data/`; the editor reads `.toml` under a project and
-`.txt` under the stock scope, and `export` writes a selection back to stock XML under
+A project is a directory holding `mod.toml`, `mod_setting.toml` and `Mod/` (the mod's own
+`Data/`, `Images/`, `Sounds/`), plus `.editor/` for the log and baselines; a mod is a partial
+overwrite, so anything it does not carry is read from the stock scope. The editor reads `.toml`
+under a project and `.txt` under the stock scope. `convert` turns the stock data into project
+documents one file at a time (`to=<project directory> --write`, existing targets skipped;
+`Images/` and `Sounds/` stay placeholders). `export` writes a selection back to stock XML under
 `to=<directory>`, keeping the source layout of any file that came from disk. Nothing is
 written to a scope: the game installation is never modified.
 

@@ -153,7 +153,7 @@ class RenderTest(unittest.TestCase):
 
     def test_empty_table_is_header_only(self) -> None:
         table = parse("[squad.dimensions]\n", "unit")
-        self.assertEqual(render(table), "[squad]\n[squad.dimensions]\n")
+        self.assertEqual(render(table), "[squad]\n\n[squad.dimensions]\n")
 
     def test_keys_needing_quotes_are_quoted(self) -> None:
         table = parse('[squad.ranks]\n"1" = "Pvt"\n', "unit")

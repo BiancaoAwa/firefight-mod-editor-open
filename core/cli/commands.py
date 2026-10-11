@@ -15,7 +15,7 @@ from core.errors import FfError, SchemaError, XmlStructureError
 from core.toml import TomlTable
 from core.xml import XmlElement
 
-from core.cli.scope import Scope, UsageError, entity_files
+from core.cli.scope import MOD_FOLDER, Scope, UsageError, entity_files
 from core import convert, textio, toml, xml
 from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
@@ -872,6 +872,77 @@ def _count(ctx: Context, *, default: int, name: str) -> int:
     return int(selector)
 
 
+def cmd_convert(ctx: Context) -> Result:
+    """Convert the selected source files into project working files under to=.
+
+    A stock ``.txt`` entity becomes the ``.toml`` a project works with (UTF-8 without BOM,
+    the canonical layout of the TOML writer); a file that is already there is skipped unless
+    ``overwrite=1``.  Nothing is written without ``--write`` (docs/cli.md section 4.3).
+    """
+    from core import journal
+
+    scope = ctx.scope
+    target = ctx.options.get("to")
+    if not target:
+        raise UsageError("convert needs a destination project: to=<directory>")
+    if ctx.options.get("write") != "1":
+        raise UsageError("convert needs --write; add --dry-run to inspect the result without writing")
+    destination = Path(target)
+    data_root = destination if destination.name == MOD_FOLDER else destination / MOD_FOLDER
+    overwrite = ctx.options.get("overwrite") == "1"
+    dry_run = ctx.options.get("dry-run") == "1"
+    written: list[dict] = []
+    skipped: list[dict] = []
+    errors: list[dict] = []
+    for path in filter_category(targets(ctx), ctx, scope):
+        relative = relative_of(scope, path)
+        if not is_entity(relative):
+            skipped.append({"path": relative, "reason": "list file"})
+            continue
+        out = data_root / Path(relative).with_suffix(SUFFIX_TOML)
+        if out.exists() and not overwrite:
+            skipped.append({"path": relative, "reason": "exists"})
+            continue
+        if dry_run:
+            written.append({"path": relative, "out": str(out), "bytes": 0})
+            continue
+        try:
+            document = load_document(path, relative)
+            data = textio.encode_export(document.toml_text(), file=str(out), encoding="utf-8", newline="\r\n")
+            out.parent.mkdir(parents=True, exist_ok=True)
+            journal.write_atomic(out, data)
+        except FfError as error:
+            errors.append({"path": relative, "error": str(error)})
+            continue
+        written.append({"path": relative, "out": str(out), "bytes": len(data)})
+    payload = {
+        "scope": scope.name,
+        "to": str(destination),
+        "data_root": str(data_root),
+        "count": len(written) + len(skipped) + len(errors),
+        "written": len(written),
+        "skipped": len(skipped),
+        "errors": errors,
+        "files": written,
+        "skipped_files": skipped,
+        "dry_run": dry_run,
+    }
+    return Result(payload, _convert_text(payload), 1 if errors else 0)
+
+
+def _convert_text(payload: dict) -> str:
+    """Rows of one convert invocation."""
+    rows = [[item["path"], item["bytes"]] for item in payload["files"][:DEFAULT_LIMIT]]
+    rows += [[item["path"], f"skipped: {item['reason']}"] for item in payload["skipped_files"][:DEFAULT_LIMIT]]
+    rows += [[item["path"], item["error"]] for item in payload["errors"][:DEFAULT_LIMIT]]
+    state = "planned" if payload["dry_run"] else "written"
+    summary = (
+        f"{payload['written']} file(s) {state} to {payload['data_root']}, "
+        f"{payload['skipped']} skipped, {len(payload['errors'])} error(s)"
+    )
+    return table_of(["path", "result"], rows, summary)
+
+
 def cmd_export(ctx: Context) -> Result:
     """Render the selected entities as stock XML under the directory in to=."""
     scope = ctx.scope
@@ -956,6 +1027,7 @@ COMMANDS = {
     "deps": cmd_deps,
     "check": cmd_check,
     "set": cmd_set,
+    "convert": cmd_convert,
     "log": cmd_log,
     "undo": cmd_undo,
     "redo": cmd_redo,

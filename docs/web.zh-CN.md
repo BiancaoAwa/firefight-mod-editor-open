@@ -2,8 +2,9 @@
 
 # 本地 Web 界面
 
-状态：**只读浏览**。界面渲染的结果与命令行一致，不能写入任何东西。编辑——类型化编辑与事件日志——只在命令行里存在
-（[cli.md](cli.zh-CN.md) §4.1、§4.2）；Web 编辑面板属于后续阶段。
+状态：**浏览与命令行**。界面渲染的结果与命令行一致，且页面可以运行写入类命令：命令自身的门（`--write`、工程目录限制、
+原版作用域规则）决定是否真的写入，因此被拒绝时的读法与在命令行里完全一致（[cli.md](cli.zh-CN.md) §4.1–§4.3）。仍然
+缺失的是类型化编辑面板——页面提供的是文本框与表单，不是带语义差异的字段编辑器。
 
 整个界面由 Python 标准库提供——不新增依赖、没有构建步骤、不用 JavaScript、不引外部资源、不设 cookie。每个页面都是
 服务端渲染的 HTML，因此这第一部分在任何能显示表格的浏览器里都能用，也没有会失步的客户端状态。
@@ -17,7 +18,7 @@ python -m core.cli <作用域> web [key=value ...]
 | 选项 | 默认 | 含义 |
 |---|---|---|
 | `root=` / `workspace=` | 与其他命令一致 | 要浏览的作用域 |
-| `port=` | `8765` | `127.0.0.1` 上的 TCP 端口 |
+| `port=` | `8765` 起的第一个空闲端口 | `127.0.0.1` 上的 TCP 端口；显式指定则要么用它、要么失败，绝不落到别处 |
 | `token=<文本>` | 空 | 要求每个 URL 都带 `?t=<文本>` |
 | `pagesize=` | `200` | 每页行数 |
 | `browser=1` | 关 | 绑定后打开默认浏览器 |
@@ -28,16 +29,17 @@ python -m core.cli <作用域> web [key=value ...]
 
 ```
 Firefight 模组编辑器 Web UI · 作用域 Firefight
-  根目录   D:\Program Files (x86)\Steam\steamapps\common\Firefight
+  根目录   <游戏目录>
   地址     http://127.0.0.1:8765/
-  只读界面，无 JavaScript；Ctrl-C 停止，或点页面上的「退出」
+  实例记录 <编辑器文件夹>\.editor\web.json
+  无 JavaScript；Ctrl-C 停止，或点页面上的「退出」
   GET / 200 (312 ms)
 ```
 
 示例：
 
 ```
-python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\common\Firefight"
+python -m core.cli Firefight web "root=<游戏目录>"
 ```
 
 若不想占住提示符，用包装命令行的本地启动器（`tools/launcher/ff-tool.ps1`，发行版里是 `launcher/`）：
@@ -47,13 +49,16 @@ python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\co
 `-Scope <名称>` 选择服务的作用域，因此双击总是得到独立窗口和下面的看门狗。
 
 端口一有响应调用方就返回；服务输出写到启动器日志旁边的 `logs\web-<port>-err.log`，不必留着窗口才能看。
-`status` 显示服务进程与那份日志，`stop` 结束进程并清除记录的状态，在已占用的端口上再起一个会被拒绝，而不是复用
-别人的端口。由于什么都不用留着，停止界面的方式就是页面上的「退出」按钮和启动器的 `stop`。
+`status` 显示服务进程与那份日志，`stop` 结束进程并清除记录的状态。不给端口的窗口不会因端口被占而失败：它先复用本
+编辑器已记录的实例，否则取 8765 及以上的第一个空闲端口（[cli.md](cli.zh-CN.md) §4.4）。`-Port <n>` 保留更严格的旧
+规则——要么用该端口，要么被拒绝——因此显式指定不会悄悄落到别处。由于什么都不用留着，停止界面的方式就是页面上的
+「退出」按钮和启动器的 `stop`。
 
 **忙端口拒绝**是主动要求的，不是继承来的：`HTTPServer` 会设置 `SO_REUSEADDR`，在 Windows 上这会让第二次绑定
 一个已在服务的端口成功，于是两个界面会悄悄共用同一端口、谁应答全看运气。因此 `make_server` 先探测端口
 （`socket.connect_ex`），占用时抛 `cannot listen on 127.0.0.1:<port>: the port is already in use`。端口 `0`
-（测试用的）总能拿到空端口。
+（测试用的）总能拿到空端口。不给端口的 `web` 不会走到这个错误：它向 `free_port` 要 8765 及以上的第一个空闲端口，
+因此默认端口上留着别的服务不再妨碍界面启动。
 
 后台会话会带一个隐藏的**看门狗**，双向工作：
 
@@ -70,6 +75,13 @@ python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\co
 
 `-Browser` 在用户自己的浏览器里打开页面：那个窗口永不被监视也永不被关闭，因为它不属于启动器。`-NoBrowser`
 什么都不打开，也就没有可监视的对象。
+
+运行中的服务记录在 `<编辑器文件夹>/.editor/web.json`，识别不出编辑器文件夹时记录在工程目录下，字段为 `pid`、
+`host`、`port`、`url`、`scope`、`token` 与 `started`。正是这条记录让第二个 `web` 复用第一个，而不是另起一个竞争的
+服务。`serve` 在端口开始应答后写入它，并在正常停止时删除；被强杀的进程会留下陈旧记录，此时由其地址的探测结果决定，
+因此崩溃过的界面不会阻塞下一次启动。启动器读同一个文件来取得要打开的地址，它的进程归属检查则把记录中的 `pid` 与正
+在应答该端口的进程比较——按命令行匹配实测不可靠（受限会话里 `Get-CimInstance` 被拒绝），而归属判错会留下一个没有
+窗口的服务，并把实际属于自己的端口报成被他人占用。
 
 ## 2. 页面
 
@@ -95,8 +107,9 @@ python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\co
 `/cmd` 是同一思路的延伸：一个文本框接收 `python -m core.cli` 之后的部分（`list weapon`、
 `show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml`、`deps value=WEAPON_PISTOL_P38`），可选地在最前面写作用域名，
 带空格的路径用双引号。页面打印命令自身的文本输出，或用 `json=1` 得到载荷，另外给出退出码、耗时与等价的 shell 命令。
-它跑的是与命令行相同的解析器与处理函数，因此输出不是重新渲染——有测试比较 `<pre>` 块与 `Result.text`。`export` 与
-`web` 在 `/cmd` 与 `/json` 上被拒绝，因为前者写文件、后者会尝试绑第二个端口（别名 `emit` 与 `serve` 同样被拒）。
+它跑的是与命令行相同的解析器与处理函数，因此输出不是重新渲染——有测试比较 `<pre>` 块与 `Result.text`。`web` 在
+`/cmd` 与 `/json` 上被拒绝，因为它会在一次请求里尝试绑第二个端口（别名 `serve` 同样被拒）。其余命令都不被拒绝：
+`set`、`convert` 与 `export` 在页面上的行为与在 shell 里一致，是否真的写入由它们所指命令自身的门决定。
 
 每个页面顶栏都有「退出」链接。它指向确认页而不是直接停止，因为界面是纯 GET：链接可能被预取或被误点，而第二次有意
 点击不会。确认后服务停止（后台线程在告别页发送完后停止 `serve_forever`）；已打开的数据文件与游戏安装不受影响，
@@ -109,9 +122,9 @@ python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\co
 * **不用 JavaScript。** 只有链接和 `GET` 表单。页面上没有任何内容在客户端生成，禁用脚本也能正常显示。
 * **老式朴素 HTML。** 一个内联 `style` 块、灰底、带边框的表格、数据用 `<pre>`。没有框架、没有字体、没有图标、
   没有 CDN——离线渲染结果一致。
-* **只用 GET。** `POST` 返回 `501`。唯一改变状态的路径是 `/quit`，它做的也只是在确认后停止本服务进程；不写任何
-  数据文件。`/cmd` 与 `/json` 拒绝两个可能破坏这一承诺的命令（`export`、`web`）及其别名，因此没有页面能发起写入或
-  第二个服务。
+* **只用 GET。** `POST` 返回 `501`。唯一会结束本服务进程的路由是 `/quit`，且它在确认后才那么做。`/cmd` 与 `/json`
+  拒绝 `web` 及其别名 `serve`，因为它会在一次请求里尝试绑第二个端口；其余命令都在那里运行，写入类命令也一样。页面
+  从不自行决定发生写入：它把拿到的选项交给命令，由命令自身的门作答。
 * **每连接一个线程。** 服务是 `ThreadingHTTPServer`（守护线程，关闭时不等待它们）。浏览器会开推测性连接并让它们
   空着；单线程服务会卡在这种 socket 上读一个永不到来的请求行，其他请求全部排在后面，看起来就像页面卡死。
 * **端口被占就拒绝。** `make_server` 在绑定前探测端口，因为 `SO_REUSEADDR`（默认开启）在 Windows 上会让第二个
@@ -136,20 +149,22 @@ python -m core.cli Firefight web "root=D:\Program Files (x86)\Steam\steamapps\co
 ## 5. 测试
 
 ```
-python -m unittest tests.test_web          # 57 条，约 4 秒
-python -m unittest discover -s tests -t .  # 231 条
+python -m unittest tests.test_web          # 63 条，约 7 秒
+python -m unittest discover -s tests -t .  # 跑全套
 ```
 
 `tests/test_web.py` 会建一个小型示例工程（`tests/_scratch_web/`）并在端口 `0` 上启动真实服务，因此测试覆盖解析、
 转义、分页、令牌、`404`、`POST`/`PUT`/`DELETE`（都返回 `501` 且读完请求体）、目录穿越尝试、JSON 视图、每个页面上
 的「退出」链接、按浏览器方式提交的确认表单、确认后的停止、命令行（文本输出等于 `Result.text`、JSON 复选框、带引号
-的路径、作用域前缀、未知命令，以及 `export`/`emit`/`web`/`serve` 在 `/cmd` 与 `/json` 上被拒绝）。针对原版安装实测，
-这第一部分每个页面约两秒应答（对整个 1840 文件的原版作用域冷启动 `/stats` 是最慢的一次），并在分页 `deps` 视图里
-给出 `WEAPON_PISTOL_P38` 的 1204 条引用；`/cmd` 对 `stats`、`deps value=WEAPON_PISTOL_P38` 与带引号的 `show`
-结果相同。
+的路径、作用域前缀、未知命令，以及 `web`/`serve` 在 `/cmd` 与 `/json` 上被拒绝、而写入类命令可以通过）、页面发起的
+写入到达命令自身的门（不带 `--write` 的 `set` 以 `set needs --write` 被拒，文档保持不变），以及实例记录（应答中的实例
+被复用、陈旧的被忽略、正常停止时删除）。针对原版安装实测，这第一部分每个页面约两秒应答（对整个 1840 文件的原版作用
+域冷启动 `/stats` 是最慢的一次），并在分页 `deps` 视图里给出 `WEAPON_PISTOL_P38` 的 1204 条引用；`/cmd` 对 `stats`、
+`deps value=WEAPON_PISTOL_P38` 与带引号的 `show` 结果相同。
 
 ## 6. 后续
 
-编辑是所有写入形态功能的前置：类型化编辑、语义 diff、`--dry-run`、带撤销的事件日志、冲突检测与权限指示。
-浏览部分有意保持为命令行的只读投影，以便写入路径在内核里只设计一次，供命令行与界面共用。
+编辑是所有写入形态功能的前置，而写入路径已经存在且是共用的：页面跑的命令与命令行相同，因此 `set`、`convert` 与事件
+日志在两边行为一致。仍然缺失的是编辑功能的前端——懂 schema 的字段编辑器、写入前的语义差异、冲突检测与权限指示——
+以及那个能让 `refs` 与 `deps` 从 `.editor/index.toml` 作答、而不必每次重算引用图的索引器。
 

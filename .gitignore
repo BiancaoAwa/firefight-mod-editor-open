@@ -8,6 +8,9 @@ venv/
 dist/
 *.7z
 
+# Editor state: event log, baseline, lock and the web instance record (docs/project-layout.md §8)
+.editor/
+
 # Local scratch
 *.tmp
 _out/

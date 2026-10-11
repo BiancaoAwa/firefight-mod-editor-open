@@ -38,15 +38,17 @@
 | `ff_find` | `scope`、`selector`、`tag`、`value`、`path`、`ignoreCase`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `ff_stats` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
 | `ff_refs` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
-| `ff_deps` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
+| `ff_deps` | `scope`、`value`、`kind`、`root`、`workspace` | 否 | 始终 |
 | `ff_check` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
-| `ff_export` | `scope`、`selector`、`to`、`as`、`root`、`workspace` | 是 | 始终（导出是既有写入路径） |
+| `ff_export` | `scope`、`selector`、`to`、`root`、`workspace` | 是 | 仅 `--write` |
 | `ff_set` | `scope`、`selector`、`field`、`value`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_undo` | `scope`、`selector`、`count`、`root`、`workspace` | 是 | 仅 `--write` |
+| `ff_undo` | `scope`、`count`、`root`、`workspace` | 是 | 仅 `--write` |
+
+凡命令会写文件的工具都只在 `--write` 下注册，`ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`ff_set` 与 `ff_undo` 随写入阶段落地，该行描述的是目标形态；在落地之前调用二者都按未知工具应答。
 
 后续工作按同一规则增加 `ff_add` 与 `ff_remove`。
 
-**一份规格。** 命令行帮助、Web 界面与 MCP 工具表读取同一份 Python 规格表（候选 `core/cli/specs.py`），不再各写一份。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。
+**一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
 
 ## 4. 资源与提示
 
@@ -57,7 +59,7 @@
 | 资源 | `firefight://{scope}/log` | 工程作用域的事件日志分段，只读 |
 | 提示 | `firefight-editor-workflow` | 编辑器文件夹 `skills/firefight-editor/SKILL.md` 中的流程：定位文档 → 读取 → 暂存改动 → 校验 → 确认 → 写入 → 复核 |
 
-资源只读。不实现订阅（2026-07-28 已改为长连接 `subscriptions/listen`），客户端需要时重新读取资源。提示参数：`scope`、`selector` 与可选的 `goal`。
+资源只读。不实现订阅（2026-07-28 已改为长连接 `subscriptions/listen`），客户端需要时重新读取资源。提示参数：`scope`、`selector` 与可选的 `goal`。资源 URI 只带作用域名、不带根目录，因此服务工作目录解析不出的作用域——通常是原版游戏安装目录——必须在启动时用 `root=<目录>` 或 `firefight=<目录>` 给出；工具调用仍可按次覆盖。
 
 ## 5. 权限与批准
 
@@ -84,22 +86,24 @@
 | 值无法用文档编码表示 | `-32004` |
 | 值被 schema 拒绝 | `-32005` |
 
-`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
+`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。四个写入拒绝码——`-32001` 锁被持有、`-32003` 暂存后文档被改动、`-32004` 值无法表示、`-32005` 值被 schema 拒绝——随写入工具一并落地，因为只有这些调用会抛出它们；`-32000` 已经实现，因为作用域规则同样适用于 `ff_export`。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
 
 ## 7. 入口与分发
 
-* 仓库内：`python -m core.mcp`（`core/mcp/__main__.py`），与 `core/cli` 形态一致。
+* 仓库内：`python -m core.mcp`（`core/mcp/__main__.py`），与 `core/cli` 形态一致。它接受 `--write` 以暴露写入工具，并接受 `workspace=<目录>`、`root=<目录>` 与 `firefight=<目录>` 作为每次工具调用与资源读取默认继承的值；单次调用可以覆盖前两者。
 * 编辑器文件夹（发行态，不是仓库）：与 `ff-ai.cmd`、`ff-web.cmd` 并列的 `ff-mcp.cmd`。它把参数转发给模块，除协议外不向 stdout 写任何内容，也不等待按键。
 * DSH 接线使用 profile 的 MCP 客户端条目：`transport: stdio`、`serverName`、`command`（解释器）、`cwd`（编辑器文件夹）与 `args`（`-m core.mcp`，仅在需要写入时再加 `--write`）。
 * 通用客户端在其自身配置块里填入同样三项：命令、工作目录、参数。不涉及网络监听、端口或 token。
 
 ## 8. 验证方式
 
-1. **转录测试。** 测试套件以子进程启动服务，把脚本化的请求序列写入其 stdin，断言 stdout 的行：两个协议族的握手、`tools/list`、一次只读工具调用、一次被拒绝的写入、一次格式错误的请求。
-2. **快照测试。** `tools/list` 的工具名、参数名与必填性等于 `dsh-firefight-mod-tools` `lib/specs.js`；工具名集合按精确相等断言，任一仓库改名都会让测试失败。
-3. **只读模式。** `tools/list` 中不出现写入工具，直接调用写入工具被拒绝。
-4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。
+1. **转录测试。** 测试套件以子进程启动服务，把脚本化的请求序列写入其 stdin，断言 stdout 的行：经典握手（中间夹 `notifications/initialized`）、无状态的 `server/discover` 族、`tools/list`、一次只读工具调用、一次被拒绝的写入、一行格式错误的内容与一个不支持的协议修订。
+2. **快照测试。** `tools/list` 的工具名、参数名与必填性等于 `dsh-firefight-mod-tools` `lib/specs.js`；工具名集合在编辑器仓库内也按精确相等断言，任一仓库改名都会让测试失败。该跨仓比较在找不到该检出时跳过（可用 `FIREFIGHT_PLUGIN_SPECS` 指向其 `lib/specs.js`）。
+3. **只读模式。** `tools/list` 中不出现写入工具，直接调用写入工具按未知工具拒绝。
+4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。该用例目前对 `ff_export` 验证：库存作用域与其目标目录均未被改动；锁与事件日志两个用例随写入工具落地。
 5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。该次实测完成后结果补入本节；在此之前被接受的修订属未验证。
+
+编辑器仓库内已实测：`tests/test_mcp.py` 的 15 个用例，覆盖两个协议族、精确的只读工具集、`--write` 注册、库存作用域拒绝、带命令行退出码的工具级失败形状、资源、提示、命令行选项与插件快照。
 
 ## 9. 非目标
 

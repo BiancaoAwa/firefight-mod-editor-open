@@ -4,10 +4,12 @@
 
 面向 Sean O'Connor 的 *Firefight* 的第三方开源模组编辑器：覆盖面比游戏自带工具更广，往返保真更严格。
 
-当前状态：数据内核、XML/TOML 往返、引用图、命令行、本地 Web 界面的只读浏览部分，以及 MVP 编辑闭环——`set` 修改
-一个工程文档的一个字段，文件其余部分逐字节不变；`log`、`undo` 与 `redo` 记录改动，并依据 `.editor/` 下保存的字节
-回退与重做（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2）。`export` 能按字节复现原版文件（含排版），在已安装的游戏数据
-上是 1840/1840（见 `tools/export_fidelity.py`）。尚无 `add`/`remove`、批量编辑与打包。
+当前状态：数据内核、XML/TOML 往返、引用图、命令行、本地 Web 界面、MVP 编辑闭环——`set` 修改一个工程文档的
+一个字段，文件其余部分逐字节不变；`log`、`undo` 与 `redo` 记录改动，并依据 `.editor/` 下保存的字节回退与重做
+（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2）——一键把原版数据导入为工程文档（`convert`）、MCP 服务
+`python -m core.mcp`（它把读取类命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批
+命令（含写入类）的 Web 界面。`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
+（见 `tools/export_fidelity.py`）。尚无 `add`/`remove`、批量编辑与打包。
 
 ## 快速开始
 
@@ -18,7 +20,8 @@ python -m core.cli version
 python -m core.cli Firefight stats "root=<游戏目录>"
 python -m core.cli Firefight show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml --json
 python -m core.cli Firefight deps value=WEAPON_PISTOL_P38 "root=<游戏目录>"
-python -m core.cli Firefight web  "root=<游戏目录>"   # 只读页面，127.0.0.1:8765
+python -m core.cli Firefight convert "to=<工程目录>" --write
+python -m core.cli Firefight web  "root=<游戏目录>"   # 页面开在 127.0.0.1，从 8765 起取第一个空闲端口
 ```
 
 `<游戏目录>` 指含 `Data/`、`Images/`、`Sounds/` 的目录，也就是安装版里放 `Firefight.exe` 的那一层。
@@ -30,7 +33,7 @@ python -m core.cli Firefight web  "root=<游戏目录>"   # 只读页面，127.0
 ## 仓库结构
 
 ```
-core/     代码：core/cli（命令行）、core/web（Web 界面）、schema、解析器、模型
+core/     代码：core/cli（命令行）、core/mcp（stdio MCP 服务）、core/web（Web 界面）、schema、解析器、模型
 docs/     规范：编辑器做什么、如何构建
 tests/    测试套件（不需要游戏安装、不联网）
 tools/    辅助工具：往返与保真度脚本、FirefightModPackager、
@@ -62,7 +65,7 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 | 文档 | 内容 |
 |---|---|
 | [cli.md](docs/cli.zh-CN.md) | 命令行：作用域、选择器、命令、选项、退出码、实测结果 |
-| [web.md](docs/web.zh-CN.md) | 本地只读 Web 界面：路由、选项、设计规则、限制 |
+| [web.md](docs/web.zh-CN.md) | 本地 Web 界面：路由、选项、设计规则、限制 |
 | [project-layout.md](docs/project-layout.zh-CN.md) | 工程布局、命令行规范、权限、事件日志、依赖策略 |
 | [mcp.md](docs/mcp.zh-CN.md) | AI MCP 交付面：协议修订、工具、资源、权限、错误映射 |
 | [refs.md](docs/refs.zh-CN.md) | 引用规则与覆盖情况 |
@@ -71,8 +74,11 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 
 ## 制作模组
 
-模组是含 `Data/` 的目录；编辑器在工程作用域下读 `.toml`、在原版作用域下读 `.txt`，`export` 把选定内容写回
-原版 XML（`to=<目录>`），并保留来自磁盘的文件的原始排版。任何作用域都不会被写入：游戏安装目录永不被修改。
+工程是含 `mod.toml`、`mod_setting.toml` 与 `Mod/`（模组自己的 `Data/`、`Images/`、`Sounds/`）的目录，另有
+`.editor/` 存日志与基线；模组是部分覆写，未携带的内容从原版作用域读取。编辑器在工程作用域下读 `.toml`、
+在原版作用域下读 `.txt`。`convert` 逐个文件把原版数据转为工程文档（`to=<工程目录> --write`，已存在的目标
+默认跳过；`Images/` 与 `Sounds/` 只留占位）。`export` 把选定内容写回原版 XML（`to=<目录>`），并保留来自磁盘的
+文件的原始排版。任何作用域都不会被写入：游戏安装目录永不被修改。
 
 ## 许可
 

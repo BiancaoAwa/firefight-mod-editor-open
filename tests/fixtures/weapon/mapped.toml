@@ -1,19 +1,23 @@
 [weapon]
 name = "Demo Rifle"
 type = "WEAPON_RIFLE"
+
 [weapon.ammo]
+
 [[weapon.ammo.type]]
 flavour = "FLAVOUR_HE"
 speed = 800
 mass = 0.012
 HE = 0
 name = "HE"
+
 [weapon.shoot]
 muzzle_flash = false
 reload = "RELOAD_SEMI_AUTOMATIC"
 rof = 12
 range = 800
 sound_shoot = "SOUND_RIFLE"
+
 [weapon.magazine]
 capacity = 5
 single_shot = true

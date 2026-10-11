@@ -8,7 +8,8 @@ a directory the caller names; every other command only prints a result. The writ
 source around what they touch: `set` guarantees it per field (§4.1), `undo` and `redo` write
 recorded bytes rather than a re-serialisation (§4.2), and `export` per file (order, blank lines,
 indentation, comments and newline style — see §9 and toml-mapping §4). `web` serves the same
-read-only results as pages on `127.0.0.1` (docs/web.md). No packaging: that stage does not exist
+results as pages on `127.0.0.1` and runs the same commands, writing ones included
+(docs/web.md). No packaging: that stage does not exist
 yet.
 
 ## 1. Invocation
@@ -64,23 +65,27 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
 | `set` | | change one field of one document; needs `--write` (§4.1) |
+| `convert` | | turn the selection into project working files under `to=<dir>`; needs `--write` (§4.3) |
 | `log` | | the log segments and the newest records inside them; read-only (§4.2) |
 | `undo` | | put back what the last writes replaced; needs `--write` (§4.2) |
 | `redo` | | re-apply what the last undo reverted; needs `--write` (§4.2) |
 | `export` | `emit` | write the selection as stock XML under `to=<dir>`, source bytes for files read from disk |
-| `web` | `serve` | serve the read-only pages on `127.0.0.1` until Ctrl-C (docs/web.md) |
+| `web` | `serve` | serve the pages on `127.0.0.1` until Ctrl-C (§4.4, docs/web.md) |
 | `version` | | editor version, interpreter, resolved scopes |
 
-Options: `root=`, `workspace=`, `to=`, `as=`, `field=`, `type=`, `kind=`, `path=`,
-`limit=` (default 200 rows), `ignore_case=1`, `--json`. `set` also takes the bare flags
-`--write` (write the change) and `--dry-run` (report it without writing anything, §4.1);
-`undo` and `redo` take `--write` and an optional count (§4.2).
+Options: `root=`, `workspace=`, `to=` (the `export` destination, or the project `convert`
+writes into), `as=`, `field=`, `type=`, `kind=`, `path=`, `limit=` (default 200 rows),
+`ignore_case=1`, `overwrite=1` (`convert`: replace a working file that is already there),
+`--json`. `set` and `convert` also take the bare flags `--write` (write the change) and
+`--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take
+`--write` and an optional count (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
-`web` adds four options of its own: `port=` (default 8765), `token=<text>` (required in
-every URL as `?t=<text>` when set), `pagesize=` (default 200 rows per page) and `browser=1`
-(open the default browser instead of only printing the address).
+`web` adds four options of its own: `port=` (an explicit port; without it a recorded instance
+is reused or the first free port at or above 8765 is taken, §4.4), `token=<text>` (required
+in every URL as `?t=<text>` when set), `pagesize=` (default 200 rows per page) and
+`browser=1` (open the default browser instead of only printing the address).
 
 ### 4.1 Writing one field
 
@@ -147,13 +152,56 @@ python -m core.cli Mod redo [count] --write [--json]
   is retried.
 * A new `set` discards what could be redone, as a fresh edit does in an editor.
 
+### 4.3 Turning stock files into project working files
+
+```
+python -m core.cli Firefight convert to=<project> --write [--dry-run] [type=<category>] [--json]
+```
+
+* The selection is read from the scope and written under `<project>/Mod/<relative path>` with
+  the suffix replaced by `.toml`. A destination whose own last segment is already `Mod` is
+  used as it stands. Missing directories are created, so `convert` is the one command that
+  establishes a project directory out of the game data; no `mod.toml` is written, because the
+  metadata of a project is the author's to fill in (docs/project-layout.md §3).
+* A file that is already there is skipped and counted; `overwrite=1` replaces it. Files that
+  are not entities are skipped and counted too — the list files such as `mod.txt`.
+* Output is UTF-8 without BOM with CRLF line endings, the canonical layout of the TOML writer,
+  so the result is not byte-identical to the stock `Data/*.txt` it came from. Byte-for-byte
+  reproduction is what `export` is for, not `convert`.
+* Without `--write` the command is a usage error (code 2). `--dry-run` reports the same plan
+  and writes nothing, not even the destination directory.
+* The exit code is 1 when at least one file failed to convert, 0 otherwise.
+* `convert` writes documents that have no recorded version yet, so it appends no event-log
+  record and takes no `.editor/lock`; `.editor/` is not created either. Two gaps follow: the
+  files it writes cannot be reverted with `undo`, and a concurrent `set` is not excluded.
+
+### 4.4 The web UI and the running-instance record
+
+```
+python -m core.cli Mod web [port=<n>] [token=<text>] [pagesize=<n>] [browser=1]
+```
+
+* An explicit `port=` always starts a server on that port. Without one, a recorded instance
+  that still answers is reused: its address is printed, its page is opened when the caller
+  asked for a browser, and the process returns at once, so a second backend never starts by
+  accident. Otherwise the first free port at or above 8765 is taken.
+* The running instance is recorded in `<editor folder>/.editor/web.json`, or under the project
+  directory when no editor folder is recognised: `pid`, `host`, `port`, `url`, `scope`, `token`
+  and `started`. A clean stop removes the record. A record left behind by a killed process is
+  stale, and the probe of its address decides, so a crashed UI never keeps the next one from
+  starting — the launcher presents the same rule (`tools/launcher/ff-tool.ps1`).
+* A page may run a writing command, and the command's own gate stays the final word: the page
+  passes `write=1` on for the commands that take it, and a refusal reads exactly as it does on
+  the command line. `web` is refused inside a request, because it would try to bind a second
+  port (docs/web.md §3).
+
 ## 5. Exit codes
 
 | Code | Meaning |
 |---|---|
 | 0 | the command ran and found nothing to report |
-| 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2) |
-| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2) |
+| 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2); **or** at least one file failed to convert (§4.3) |
+| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2, §4.3) |
 | 130 | interrupted (Ctrl-C) |
 
 ## 6. Warnings
@@ -198,19 +246,24 @@ python -m core.cli Firefight check  "root=<Firefight>" --json
 python -m core.cli Firefight refs   "root=<Firefight>" --json --limit 5
 python -m core.cli Firefight deps   "value=WEAPON_PISTOL_P38" "root=<Firefight>"
 python -m core.cli Firefight export Vehicles "root=<Firefight>" "to=<somewhere>"
+python -m core.cli Firefight convert "root=<Firefight>" "to=<new project>" --write --dry-run
 python -m core.cli WW3 stats "root=<extracted WW3>/.Mod"
 python -m core.cli Firefight web    "root=<Firefight>" port=8765
 ```
 
 `check` exits 1 on both corpora, which is the intended report and not a crash. `deps` is
-scope-wide: it answers for one scope at a time. `web` blocks until Ctrl-C and prints the
-address it bound.
+scope-wide: it answers for one scope at a time. `convert` on the installed game plans 1792
+files and skips 48 list files; without `--dry-run` it writes them. `web` blocks until Ctrl-C
+and prints the address it bound.
 
 ## 9. Limits of this slice
 
-* No project-file commands, no `add`/`remove`, no batch edit, no packaging. Writes are one leaf
-  of one document at a time; the log and the baseline are per project, and `Firefight` is never
-  written.
+* No `add`/`remove`, no batch edit, no packaging. Writes are one leaf of one document at a
+  time, or a whole selection in the case of `convert`; the log and the baseline are per
+  project, and `Firefight` is never written. The project metadata commands are still missing:
+  `mod.toml` and `mod_setting.toml` are read but not written, and `.editor/refs.toml` and
+  `.editor/index.toml` remain empty placeholders, so `refs` and `deps` answer from the graph
+  built on each run rather than from an index.
 * `export` keeps the source layout: sibling order, blank lines, indentation, `//` comments
   and the file's own newline style all come from the source text (toml-mapping §4). Files
   without source text — a `.toml` project document — use the canonical writer instead
