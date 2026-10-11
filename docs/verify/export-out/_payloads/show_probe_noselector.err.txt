@@ -1,8 +1,0 @@
-python.exe : expected one file, got 4; name the file explicitly
-At line:16 char:3
-+   & $py @($r.a) 1> "$out\$($r.n).out.json" 2> "$out\$($r.n).err.txt"
-+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (expected one fi...file explicitly:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-run 'ff help' for usage

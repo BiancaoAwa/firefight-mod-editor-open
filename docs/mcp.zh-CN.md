@@ -2,7 +2,7 @@
 
 # AI MCP 交付面
 
-本文档规定随编辑器仓库一起交付的 MCP 服务：交付面及其边界（§1）、传输与应答的协议修订（§2）、工具面与唯一来源（§3）、资源与提示（§4）、权限（§5）、错误映射（§6）、入口与客户端接线（§7）、验证方式（§8）、明确不做的事（§9）。由 [plan.md](plan.zh-CN.md) 的 S3、S4 阶段实现。
+本文档规定随编辑器仓库一起交付的 MCP 服务：交付面及其边界（§1）、传输与应答的协议修订（§2）、工具面与唯一来源（§3）、资源与提示（§4）、权限（§5）、错误映射（§6）、入口与客户端接线（§7）、验证方式（§8）、明确不做的事（§9）。服务在各自的实现 PR 中落地。
 
 ## 1. 交付面与边界
 
@@ -13,13 +13,13 @@
 | MCP 服务 | 本仓库 `core/mcp/` | 进程内调用 `run_command` | DSH 之外的 MCP 客户端，以及 DSH 通过 MCP 客户端条目接入 |
 | 技能（`SKILL.md`） | 编辑器文件夹，不在本仓库 | 提示词层流程，可走上面任一面 | 可复用的智能体流程 |
 
-**D12 —— 归属与形态。** MCP 服务属于编辑器仓库，放在 `core/mcp/`，入口为 `python -m core.mcp`。仅用标准库，讲 stdio JSON-RPC，进程内构造 `Context` 并调用 `core.cli.commands.run_command`，复用 `Result`，不 spawn 命令行：进程内调用使权限门、退出码语义与 JSON 负载同命令行完全一致。
+**归属与形态。** MCP 服务属于编辑器仓库，放在 `core/mcp/`，入口为 `python -m core.mcp`。仅用标准库，讲 stdio JSON-RPC，进程内构造 `Context` 并调用 `core.cli.commands.run_command`，复用 `Result`，不 spawn 命令行：进程内调用使权限门、退出码语义与 JSON 负载同命令行完全一致。
 
 **重叠规则。** 各交付面的工具名相同，因此同时装入 DSH 插件与 MCP 服务的客户端会出现重名工具。同一个 DSH 会话不要同时启用两者；文档里说明某流程按哪一个交付面工作。
 
 ## 2. 传输与协议修订
 
-**D14 —— 修订。** 服务只走 stdio，并同时应答两个协议族，由第一个请求判定：
+**修订。** 服务只走 stdio，并同时应答两个协议族，由第一个请求判定：
 
 * **`initialize`**（2025-06-18 与 2025-11-25 修订）：经典握手，其后跟随 `notifications/initialized`；协商出的修订在 `initialize` 结果中回显。
 * **`server/discover`**（2026-07-28 无状态修订）：无握手、无会话标识。每个请求的 `_meta` 携带 `io.modelcontextprotocol/protocolVersion`、`clientCapabilities` 与 `clientInfo`；每个结果携带 `_meta.serverInfo` 与显式 `resultType`（`"complete"`，需要补充输入时为 `"input_required"`）。版本不受支持时返回 `UnsupportedProtocolVersionError`（`-32022`）。
@@ -28,7 +28,7 @@
 
 ## 3. 工具面与唯一来源
 
-**D13 —— 命名。** 工具名与 `dsh-firefight-mod-tools` `lib/specs.js` 中的插件表逐字相同，参数沿用插件的 camelCase 拼写，使同一提示词或技能可在各交付面之间迁移而无需改名。
+**命名。** 工具名与 `dsh-firefight-mod-tools` `lib/specs.js` 中的插件表逐字相同，参数沿用插件的 camelCase 拼写，使同一提示词或技能可在各交付面之间迁移而无需改名。
 
 | 工具 | 参数 | 是否写入 | 注册条件 |
 |---|---|---|---|
@@ -41,12 +41,12 @@
 | `ff_deps` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
 | `ff_check` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
 | `ff_export` | `scope`、`selector`、`to`、`as`、`root`、`workspace` | 是 | 始终（导出是既有写入路径） |
-| `ff_set` | `scope`、`selector`、`field`、`value`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write`（S4 阶段） |
-| `ff_undo` | `scope`、`selector`、`count`、`root`、`workspace` | 是 | 仅 `--write`（S4 阶段） |
+| `ff_set` | `scope`、`selector`、`field`、`value`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `ff_undo` | `scope`、`selector`、`count`、`root`、`workspace` | 是 | 仅 `--write` |
 
-后续阶段按同一规则增加 `ff_add` 与 `ff_remove`。
+后续工作按同一规则增加 `ff_add` 与 `ff_remove`。
 
-**D16 —— 一份规格。** 命令行帮助、Web 界面与 MCP 工具表读取同一份 Python 规格表（候选 `core/cli/specs.py`），不再各写一份。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。
+**一份规格。** 命令行帮助、Web 界面与 MCP 工具表读取同一份 Python 规格表（候选 `core/cli/specs.py`），不再各写一份。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。
 
 ## 4. 资源与提示
 
@@ -61,7 +61,7 @@
 
 ## 5. 权限与批准
 
-**D15 —— 权限门。** 服务启动时只读；`--write` 使其进入 workspace-write 档。
+**权限门。** 服务启动时只读；`--write` 使其进入 workspace-write 档。
 
 * 只读服务：`tools/list` 中不含写入工具，直接调用写入工具按未知工具拒绝，不做静默降级。
 * 启用写入的服务：写入限于工程目录内（`Mod/` 与 `.editor/`）。指向 `Firefight` 库存作用域的写入无条件拒绝；游戏安装目录永不被修改。
@@ -99,7 +99,7 @@
 2. **快照测试。** `tools/list` 的工具名、参数名与必填性等于 `dsh-firefight-mod-tools` `lib/specs.js`；工具名集合按精确相等断言，任一仓库改名都会让测试失败。
 3. **只读模式。** `tools/list` 中不出现写入工具，直接调用写入工具被拒绝。
 4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。
-5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。结果在 S3 落地时补入本节；在此之前被接受的修订属未验证。
+5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。该次实测完成后结果补入本节；在此之前被接受的修订属未验证。
 
 ## 9. 非目标
 

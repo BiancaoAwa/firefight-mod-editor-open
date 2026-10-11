@@ -1,6 +1,6 @@
 """Path-keyed schema for the three stock XML roots.
 
-Derived from ``docs/baseline/path-inventory.tsv`` and checked by ``tests/test_schema.py``.
+Derived from ``tests/fixtures/schema/path-inventory.tsv`` and checked by ``tests/test_schema.py``.
 """
 
 from dataclasses import dataclass

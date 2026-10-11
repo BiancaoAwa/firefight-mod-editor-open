@@ -5,11 +5,10 @@
 An open-source third-party mod editor compatible with *Firefight* by Sean O'Connor: broader
 coverage and stricter round-trip fidelity than the tooling that ships with the game.
 
-Status: data core, XML/TOML round-trip, reference graph and the command line (M0–M3) plus
-the read-only browsing slice of the local web UI (M7). Editing is M4 and is **not
-implemented**: every command except `export` prints a result and writes nothing. `export`
-reproduces a stock file byte for byte, layout included — 1840 of 1840 files on the installed
-game (`tools/export_fidelity.py`).
+Status: data core, XML/TOML round-trip, reference graph, the command line and the read-only
+browsing slice of the local web UI. Editing is **not implemented**: every command except
+`export` prints a result and writes nothing. `export` reproduces a stock file byte for byte,
+layout included — 1840 of 1840 files on the installed game (`tools/export_fidelity.py`).
 
 ## Quick start
 
@@ -36,8 +35,8 @@ still valid), `2` usage error, `130` interrupted.
 
 ```
 core/     the code: core/cli (command line), core/web (web UI), schema, parsers, model
-docs/     specification and reports
-tests/    the suite (231 tests, no game install, no network)
+docs/     specification: what the editor does and how it is built
+tests/    the suite (no game install, no network)
 tools/    auxiliary tools: round-trip and fidelity harnesses, FirefightModPackager,
           launcher/ (the implementation behind the released ff-web.cmd / ff-ai.cmd)
 ```
@@ -47,18 +46,18 @@ entry point, so there is no `ff.py` at the root to import or wrap.
 
 The **editor folder** a release ships — launchers, `skills/`, `docs/`, `core/`, `launcher/`,
 a bundled `Firefight/` data copy and `Mods/` — is specified in
-[project-layout.md](docs/project-layout.md) §12; the repository above is the source tree and
+[project-layout.md](docs/project-layout.md) §10; the repository above is the source tree and
 deliberately has a different shape.
 
 ## Tests
 
 ```
-python -m unittest discover -s tests -t .      # 231 tests, no network, no game install
+python -m unittest discover -s tests -t .      # no network, no game install
 ```
 
 The suites that touch a real corpus are run by hand against the stock installation and the
-released WW3 project; the measured numbers are in [m1-report.md](docs/m1-report.md) and
-[cli.md](docs/cli.md) §7. Two harnesses need the game directory:
+released WW3 project; the measured numbers are in [cli.md](docs/cli.md) §7. Two harnesses need
+the game directory:
 
 ```
 python tools/m1_roundtrip.py  --data "<game>/Data"          # XML -> TOML -> XML, semantic
@@ -71,14 +70,11 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 |---|---|
 | [cli.md](docs/cli.md) | command line: scopes, selectors, commands, options, exit codes, measured results |
 | [web.md](docs/web.md) | the local read-only web UI: routes, options, design rules, limits |
-| [project-layout.md](docs/project-layout.md) | milestones, module layout, permissions, event log plan |
-| [plan.md](docs/plan.md) | the ordered update plan: MVP definition, stages S1–S9, acceptance cases B1–B20 |
+| [project-layout.md](docs/project-layout.md) | project layout, CLI specification, permissions, event log, dependency policy |
 | [mcp.md](docs/mcp.md) | the AI MCP surface: protocol revisions, tools, resources, permissions, error mapping |
 | [refs.md](docs/refs.md) | reference rules and coverage |
 | [toml-mapping.md](docs/toml-mapping.md) | how stock XML maps onto the TOML editing model |
 | [m1-design.md](docs/m1-design.md) | data core design |
-| [m1-report.md](docs/m1-report.md) | round-trip measurements on real data |
-| [m0-baseline.md](docs/m0-baseline.md) | baseline inventory of the stock data |
 
 ## Building a mod
 

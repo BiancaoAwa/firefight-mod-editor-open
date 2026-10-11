@@ -1,10 +1,10 @@
 # M1 detailed design — tolerant XML ↔ in-house TOML, both directions
 
-> Status: **implemented and measured**. The error model and the schema are on the published branch `m1/pr1-schema`; the parsers, the conversion and the corpus harness are implemented locally and verified against all 1792 modelled stock files — see [m1-report.md](m1-report.md). Publication of the code awaits the project owner's instruction. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records the measurements that changed it.
+> Status: **implemented and measured** against all 1792 modelled stock files. This document refines [toml-mapping.md](toml-mapping.md) into an implementable design and records the measurements that changed it; the measurement probe itself is not committed.
 
 ## 1. Scope
 
-M1 delivers the data layer only: reading stock XML, writing TOML, reading TOML, and rendering XML again. No CLI, no reference graph, no event log, no UI, no packaging.
+M1 delivers the data layer only: reading stock XML, writing TOML, reading TOML, and rendering XML again. No CLI, no reference graph, no event log, no UI, no packaging. The three stock roots `squad`, `weapon` and `aircraft` are covered; `Maps/` and `Surnames/` remain out of scope.
 
 Acceptance is [toml-mapping.md](toml-mapping.md) §8, with the revision in §3.6 below.
 
@@ -82,7 +82,7 @@ The probe prints the full table; the entries that decide array-versus-table are:
 | `ammo` | `type` 7 | `for`, `rounds`, `flavour` |
 | `weapon` (root) | — | `name`, `type`, `usage`, `shoot`, `dimensions`, `magazine`, `ammo`, `offsetX`, `offsetY`, `offset_angle`, `mount`, `comments` |
 
-The per-path form of this table is committed as `docs/baseline/path-inventory.tsv` (289 paths: 227 leaf, 61 branch, 1 mixed), so the schema in `core/schema.py` is reviewable against the measurement rather than against prose.
+The per-path form of this table is committed at `tests/fixtures/schema/path-inventory.tsv` (289 paths: 227 leaf, 61 branch, 1 mixed), so the schema in `core/schema.py` is reviewable against the measurement rather than against prose.
 
 ### 2.5 No leaf repeats anywhere, so M1 needs only arrays of tables
 
@@ -106,7 +106,7 @@ The bare `<dimensions>` form occurs **703** times in total (670 with children, 3
   <equipment>equipment_american.txt</equipment>
 ```
 
-Expressing that needs a scalar array, which §2.5 shows no stock file requires. Consequence: the `mod` schema moves **out of M1 and into M5** (project files), so M1 covers exactly the three stock roots `squad`, `weapon` and `aircraft`, and `schema_for("mod")` returns `None`. The rest of `mod.txt` is otherwise ordinary: `years`, `credits`, `minimum_commonness`, `text_colours` (hex strings that must stay strings), `flags`, `voice`, `ranks`, `default_images`, and yes/no leaves.
+Expressing that needs a scalar array, which §2.5 shows no stock file requires. Consequence: the `mod` schema moves **out of this layer and into project-file support**, so this layer covers exactly the three stock roots `squad`, `weapon` and `aircraft`, and `schema_for("mod")` returns `None`. The rest of `mod.txt` is otherwise ordinary: `years`, `credits`, `minimum_commonness`, `text_colours` (hex strings that must stay strings), `flags`, `voice`, `ranks`, `default_images`, and yes/no leaves.
 
 ## 3. Design
 
@@ -158,7 +158,7 @@ def to_export_newlines(text: str) -> str      # LF -> CRLF (still used for list 
 def encode_export(text, file, encoding, newline="\r\n")   # newline="" keeps the text as it is
 ```
 
-Rules: decode `cp1252`, record whether a BOM was present (always assert absent for stock), normalise line endings to LF **for the parsed `text`** while `SourceText.raw` keeps the exact characters the file had, never re-encode anything that the source could not encode, and write with no BOM. Export writes the newline style of the source file; CRLF is the default for text that has no source (decision D3, revised 2026-10-11). A `UnicodeEncodeError` during export is a hard error mapped to `ExportEncodingError` (acceptance item 4).
+Rules: decode `cp1252`, record whether a BOM was present (always assert absent for stock), normalise line endings to LF **for the parsed `text`** while `SourceText.raw` keeps the exact characters the file had, never re-encode anything that the source could not encode, and write with no BOM. Export writes the newline style of the source file; CRLF is the default for text that has no source (revised 2026-10-11). A `UnicodeEncodeError` during export is a hard error mapped to `ExportEncodingError` (acceptance item 4).
 
 ### 3.3 Tolerant XML reader (`core/xmlread.py`)
 
@@ -177,7 +177,7 @@ Scanner, not a grammar. Rules, each derived from a measurement:
 7. The scan keeps two accumulators: `content` (comments removed, newlines normalised to LF) becomes the TOML source, and `layout` keeps the original characters. Every element records the gap before its own tag as `prefix`, the gap inside a leaf as `raw_value` and the gap before its closing tag as `suffix`; the document records `header`, `footer`, `newline` and `indent`. `None` means "no captured layout", which makes the writer fall back to the canonical form ([toml-mapping.md](toml-mapping.md) §4.1).
 8. `XmlElement.text()` returns the raw gap when there is one and the parsed value otherwise, so the writer needs no special case for edited and unedited elements.
 
-`XmlDocument` also exposes the original text, used for the "was it edited" test in later milestones.
+`XmlDocument` also exposes the original text, used for the "was it edited" test in later work.
 
 ### 3.4 TOML reader and writer
 
@@ -238,7 +238,7 @@ Type inference follows [toml-mapping.md](toml-mapping.md) §3, with the raw lite
 
 Values are **not** coerced to the schema's nominal type on import: a field that stock writes as `RELOAD_AUTOMATIC` in one file and `0` in another (both occur under `shoot/reload`) keeps whatever each file had.
 
-Entities are rendered from TOML only; a snapshot shortcut for unedited entities belongs to a later milestone and is deliberately **not** available to M1, so the round-trip test cannot pass vacuously.
+Entities are rendered from TOML only; a snapshot shortcut for unedited entities belongs to the editing path and is deliberately **not** available here, so the round-trip test cannot pass vacuously.
 
 ### 3.8 Schema (`core/schema.py`)
 
@@ -254,7 +254,7 @@ class Node:
     required: bool = False
 ```
 
-Three schemas: `squad`, `weapon` and `aircraft`, all derived from the measured path inventory. `mod` is deferred to M5 (§2.7), so `SCHEMAS` has exactly these three keys and `schema_for("mod")` returns `None`.
+Three schemas: `squad`, `weapon` and `aircraft`, all derived from the measured path inventory. `mod` is deferred to project-file support (§2.7), so `SCHEMAS` has exactly these three keys and `schema_for("mod")` returns `None`.
 
 The declaration is queried by path:
 
@@ -295,57 +295,28 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 
 **Unit tests** (no corpus needed): text I/O round trip including the 16 LF files and a cp1252-only character; the reader against hand-written snippets for a bare `&`, a numeric tag, mixed case, a `//` comment inside an element, an unmatched close tag, and a leaf after a branch; the TOML reader rejecting each unsupported construct with a line number; the writer's canonical order; `0.12` fidelity; `yes`/`no` to boolean.
 
-**Schema tests** (no corpus needed, and no parser): every row of `docs/baseline/path-inventory.tsv` resolves in its root schema with the shape the row implies, the set of `array` nodes equals the set of rows whose `max_per_instance` exceeds 1, and the structural invariants hold (unique child names, `leaf` has no children, canonical child order, `required` unused). These are the tests that keep the committed declaration tied to the committed measurement.
+**Schema tests** (no corpus needed, and no parser): every row of `tests/fixtures/schema/path-inventory.tsv` resolves in its root schema with the shape the row implies, the set of `array` nodes equals the set of rows whose `max_per_instance` exceeds 1, and the structural invariants hold (unique child names, `leaf` has no children, canonical child order, `required` unused). These are the tests that keep the committed declaration tied to the committed measurement.
 
 **Failure to keep in mind**: a `mixed` row (`weapon/dimensions`) resolves to `table`, because §2.6 fixes one shape for the field and renders the empty instances as empty tables.
 
-**Corpus harness** (`tools/m1_roundtrip.py`): for all 1840 files, run XML → TOML → XML and compare per §3.6, then TOML → XML → TOML and compare fields. It prints a per-file verdict to `docs/m1-roundtrip.tsv` and a summary, and exits non-zero on any failure.
+**Corpus harness** (`tools/m1_roundtrip.py`): for all 1840 files, run XML → TOML → XML and compare per §3.6, then TOML → XML → TOML and compare fields. It prints a per-file verdict and a summary, and exits non-zero on any failure.
 
 **Byte-fidelity harness** (`tools/export_fidelity.py`, added 2026-10-11): export the whole data directory through the real CLI and compare every file byte for byte with the source, classifying any difference (newline-only, order-changed, content-changed, missing) and printing the first differing line. Exits non-zero unless all files are identical; 1840 of 1840 on the stock corpus. The individual layout cases are pinned by `tests/test_roundtrip_bytes.py`.
 
-**Result of that run** (2026-10-09, CPython 3.14.5): 1792 files modelled, 48 skipped by scope, **0 failures**; the exact-text match rate is 0 of 1792 and the three measured causes are listed in [m1-report.md](m1-report.md) §3.1. In short: the canonical writer drops blank lines, expands elements that stock writes inline, and orders differently-named siblings canonically — none of which the §3.6 comparison treats as a difference.
+**Result of that run** (2026-10-09, CPython 3.14.5): 1792 files modelled, 48 skipped by scope, **0 failures**; the exact-text match rate is 0 of 1792, explained by the three measured causes below. In short: the canonical writer drops blank lines, expands elements that stock writes inline, and orders differently-named siblings canonically — none of which the §3.6 comparison treats as a difference.
 
 **Must-pass subsets** (acceptance item 3): the 16 bare-`&` files, the 59 aircraft, the single `recoilless_rifle`, the 2 files with a reopened branch, and at least one file from each of the 6 parents listed in §2.1.
 
 **Golden files**: three XML files and their TOML, committed under `tests/fixtures/`, so the mapping itself is reviewable in a diff. The tests require the derived TOML to be byte-identical to the committed file, the TOML to render back to the source tree signature, a full TOML → XML → TOML cycle to return the committed text, and the fixtures to raise no unknown-element warning. They are synthetic and use only declared paths; the first draft used four stock tags that do not exist under the paths it assumed (`image_view` under `squad/description`, `name` and `type` under `squad/man`, `rounds_per_minute` under `weapon/shoot`) and the schema reported each one.
 
-## 5. Task order
-
-The project owner confirmed that the schema is reviewed **first, on its own**, before any conversion code exists, so the schema module is written as a standalone declarative artifact that depends on nothing but `errors.py`.
-
-| # | Task | PR | Depends on | Rough size |
-|---|---|---|---|---|
-| T1 | `errors.py` and its tests | PR 1 (schema) | — | ~60 lines |
-| T4 | `schema.py` for `squad` and `weapon` | PR 1 (schema) | T1 | ~250 lines |
-| T5 | `schema.py` for `aircraft` | PR 1 (schema) | T1 | ~120 lines |
-| T2 | `textio.py`, `xmlmodel.py`, `xmlread.py` and their tests | PR 2 | T1 | ~300 lines |
-| T3 | `tomlmodel.py`, `tomlread.py`, `tomlwrite.py` and their tests | PR 2 | T1 | ~450 lines |
-| T6 | `convert.py` and its tests | PR 2 | T2, T3, T4 | ~250 lines |
-| T7 | `tools/m1_roundtrip.py` and the corpus run | PR 3 | T6 | ~180 lines |
-| T8 | Golden fixtures and `docs/m1-report.md` | PR 3 | T7 | ~100 lines |
-
-PR 1 lands `errors.py`, the full schema and `docs/baseline/path-inventory.tsv`, and is reviewable without any parser: the schema is a table of parent paths, shapes and value types, derived from §2 and [m0-baseline.md](m0-baseline.md) §3, and its coverage test reads the committed inventory. PR 2 lands the parsers and the conversion. PR 3 lands the corpus harness and its report.
-
-Current state: T1, T4 and T5 are on the published branch `m1/pr1-schema`; T2, T3, T6, T7, T8 and the report are complete in the working tree with the corpus run recorded in [m1-report.md](m1-report.md) and 109 unit tests passing locally. Following the project owner's instruction, no further branch is published until that code is verified, which the corpus run above now does.
-
-T2 and T3 share no files, so they can proceed in parallel if the work is split; T6 onward is sequential.
-
-## 6. Risks
+## 5. Risks
 
 | Risk | Mitigation |
 |---|---|
-| The TOML writer's canonical order diverges from source order more than expected | Measured and accepted: the exact-text match rate is 0 of 1792 files, and every difference is one of the three formatting causes in [m1-report.md](m1-report.md) §3.1. The milestone gate is the semantic criterion, which passes for all 1792 |
+| The TOML writer's canonical order diverges from source order more than expected | Measured and accepted: the exact-text match rate is 0 of 1792 files, and every difference is one of the three formatting causes above. The gate is the semantic criterion, which passes for all 1792 |
 | A `//` inside a legitimate value (for example a URL) is stripped as a comment | Resolved by measurement: all **1732** `//` occurrences in the corpus are at the start of a line or preceded by whitespace, tab or `>`, so the reader treats `//` as a comment only in those positions and leaves any other occurrence as data |
 | Schema errors surface late, when a rare tag appears | Unknown tags warn and are preserved rather than dropped, so a gap degrades to a warning instead of data loss |
 | Numeric fidelity of floats | Never re-render an unedited value; assert in tests that `raw` survives `parse` → `render` |
 | The 5-minute log segments and `.editor/` layout are irrelevant to M1 | Nothing in M1 writes `.editor/` |
-| Deferring `mod` to M5 leaves the project file unmodelled for now | The deferral is a scope decision, not a gap: stock files never repeat a leaf (§2.5), so no M1 deliverable is blocked by it, and §2.7 records the shape `mod` will need |
+| Deferring `mod` to project-file support leaves the project file unmodelled for now | The deferral is a scope decision, not a gap: stock files never repeat a leaf (§2.5), so no deliverable here is blocked by it, and §2.7 records the shape `mod` will need |
 
-## 7. Decisions confirmed by the project owner
-
-1. The revised acceptance comparison in §3.6 is **accepted** as the M1 gate: siblings with different names compare as an unordered multiset, repeated blocks of the same name compare as an ordered sequence. The 807-file finding in §2.1 means source order cannot be reproduced as literal TOML text, and sibling order was verified in-game to carry no semantics.
-2. The measurement probe stays **outside** this repository; the numbers are recorded in §2 and the document is the reference.
-3. The schema lands **first, on its own**, in a reviewable pull request before any parser or conversion code exists. This is reflected in the PR column of §5.
-4. The `mod` schema moves to M5, because `mod.txt` repeats a leaf and the M1 TOML subset deliberately has no scalar arrays (§2.5, §2.7).
-5. `docs/baseline/path-inventory.tsv` is committed as a data artifact, like `docs/baseline/summary.json` and `tag-inventory.tsv`: the numbers are the record, and the measurement scripts stay outside the repository.
-6. M1 covers the three stock roots `squad`, `weapon` and `aircraft` only. `Maps/` and `Surnames/` remain out of scope.

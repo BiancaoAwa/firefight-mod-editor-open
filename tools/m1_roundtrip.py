@@ -72,7 +72,7 @@ def run_file(path: Path) -> tuple[list[str], bool]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True, help="stock Data directory (read-only)")
-    parser.add_argument("--out", default="docs", help="directory for m1-roundtrip.tsv")
+    parser.add_argument("--out", default=".", help="directory for the m1-roundtrip.tsv verdict file")
     parser.add_argument("--limit", type=int, default=0, help="stop after N modelled files")
     parser.add_argument("--verbose", action="store_true", help="print failures as they happen")
     args = parser.parse_args(argv)

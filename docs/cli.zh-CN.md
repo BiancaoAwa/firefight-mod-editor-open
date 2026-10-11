@@ -1,11 +1,11 @@
 > 语言：**中文** | [English](cli.md)
 
-# 命令行（M3，第一部分）
+# 命令行
 
 状态：**只读**。除 `export` 外的所有命令都只打印结果、不写文件；`export` 把原版 XML 写入调用方指定的目录，对于
 来自磁盘的文件按源字节精确复现（顺序、空行、缩进、注释与换行风格，见 §9 与 toml-mapping §4）。`web` 把同样的
-只读结果作为页面发布在 `127.0.0.1`（见 docs/web.md）。没有工程存储、没有事件日志、没有打包——这些属于后续
-里程碑（docs/m1-design.md §5）。
+只读结果作为页面发布在 `127.0.0.1`（见 docs/web.md）。没有工程存储、没有事件日志、没有打包、也没有编辑：这些
+都尚不存在。
 
 ## 1. 调用方式
 
@@ -91,8 +91,8 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `check` | 加载 1792、跳过 48、0 错误、612 警告、**2 悬空** | 加载 752、跳过 13、0 错误、559 警告、**911 悬空** |
 | `refs` | 23978 条引用、0 错误、4.3 秒 | 5793 条引用、0 错误、0.4 秒 |
 
-对原版 `Vehicles` 选择范围执行 `export` 写出 599 个文件、2371815 字节、0 错误。两个语料上的语义往返等价性见
-[m1-report.md](m1-report.md)；引用规则与覆盖情况见 [refs.md](refs.zh-CN.md)。
+对原版 `Vehicles` 选择范围执行 `export` 写出 599 个文件、2371815 字节、0 错误。引用规则与覆盖情况见
+[refs.md](refs.zh-CN.md)。
 
 2026-10-11 在写入器学会保留源排版之后重测：`python tools/export_fidelity.py --data "<Firefight>/Data"` 导出
 全部 1840 个原版文件，结果为 **1840 个逐字节相同、100.0%**（此前其中 1792 个回来时兄弟节点顺序不同，12 个换行
@@ -105,7 +105,7 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 ## 8. 复现演示
 
 ```
-python -m unittest discover -s tests -t .                       # 231 条测试
+python -m unittest discover -s tests -t .                       # 运行测试套件
 python -m core.cli Firefight stats  "root=<Firefight>"
 python -m core.cli Firefight check  "root=<Firefight>" --json
 python -m core.cli Firefight refs   "root=<Firefight>" --json --limit 5
@@ -125,6 +125,6 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。
 * 重新输出的文件是否被引擎接受，要在游戏内加载验证，本工具不做这件事。
-* `Maps/`、`Surnames/` 与 `equipment_*` 不在范围内，与 M1 相同。
+* `Maps/`、`Surnames/` 与 `equipment_*` 不在范围内。
 * 模组尚未通过 `mod.txt` 加载；模组就是含 `Data/` 的目录。
 

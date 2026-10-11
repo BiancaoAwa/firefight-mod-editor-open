@@ -6,7 +6,7 @@ This document specifies the MCP server that ships inside the editor repository. 
 surfaces and how they overlap (§1), the transport and protocol revisions the server answers (§2), the tool
 surface and its single source of truth (§3), resources and prompts (§4), permissions (§5), error mapping
 (§6), entry point and client wiring (§7), how the server is tested (§8), and what it deliberately does not
-do (§9). Stage S3 and S4 of [plan.md](plan.md) implement it.
+do (§9). The server lands in implementation pull requests of its own.
 
 ## 1. Delivery surfaces and their boundaries
 
@@ -17,7 +17,7 @@ do (§9). Stage S3 and S4 of [plan.md](plan.md) implement it.
 | MCP server | this repository, `core/mcp/` | in-process call of `run_command` | MCP clients outside DSH, and DSH itself through an MCP client entry |
 | Skill (`SKILL.md`) | editor folder, not in the repository | prompt-level workflow over either of the above | reusable agent procedure |
 
-**D12 — ownership and shape.** The MCP server is part of the editor repository, under `core/mcp/`, with the
+**Ownership and shape.** The MCP server is part of the editor repository, under `core/mcp/`, with the
 entry point `python -m core.mcp`. It is standard-library only, speaks stdio JSON-RPC, and calls
 `core.cli.commands.run_command` in-process with a constructed `Context`, reusing `Result`. It never spawns
 the CLI: an in-process call keeps the permission gate, the exit-code semantics and the JSON payload
@@ -29,7 +29,7 @@ server, and say which one a workflow assumes.
 
 ## 2. Transport and protocol revision
 
-**D14 — revisions.** The server is stdio-only. It answers both protocol families, deciding from the first
+**Revisions.** The server is stdio-only. It answers both protocol families, deciding from the first
 request:
 
 * **`initialize`** (revisions 2025-06-18 and 2025-11-25): the classic handshake, followed by
@@ -47,7 +47,7 @@ authentication, `sampling`, `roots` and `logging` (deprecated upstream), tasks, 
 
 ## 3. Tool surface and the single source of truth
 
-**D13 — naming.** Tool names are byte-identical to the plugin table in `dsh-firefight-mod-tools`
+**Naming.** Tool names are byte-identical to the plugin table in `dsh-firefight-mod-tools`
 `lib/specs.js`, and parameters keep the plugin's camelCase spelling, so one prompt or skill can move
 between surfaces without renaming anything.
 
@@ -62,12 +62,12 @@ between surfaces without renaming anything.
 | `ff_deps` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
 | `ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
 | `ff_export` | `scope`, `selector`, `to`, `as`, `root`, `workspace` | yes | always (export is the existing write path) |
-| `ff_set` | `scope`, `selector`, `field`, `value`, `dryRun`, `root`, `workspace` | yes | only with `--write` (stage S4) |
-| `ff_undo` | `scope`, `selector`, `count`, `root`, `workspace` | yes | only with `--write` (stage S4) |
+| `ff_set` | `scope`, `selector`, `field`, `value`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_undo` | `scope`, `selector`, `count`, `root`, `workspace` | yes | only with `--write` |
 
-Later stages add `ff_add` and `ff_remove` with the same rule.
+Later work adds `ff_add` and `ff_remove` with the same rule.
 
-**D16 — one specification.** The CLI help, the web UI and the MCP tool table read one Python specification
+**One specification.** The CLI help, the web UI and the MCP tool table read one Python specification
 table (candidate `core/cli/specs.py`) instead of three hand-written lists. A snapshot test asserts that
 `tools/list` names, parameter names and required-ness equal the plugin table, and that read-only mode
 exposes no write tool. Cross-repository consistency is enforced by that test plus this document; no shared
@@ -88,7 +88,7 @@ Resources are read-only. Subscriptions are not implemented (2026-07-28 moved the
 
 ## 5. Permissions and approval
 
-**D15 — permission gate.** The server starts read-only. `--write` puts it in the workspace-write tier.
+**Permission gate.** The server starts read-only. `--write` puts it in the workspace-write tier.
 
 * Read-only server: `tools/list` contains no write tool, and a direct call to one is refused as an unknown
   tool, not silently downgraded.
@@ -147,8 +147,8 @@ problem".
 3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused.
 4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched.
 5. **Live client check.** One manual session against a real MCP client, recording which protocol revision
-   was accepted and the exact startup configuration. The result is appended to this section when S3 lands;
-   until then the accepted revision is unverified.
+   was accepted and the exact startup configuration. The result is appended to this section once that
+   session runs; until then the accepted revision is unverified.
 
 ## 9. Non-goals
 

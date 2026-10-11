@@ -1,9 +1,9 @@
 > Language: **English** | [中文](web.zh-CN.md)
 
-# Local web UI (M7, browsing slice)
+# Local web UI
 
 Status: **read-only browsing**. The UI renders the same results as the CLI and can write
-nothing. Editing belongs to M4 (event log and undo) and is not implemented yet.
+nothing. Editing — typed edits, the event log and undo — is not implemented yet.
 
 The whole UI is served by the Python standard library — no new dependency, no build step,
 no JavaScript, no external asset, no cookie. Every page is server-rendered HTML, so the
@@ -176,7 +176,7 @@ game installation are untouched, and only the local serving process ends.
 
 ```
 python -m unittest tests.test_web          # 57 tests, ~4 s
-python -m unittest discover -s tests -t .  # 231 tests
+python -m unittest discover -s tests -t .  # run the suite
 ```
 
 `tests/test_web.py` builds a small fixture project (`tests/_scratch_web/`) and starts the
@@ -193,7 +193,7 @@ value=WEAPON_PISTOL_P38` and a quoted `show` the same way.
 
 ## 6. Next
 
-Editing (M4) is the gate for everything write-shaped: typed editing, semantic diff,
+Editing is the gate for everything write-shaped: typed editing, semantic diff,
 `--dry-run`, the event log with undo, conflict detection and a permission indicator. The
 browsing slice deliberately stays a read-only projection of the CLI so that the write path
 can be designed once, in the core, and reused by both the CLI and the UI.

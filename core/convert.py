@@ -84,7 +84,7 @@ def _element_table(element: XmlElement, node: Node | None, path: tuple[str, ...]
         if shape is None:
             shape = "table" if has_children else "leaf"
             if count > 1 and not has_children:
-                raise SchemaError(child_path, "unknown leaf element repeats; M1 has no scalar arrays")
+                raise SchemaError(child_path, "unknown leaf element repeats; the TOML subset has no scalar arrays")
             warnings.append(f"{'/'.join(child_path)}: unknown element, kept as {shape}")
         if shape == "leaf":
             if count > 1:

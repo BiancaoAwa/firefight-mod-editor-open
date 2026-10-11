@@ -1,6 +1,6 @@
 """Single text I/O exit point.
 
-UTF-8 before cp1252; exports keep their line endings, text without a source is CRLF with tabs (docs/m0-baseline.md section 2.2).
+UTF-8 before cp1252; exports keep their line endings, text without a source is CRLF with tabs (docs/toml-mapping.md section 5).
 """
 
 from dataclasses import dataclass
@@ -34,7 +34,7 @@ def normalize_newlines(text: str) -> str:
 
 
 def to_export_newlines(text: str) -> str:
-    """LF becomes CRLF (decision D3)."""
+    """LF becomes CRLF (docs/toml-mapping.md section 5)."""
     return normalize_newlines(text).replace("\n", "\r\n")
 
 
@@ -74,7 +74,7 @@ def encode_export(text: str, file: str = "<export>", encoding: str = CODE_PAGE, 
 
     ``newline`` is the line ending to write; an empty string keeps the line
     endings the text already carries, which is how a stock file keeps its own
-    style (decision D3 as amended, docs/toml-mapping.md section 5).
+    style (docs/toml-mapping.md section 5).
     """
     if newline:
         text = normalize_newlines(text).replace("\n", newline)

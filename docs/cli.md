@@ -1,13 +1,13 @@
 > Language: **English** | [中文](cli.zh-CN.md)
 
-# Command line (M3, first slice)
+# Command line
 
 Status: **read-only**. Every command except `export` prints a result and writes nothing;
 `export` writes stock XML into a directory the caller names, and for a file that came from
 disk it reproduces the source bytes exactly (order, blank lines, indentation, comments and
 newline style — see §9 and toml-mapping §4). `web` serves the same read-only results as
-pages on `127.0.0.1` (docs/web.md). No project storage, no event log, no packaging — those
-are later milestones (docs/m1-design.md §5).
+pages on `127.0.0.1` (docs/web.md). No project storage, no event log, no packaging, no
+editing: none of those exists yet.
 
 ## 1. Invocation
 
@@ -101,8 +101,7 @@ repository):
 | `refs` | 23978 references, 0 errors, 4.3 s | 5793 references, 0 errors, 0.4 s |
 
 `export` of the stock `Vehicles` selection writes 599 files and 2371815 bytes with 0
-errors. Semantic round-trip equivalence on both corpora is reported in
-[m1-report.md](m1-report.md); reference rules and coverage in [refs.md](refs.md).
+errors. Reference rules and coverage are in [refs.md](refs.md).
 
 Measured again on 2026-10-11, after the writer learned to keep the source layout:
 `python tools/export_fidelity.py --data "<Firefight>/Data"` exports all 1840 stock files
@@ -119,7 +118,7 @@ registry.
 ## 8. Reproducing the demo
 
 ```
-python -m unittest discover -s tests -t .                       # 231 tests
+python -m unittest discover -s tests -t .                       # run the suite
 python -m core.cli Firefight stats  "root=<Firefight>"
 python -m core.cli Firefight check  "root=<Firefight>" --json
 python -m core.cli Firefight refs   "root=<Firefight>" --json --limit 5
@@ -142,6 +141,6 @@ address it bound.
   (tab indent, CRLF, schema order), and an edit invalidates the layout of the element it
   touches for as long as it is applied in memory.
 * Whether the engine accepts a file we re-emit is verified by an in-game load check, not here.
-* `Maps/`, `Surnames/` and `equipment_*` are out of scope, as in M1.
+* `Maps/`, `Surnames/` and `equipment_*` are out of scope.
 * Modules are not loaded through `mod.txt` yet; a mod is a directory with `Data/`.
 

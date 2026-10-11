@@ -727,8 +727,8 @@ def _export_text(path: Path, relative: str) -> tuple[str, str, list[str], str]:
 
     A plain list (no XML at all) is copied exactly as it stands; an entity is
     rendered with the layout the reader captured.  Either way the file keeps its
-    own line endings, so an untouched source exports byte for byte (decision D3
-    as amended, docs/toml-mapping.md section 5).
+    own line endings, so an untouched source exports byte for byte (docs/toml-mapping.md
+    section 5).
     """
     source = textio.read_source(path)
     if path.suffix.lower() == ".txt":

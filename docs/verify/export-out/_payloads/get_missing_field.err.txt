@@ -1,8 +1,0 @@
-python.exe : Firefight/Data/Weapons/WEAPON_PISTOL_P38.txt: no field no/such/field
-At line:8 char:3
-+   & $py $cli @argv 1> $so 2> $se
-+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Firefight/Data/...d no/such/field:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-run 'ff help' for usage

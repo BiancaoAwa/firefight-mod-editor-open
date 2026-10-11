@@ -1,6 +1,6 @@
 """Tests for the path-keyed schema.
 
-The coverage test reads ``docs/baseline/path-inventory.tsv``, so the committed
+The coverage test reads ``tests/fixtures/schema/path-inventory.tsv``, so the committed
 declarations stay tied to the committed measurement.
 """
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from core.schema import ARRAY, LEAF, SCHEMAS, TABLE, Node, Schema, schema_for
 
-INVENTORY = Path(__file__).resolve().parents[1] / "docs" / "baseline" / "path-inventory.tsv"
+INVENTORY = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "schema" / "path-inventory.tsv"
 SHAPE_ORDER = {LEAF: 0, TABLE: 1, ARRAY: 2}
 
 

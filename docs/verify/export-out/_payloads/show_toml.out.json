@@ -1,6 +1,0 @@
-{
-  "path": "Data/Weapons/WEAPON_PISTOL_P38.txt",
-  "format": "xml",
-  "toml": "[weapon]\nname = \"P38 Pistol\"\ntype = \"WEAPON_PISTOL\"\n[weapon.ammo]\n[[weapon.ammo.type]]\nflavour = \"FLAVOUR_BALL\"\nmass = 0.008\nname = \"9x19mm Parabellum\"\nspeed = 350\n[weapon.dimensions]\nbarrel_length = 12\ncalibre = 9\n[weapon.magazine]\ncapacity = 8\nsound_reload = \"reload_magazine\"\n[weapon.shoot]\nreload = \"RELOAD_SEMI_AUTOMATIC\"\nrof = 120\nsound_shoot = \"shoot_pistol\"\n[weapon.usage]\ncountries = \"GERMANY\"\n",
-  "warnings": []
-}
