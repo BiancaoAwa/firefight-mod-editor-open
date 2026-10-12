@@ -16,6 +16,8 @@ ENV_MODS = "FIREFIGHT_MODS"
 PROJECT_FILE = "mod.toml"
 MOD_FOLDER = "Mod"
 DATA_FOLDER = "Data"
+# Files that sit in the project directory rather than under the data root.
+PROJECT_FILES = (PROJECT_FILE, "mod_setting.toml")
 
 
 class UsageError(Exception):
@@ -33,6 +35,13 @@ class Scope:
     @property
     def data(self) -> Path:
         return self.root / DATA_FOLDER
+
+    @property
+    def project(self) -> Path:
+        """The project directory: the one above ``Mod/``, which holds ``mod.toml``."""
+        if self.root.name == MOD_FOLDER and self.root.parent != self.root:
+            return self.root.parent
+        return self.root
 
     def describe(self) -> str:
         return f"{self.name}: {self.root} ({self.origin})"
@@ -102,7 +111,7 @@ def _stock_scope(options: dict[str, str], config: TomlTable | None, config_path:
         if bundled.is_dir():
             return Scope("Firefight", bundled.parent, f"editor copy {editor / 'Firefight'}")
     raise UsageError(
-        "cannot find the stock Firefight data; set one of:\n"
+        "cannot find the stock Firefight data; set one of the following.\n"
         f"  root=<game directory>            (option, this invocation)\n"
         f"  {ENV_DATA}=<game directory>       (environment)\n"
         f"  firefight = \"<game directory>\"    (in {CONFIG_NAME})"
@@ -206,6 +215,10 @@ def split_spec(spec: str, scopes: dict[str, Scope] | None = None) -> tuple[str, 
 def entity_files(scope: Scope, selector: str = "all") -> list[Path]:
     """Every entity file a selector names, sorted; empty selector means all."""
     data = scope.data
+    wanted_name = selector.strip("/").replace("\\", "/")
+    if wanted_name in PROJECT_FILES:
+        path = scope.project / wanted_name
+        return [path] if path.is_file() else []
     if not data.is_dir():
         return []
     files = sorted(
@@ -230,7 +243,9 @@ def _selector_path(scope: Scope, selector: str) -> Path:
 
 
 def _relative(scope: Scope, path: Path) -> str:
-    try:
-        return path.relative_to(scope.root).as_posix()
-    except ValueError:
-        return path.as_posix()
+    for base in (scope.root, scope.project):
+        try:
+            return path.relative_to(base).as_posix()
+        except ValueError:
+            continue
+    return path.as_posix()

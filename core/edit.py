@@ -341,6 +341,9 @@ def _format_value(node, old_raw: str, value: str, *, toml_document: bool) -> str
         return str(_parse_int(value, node.name))
     if kind == "float":
         return _format_float(old_raw, _parse_float(value, node.name))
+    if kind == "list":
+        raw, _ = toml.parse_array(value if value.strip().startswith("[") else f"[{value}]", node.name)
+        return raw
     if toml_document:
         return toml.quote_string(value)
     if "<" in value or ">" in value:
@@ -351,6 +354,8 @@ def _format_value(node, old_raw: str, value: str, *, toml_document: bool) -> str
 def _infer_kind(old_raw: str, toml_document: bool) -> str:
     """The value type of a field the schema leaves open, from its current spelling."""
     text = old_raw.strip()
+    if toml_document and text[:1] == "[":
+        return "list"
     if toml_document and text[:1] in ('"', "'"):
         return "str"
     if text.lower() in ("yes", "no", "true", "false"):
@@ -501,6 +506,139 @@ def _assignment_at(line: str) -> int | None:
     return None
 
 
+# --- array entries ----------------------------------------------------------
+
+
+def plan_entry(document, field: str, op: str, *, copy_from: int | None = None) -> EditPlan:
+    """Stage the addition or removal of one array-of-tables entry.
+
+    ``op`` is ``append`` or ``delete``.  An append names the array
+    (``ammo.type``); a delete names one entry of it (``ammo.type.0``).  Both work
+    on the source lines, so every other line, comment and blank line keeps its
+    bytes (docs/cli.md section 4.1).
+    """
+    if document.format != "toml":
+        raise EditRefused(f"{field}: an array of tables lives in a working document")
+    segments = _segments(field)
+    if not segments:
+        raise EditRefused("field= needs a path such as ammo.type")
+    wanted: int | None = None
+    if op == "delete":
+        if not segments[-1].isdigit():
+            raise EditRefused(f"{field}: name the entry to delete, for example {field}.0")
+        wanted = int(segments[-1])
+        segments = segments[:-1]
+        if not segments:
+            raise EditRefused(f"{field}: name the array as well, for example ammo.type.0")
+    search = tuple(part for part in segments if not part.isdigit())
+    node = _schema_node(document, search, field)
+    if node.shape != "array":
+        raise EditRefused(f"{field}: {node.shape} is not an array of tables")
+    warnings: list[str] = []
+    entity = entity_of(document, document.relative)
+    source = textio.read_source(document.path, warnings)
+    if "\r" in source.raw.replace("\r\n", ""):
+        raise EditRefused(f"{field}: the document uses bare carriage returns; not supported")
+    path = _root_prefix(document) + list(segments)
+    lines = source.raw.split("\n")
+    spans = _entry_spans(lines, toml.entry_text(path, [])[0])
+    eol = "\r" if "\r\n" in source.raw else ""
+    if op == "delete":
+        assert wanted is not None
+        if wanted >= len(spans):
+            raise EditRefused(f"{field}: index {wanted} is out of range for the array ({len(spans)} entry(ies))")
+        start, end = spans[wanted]
+        del lines[start:end]
+        if start > 0 and start < len(lines) and lines[start - 1].strip() == "" and lines[start].strip() == "":
+            del lines[start]
+        before, after = field, ""
+    else:
+        if copy_from is not None and copy_from >= len(spans):
+            raise EditRefused(
+                f"{field}: index {copy_from} is out of range for the array ({len(spans)} entry(ies))"
+            )
+        if copy_from is None:
+            block = [row + eol for row in toml.entry_text(path, _entry_leaves(node))]
+        else:
+            start, end = spans[copy_from]
+            block = [toml.entry_text(path, [])[0] + eol, *[row + eol for row in lines[start + 1 : end]]]
+        at = spans[-1][1] if spans else max(len(lines) - 1, 0)
+        if at and lines[at - 1].strip() != "":
+            block = [eol, *block]
+        lines[at:at] = block
+        before, after = "", f"{field}.{len(spans)}"
+    text = "\n".join(lines)
+    newline = "crlf" if "\r\n" in source.raw else "lf"
+    data = textio.encode_export(text, file=str(document.path), encoding=document.encoding, newline="")
+    if source.had_bom:
+        data = textio.BOM + data
+    return EditPlan(
+        path=document.path,
+        relative=document.relative,
+        entity=entity,
+        field=field,
+        before=before,
+        after=after,
+        text=text,
+        data=data,
+        encoding=document.encoding,
+        newline=newline,
+        had_bom=source.had_bom,
+        size_before=document.path.stat().st_size,
+        digest=hashlib.sha256(document.path.read_bytes()).hexdigest(),
+        enum={},
+        warnings=tuple(warnings),
+    )
+
+
+def _root_prefix(document) -> list[str]:
+    """The root element's name, when the document is wrapped in its own table."""
+    entries = document.table.entries
+    if len(entries) == 1 and entries[0][0] == document.root_tag and isinstance(entries[0][1], TomlTable):
+        return [document.root_tag]
+    return []
+
+
+def _entry_spans(lines: list[str], header: str) -> list[tuple[int, int]]:
+    """The line range of every ``[[header]]`` block, in file order.
+
+    Assignments inside an entry start in column zero like a header does, so a
+    block ends at the next header that is not inside this entry; blank lines at
+    its end belong to whoever comes next.
+    """
+    inner = header.strip("[]")
+    spans: list[tuple[int, int]] = []
+    for start, row in enumerate(lines):
+        if row.strip() != header:
+            continue
+        end = len(lines)
+        for index in range(start + 1, len(lines)):
+            row = lines[index]
+            if row[:1] != "[":
+                continue
+            if row.startswith(f"[{inner}.") or row.startswith(f"[[{inner}."):
+                continue
+            end = index
+            break
+        while end > start + 1 and lines[end - 1].strip() == "":
+            end -= 1
+        spans.append((start, end))
+    return spans
+
+
+def _entry_leaves(node) -> list[tuple[str, str]]:
+    """A new entry's leaves, every one of them written empty.
+
+    Leaves only: a sub-table or a nested array inside an entry is left for
+    ``set``, or for ``from=``, which copies an entry that has them.
+    """
+    return [
+        (child.name, SKELETON_VALUES.get(child.type, '""'))
+        for child in node.children
+        if child.shape == "leaf"
+    ]
+
+
 # --- writing ----------------------------------------------------------------
 
 
@@ -508,4 +646,211 @@ def _check_unchanged(plan: EditPlan) -> None:
     """Refuse when the document changed after the plan was staged."""
     if hashlib.sha256(plan.path.read_bytes()).hexdigest() != plan.digest:
         raise EditRefused(f"{plan.relative}: the document changed after the change was staged; nothing was written")
+
+
+# --- whole documents --------------------------------------------------------
+
+ROOT_BY_CATEGORY = {
+    # The three root elements the shipped data uses, per category (docs/cli.md section 4.5).
+    "weapon": "weapon",
+    "aircraft": "aircraft",
+    "infantry": "squad",
+    "vehicle": "squad",
+    "at_gun": "squad",
+}
+
+SKELETON_VALUES = {"int": "0", "float": "0.0", "bool": "false"}
+
+
+@dataclass(frozen=True)
+class DocumentPlan:
+    """A document about to appear or disappear, and the event that records it."""
+
+    result: str
+    path: Path
+    relative: str
+    entity: str
+    data: bytes
+    before: str
+    after: str
+    digest_before: str
+    digest_after: str
+    bytes_before: int
+    before_data: bytes = b""
+
+
+def skeleton(root_tag: str) -> str:
+    """The empty document the schema declares for one root element.
+
+    Every leaf the schema knows is written with an empty value of its own type, so
+    the result parses and every field can be filled in with ``set``.  Array nodes
+    are left out for the reason given in ``_skeleton_table``.  A root the schema
+    does not describe yields the bare root table (docs/cli.md section 4.5).
+    """
+    declared = schema_for(root_tag)
+    root = _skeleton_table(declared.root) if declared is not None else TomlTable()
+    return toml.render(TomlTable([(root_tag, root)]))
+
+
+def _skeleton_table(node) -> TomlTable:
+    """One schema node as a table of leaves and sub-tables.
+
+    Array nodes are left out: the reader accepts no inline array
+    (core/toml.py, ``_parse_value``), so an empty ``key = []`` would make the
+    document unreadable.  ``from=`` copies a document that has them
+    (docs/cli.md section 4.5).
+    """
+    table = TomlTable()
+    for child in node.children:
+        if child.shape == "table":
+            table.entries.append((child.name, _skeleton_table(child)))
+        elif child.shape == "array":
+            continue
+        else:
+            raw = SKELETON_VALUES.get(child.type, '""')
+            table.entries.append((child.name, TomlValue(raw, raw, 0)))
+    return table
+
+
+def plan_create(path: Path, relative: str, text: str, *, entity: str) -> DocumentPlan:
+    """Stage a new document; the caller has already decided the text.
+
+    Refuses when the target is already there, so an ``add`` never overwrites.
+    """
+    if path.exists():
+        raise EditRefused(f"{relative}: the document is already there; nothing was written")
+    data = textio.encode_export(text, file=relative, encoding="utf-8", newline="\r\n")
+    return DocumentPlan(
+        result="add",
+        path=path,
+        relative=relative,
+        entity=entity,
+        data=data,
+        before="",
+        after=entity,
+        digest_before="",
+        digest_after=journal.digest_of(data),
+        bytes_before=0,
+    )
+
+
+def plan_remove(path: Path, relative: str, *, entity: str) -> DocumentPlan:
+    """Stage the removal of a document that is there and readable."""
+    if not path.is_file():
+        raise EditRefused(f"{relative}: no such document; nothing was written")
+    data = path.read_bytes()
+    return DocumentPlan(
+        result="remove",
+        path=path,
+        relative=relative,
+        entity=entity,
+        data=b"",
+        before=entity,
+        after="",
+        digest_before=journal.digest_of(data),
+        digest_after="",
+        bytes_before=len(data),
+    )
+
+
+def plan_render(path: Path, relative: str, text: str, *, entity: str) -> DocumentPlan:
+    """Stage a whole-document rewrite, such as rendering a project file from stock.
+
+    Unlike ``plan_create`` an existing document is replaced; the bytes it had are kept in
+    the baseline, so ``undo`` puts them back.
+    """
+    before = path.read_bytes() if path.is_file() else b""
+    data = textio.encode_export(text, file=relative, encoding="utf-8", newline="\r\n")
+    return DocumentPlan(
+        result="set",
+        path=path,
+        relative=relative,
+        entity=entity,
+        data=data,
+        before=f"{len(before)} byte(s)" if before else "",
+        after=f"{len(data)} byte(s)",
+        digest_before=journal.digest_of(before) if before else "",
+        digest_after=journal.digest_of(data),
+        bytes_before=len(before),
+        before_data=before,
+    )
+
+
+def _check_document(plan: DocumentPlan) -> None:
+    """Refuse when the document moved on since the plan was staged."""
+    present = plan.path.is_file()
+    if plan.result == "add" and present:
+        raise EditRefused(f"{plan.relative}: the document is already there; nothing was written")
+    if plan.result == "remove":
+        if not present:
+            raise EditRefused(f"{plan.relative}: the document is gone; nothing was written")
+        if journal.digest_of(plan.path.read_bytes()) != plan.digest_before:
+            raise EditRefused(f"{plan.relative}: the document changed after the change was staged; nothing was written")
+    if plan.result == "set":
+        if not plan.digest_before:
+            if present:
+                raise EditRefused(
+                    f"{plan.relative}: the document appeared after the change was staged; nothing was written"
+                )
+            return
+        if not present:
+            raise EditRefused(f"{plan.relative}: the document is gone; nothing was written")
+        if journal.digest_of(plan.path.read_bytes()) != plan.digest_before:
+            raise EditRefused(f"{plan.relative}: the document changed after the change was staged; nothing was written")
+
+
+def apply_document(
+    plan: DocumentPlan, project_root: Path, *, dry_run: bool = False, actor: str = "cli", now: float | None = None
+) -> dict:
+    """Create or delete a whole document, or report what would happen.
+
+    A dry run leaves the disk and ``.editor/`` alone.  A real run re-checks the
+    state the plan was built from, keeps the bytes on both sides of the change in
+    the baseline, writes or deletes the file and appends one event.
+    """
+    relative = journal.confine(plan.path, project_root)
+    payload = {
+        "path": relative,
+        "entity": plan.entity,
+        "result": plan.result,
+        "existed_before": plan.bytes_before > 0,
+        "bytes_before": plan.bytes_before,
+        "bytes_after": len(plan.data),
+        "digest_before": plan.digest_before,
+        "digest_after": plan.digest_after,
+        "dry_run": dry_run,
+    }
+    if dry_run:
+        return payload | {"recorded": False}
+    with journal.hold_lock(project_root, tool=f"core.cli {plan.result}"):
+        edit_guard = _check_document
+        edit_guard(plan)
+        if plan.before_data:
+            journal.store_blob(project_root, plan.before_data)
+        if plan.data:
+            journal.store_blob(project_root, plan.data)
+            journal.write_atomic(plan.path, plan.data)
+        else:
+            journal.store_blob(project_root, plan.path.read_bytes())
+            plan.path.unlink()
+        event = journal.append(
+            project_root,
+            {
+                "actor": actor,
+                "result": plan.result,
+                "target": None,
+                "document": relative,
+                "entity": plan.entity,
+                "field": "",
+                "before": plan.before,
+                "after": plan.after,
+                "digest_before": plan.digest_before,
+                "digest_after": plan.digest_after,
+                "bytes_before": plan.bytes_before,
+                "bytes_after": len(plan.data),
+                "dry_run": False,
+            },
+            now=now,
+        )
+    return payload | {"recorded": True, "id": event["id"], "segment": event["segment"]}
 

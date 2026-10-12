@@ -29,6 +29,10 @@ Commands
   refs   (graph)   outgoing references of the selection
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
+  index            build the cross-reference tables under .editor/ (needs --write)
+  add              create one entity document (needs --write)
+  remove  (rm)     delete one entity document (needs --write)
+  settings         render mod_setting.toml from the stock Mod/mod.txt (needs --write)
   set              change one field of one document (needs --write)
   convert          turn the selection into project working files under to= (needs --write)
   log              log segments and the newest records inside them
@@ -36,27 +40,38 @@ Commands
   redo             re-apply what the last undo reverted (needs --write)
   export (emit)    render stock XML under to=<directory>
   version          editor, interpreter and resolvable scopes
-  web    (serve)   serve the read-only web UI on 127.0.0.1 (blocks until Ctrl-C)
+  web    (serve)   serve the web UI on 127.0.0.1 (blocks until Ctrl-C)
 
 Options
   root=<dir>       scope root override
   workspace=<dir>  directory holding Mods/ (default: current directory)
   to=<dir>         export destination, or the project convert writes into
   as=raw|toml|xml  how show renders a document
-  field=<a.b.c>    field path for get
+  field=<a.b.c>    field path for get; without it get lists every field
   type=<category>  filter by editor category
   kind=<name>      filter by reference kind
   path=<a/b>       document path prefix for find
-  limit=<n>        cap the rows printed (default 200)
+  limit=<n>        cap the rows printed (default 200; 0 prints every row)
   ignore_case=1    case-insensitive find
+  from=<path>      add: copy this document instead of writing the schema skeleton
+  op=<name>        set: set (default), append or delete one array-of-tables entry
+  from=<n>         set op=append: copy this array entry instead of an empty one
   overwrite=1      convert: replace a working file that is already there
+  overwrite=0      export: leave a file that is already there untouched
+  overwrite=1      settings: replace an existing mod_setting.toml
+  document=<text>  log: keep records whose document contains this text
+  actor=cli|mcp    log: keep records written by this actor
+  result=<name>    log: keep set, undo or redo records
+  since=<stamp>    log: keep records at or after this timestamp text
+  until=<stamp>    log: keep records at or before this timestamp text
   port=<n>         web UI port; without it the first free port at or above 8765 is used,
                    unless an instance is already running and is reused instead
   token=<text>     web UI access token; links then need ?t=<text>
   pagesize=<n>     web UI rows per page (default 200)
+  lang=zh|en       web UI language (default zh); a page can override it with ?lang=
   browser=1        web UI: open the default browser on start
-  --write          set, convert, undo and redo: write the change into the document
-  --dry-run        set and convert: report the change without writing anything
+  --write          set, add, remove, convert, index, settings, undo and redo: write the change into the document
+  --dry-run        set, add, remove, convert, export, index, settings, undo and redo: report the change
   --json           print the machine payload instead of the text table
 """
 

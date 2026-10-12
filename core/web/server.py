@@ -13,11 +13,13 @@ import threading
 import time
 import traceback
 import urllib.request
+import contextvars
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from core.errors import FfError
+from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, current, html_lang, tr, use
 
 from core.cli.commands import ALIASES, DEFAULT_LIMIT, VERSION, Context, command_names, run_command
 from core.cli.main import parse_argv
@@ -65,7 +67,9 @@ select { font-family: inherit; font-size: 13px; }
 .crumbs { margin-bottom: 6px; color: #444; }
 """.strip()
 
-FOOTER = "服务端渲染 · 无 JavaScript · 数据与 <code>ff --json</code> 完全一致 · 写入由命令自身的门决定"
+def footer() -> str:
+    """The line under every page, in the language of this request."""
+    return tr("服务端渲染 · 无 JavaScript · 数据与 <code>ff --json</code> 完全一致 · 写入由命令自身的门决定")
 
 
 def esc(value) -> str:
@@ -79,11 +83,12 @@ def att(value) -> str:
 
 
 class Url:
-    """Builds links that keep the current scope and access token."""
+    """Builds links that keep the current scope, access token and language."""
 
-    def __init__(self, scope: str = "", token: str = "") -> None:
+    def __init__(self, scope: str = "", token: str = "", lang: str = "") -> None:
         self.scope = scope
         self.token = token
+        self.lang = lang
 
     def __call__(self, route: str = "index", **params) -> str:
         query = {key: value for key, value in params.items() if value not in (None, "")}
@@ -91,6 +96,8 @@ class Url:
             query.setdefault("scope", self.scope)
         if self.token:
             query.setdefault("t", self.token)
+        if self.lang and self.lang != LANGUAGE_DEFAULT:
+            query.setdefault("lang", self.lang)
         encoded = urlencode(query)
         path = "" if route in ("", "index") else route
         return f"/{path}" + (f"?{encoded}" if encoded else "")
@@ -103,7 +110,7 @@ def layout(title: str, body: str, nav: str = "", subtitle: str = "") -> str:
         head += f'<div class="sub">{esc(subtitle)}</div>'
     head += "</div>"
     return (
-        '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
+        f'<!DOCTYPE html>\n<html lang="{html_lang()}">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f"<title>{esc(title)}</title>\n<style>\n{STYLE}\n</style>\n</head>\n<body>\n"
         f"{head}\n"
@@ -111,17 +118,20 @@ def layout(title: str, body: str, nav: str = "", subtitle: str = "") -> str:
         + "<hr>\n"
         f"{body}\n"
         "<hr>\n"
-        f'<div class="foot">{FOOTER}</div>\n'
+        f'<div class="foot">{footer()}</div>\n'
         "</body>\n</html>\n"
     )
 
 
 def nav_bar(url: Url, links: dict[str, str] | None = None) -> str:
     """The line of section links, with the current scope and the exit link."""
-    links = links or {"index": "首页", "list": "实体列表", "find": "查找", "deps": "引用查询", "check": "体检", "stats": "统计", "cmd": "命令行", "help": "帮助"}
+    links = links or {"index": tr("首页"), "list": tr("实体列表"), "find": tr("查找"), "deps": tr("引用查询"), "check": tr("体检"), "stats": tr("统计"), "cmd": tr("命令行"), "help": tr("帮助")}
     parts = [f'<a href="{att(url(route))}">{esc(label)}</a>' for route, label in links.items()]
-    parts.append(f'<span class="sub">作用域 {esc(url.scope or "-")}</span>')
-    parts.append(f'<span class="sub">| <a href="{att(url("quit"))}">退出</a></span>')
+    parts.append(tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-")))
+    other = "zh" if current() == "en" else "en"
+    name = "中文" if other == LANGUAGE_DEFAULT else "English"
+    parts.append(f'<span class="sub">| <a href="{att(url(_ROUTE.get(), lang=other))}">{name}</a></span>')
+    parts.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
     return " ".join(parts)
 
 
@@ -175,7 +185,7 @@ def mono(text: str) -> str:
     return f"<code>{esc(text)}</code>"
 
 
-def table(headers: list[str], rows: list[list[str]], empty: str = "没有数据") -> str:
+def table(headers: list[str], rows: list[list[str]], empty: str = tr("没有数据")) -> str:
     """A bordered table; cells are markup and must be escaped by the caller."""
     if not rows:
         return f'<p class="empty">{esc(empty)}</p>'
@@ -187,22 +197,22 @@ def table(headers: list[str], rows: list[list[str]], empty: str = "没有数据"
 def kv(pairs: list[tuple[str, str]]) -> str:
     """A two-column table of label/value pairs; values are markup."""
     rows = [[esc(label), value] for label, value in pairs]
-    return table(["项", "值"], rows)
+    return table([tr("项"), tr("值")], rows)
 
 
 def pager(url: Url, route: str, page: int, total: int, size: int, last: int, **params) -> str:
     """First/previous/next/last links when the list runs over one page."""
     if last <= 1:
-        return note(f"共 {total} 条")
+        return note(tr("共 {} 条", total))
     def href(target: int) -> str:
         return att(url(route, page=target, **params))
-    parts = [f"共 {total} 条，第 {page} / {last} 页"]
+    parts = [tr("共 {} 条，第 {} / {} 页", total, page, last)]
     if page > 1:
-        parts.append(f'<a href="{href(1)}">首页</a>')
-        parts.append(f'<a href="{href(page - 1)}">上一页</a>')
+        parts.append(tr("<a href=\"{}\">首页</a>", href(1)))
+        parts.append(tr("<a href=\"{}\">上一页</a>", href(page - 1)))
     if page < last:
-        parts.append(f'<a href="{href(page + 1)}">下一页</a>')
-        parts.append(f'<a href="{href(last)}">末页</a>')
+        parts.append(tr("<a href=\"{}\">下一页</a>", href(page + 1)))
+        parts.append(tr("<a href=\"{}\">末页</a>", href(last)))
     return '<p class="note">' + " · ".join(parts) + "</p>"
 
 
@@ -217,7 +227,7 @@ def crumbs(items: list[tuple[str, str]]) -> str:
     return '<div class="crumbs">' + " › ".join(parts) + "</div>"
 
 
-def form(action: str, fields: list[str], submit: str = "查询") -> str:
+def form(action: str, fields: list[str], submit: str = tr("查询")) -> str:
     """A GET form from pre-built field markup.
 
     A GET submission replaces the query string of the action with the form's own fields, so
@@ -265,7 +275,10 @@ def hidden(name: str, value: str) -> str:
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
-RESERVED = ("scope", "t", "command", "selector", "page")
+RESERVED = ("scope", "t", "command", "selector", "page", "lang")
+
+# The route of the request being answered, so the language switch can stay on the page.
+_ROUTE = contextvars.ContextVar("web_route", default="index")
 TEXT_VIEWS = ("raw", "toml", "xml")
 
 # Commands the UI refuses: `web` would try to bind a second port inside a request. Everything
@@ -281,9 +294,9 @@ def web_command(name: str) -> str:
     """Canonical name of a command a page may run, or a UsageError."""
     canonical = ALIASES.get(name, name)
     if canonical not in command_names():
-        raise UsageError(f"没有这个命令：{name}；可用：{', '.join(command_names())}")
+        raise UsageError(tr("没有这个命令：{}；可用：{}", name, ', '.join(command_names())))
     if canonical in REFUSED_COMMANDS:
-        raise UsageError(f"{canonical} 不能在页面里运行（它会在一次请求里再起一个服务）；请在命令行里运行")
+        raise UsageError(tr("{} 不能在页面里运行（它会在一次请求里再起一个服务）；请在命令行里运行", canonical))
     return canonical
 
 
@@ -292,7 +305,7 @@ def split_command_line(line: str) -> list[str]:
     try:
         tokens = shlex.split(line, posix=False)
     except ValueError as error:
-        raise UsageError(f"这一行读不出来：{error}")
+        raise UsageError(tr("这一行读不出来：{}", error))
     return [token[1:-1] if len(token) > 1 and token[0] == token[-1] and token[0] in "\"'" else token for token in tokens]
 
 
@@ -330,12 +343,13 @@ def safe_selector(selector: str) -> str:
 class App:
     """One web session: the resolved options, the scope and the CLI bridge."""
 
-    def __init__(self, options: dict[str, str], cwd, scope_name: str, page_size: int = DEFAULT_LIMIT, token: str = "") -> None:
+    def __init__(self, options: dict[str, str], cwd, scope_name: str, page_size: int = DEFAULT_LIMIT, token: str = "", language: str = LANGUAGE_DEFAULT) -> None:
         self.options = {key: value for key, value in options.items() if value not in (None, "")}
         self.cwd = cwd
         self.default_scope = scope_name
         self.page_size = page_size
         self.token = token
+        self.language = language
 
     # --- scope and command plumbing -----------------------------------------
 
@@ -355,8 +369,8 @@ class App:
         return resolve_scope(wanted, self.options, self.cwd)
 
     def url(self, scope_name: str = "") -> Url:
-        """Link builder bound to an access token."""
-        return Url(scope=scope_name or self.default_scope, token=self.token)
+        """Link builder bound to an access token and the language of this request."""
+        return Url(scope=scope_name or self.default_scope, token=self.token, lang=current())
 
     def call(self, command: str, scope, selector: str = "", **options):
         """Run one CLI command in-process and return its Result.
@@ -394,12 +408,18 @@ class Handler(BaseHTTPRequestHandler):
         started = time.monotonic()
         parsed = urlparse(self.path)
         route = parsed.path.strip("/") or "index"
+        _ROUTE.set(route)
         query = {key: value[0] for key, value in parse_qs(parsed.query, keep_blank_values=True).items()}
+        try:
+            use(query.get("lang") or self.app.language)
+        except ValueError as error:
+            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写；下面的表单给出可用取值。")))
+            return
         if route == "favicon.ico":
             self.respond(204, "", "text/plain; charset=utf-8")
             return
         if route not in self.routes:
-            self.respond(404, self._error_page("没有这个页面", f"/{route}", "从上面的导航栏回到首页。"))
+            self.respond(404, self._error_page(tr("没有这个页面"), f"/{route}", tr("从上面的导航栏回到首页。")))
             return
         status = 200
         body = ""
@@ -407,12 +427,12 @@ class Handler(BaseHTTPRequestHandler):
             self.check_token(query)
             body = getattr(self, f"page_{route}")(query)
         except UsageError as error:
-            status, body = 400, self._error_page("用法错误", str(error), "检查参数拼写；下面的表单给出可用取值。")
+            status, body = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写；下面的表单给出可用取值。"))
         except FfError as error:
-            status, body = 500, self._error_page("读取失败", str(error), "文件可能损坏或不可解码；用 CLI 的 check 命令定位。")
+            status, body = 500, self._error_page(tr("读取失败"), str(error), tr("文件可能损坏或不可解码；用 CLI 的 check 命令定位。"))
         except Exception as error:  # keep the server alive and report what happened
             traceback.print_exc(file=sys.stderr)
-            status, body = 500, self._error_page("内部错误", f"{type(error).__name__}: {error}", "这是界面的问题，请把上面那段命令回报。")
+            status, body = 500, self._error_page(tr("内部错误"), f"{type(error).__name__}: {error}", tr("这是界面的问题，请把上面那段命令回报。"))
         if route == "json" and status == 200:
             self.respond(status, body, "text/plain; charset=utf-8")
         else:
@@ -454,9 +474,9 @@ class Handler(BaseHTTPRequestHandler):
     def _reject_method(self) -> None:
         self._discard_body()
         page = self._error_page(
-            "只支持 GET",
-            f"{self.command} 不被支持",
-            "这个界面只用 GET：用上面的导航栏浏览，或者在命令行页里运行命令。",
+            tr("只支持 GET"),
+            tr("{} 不被支持", self.command),
+            tr("这个界面只用 GET：用上面的导航栏浏览，或者在命令行页里运行命令。"),
         )
         self.respond(501, page)
 
@@ -482,7 +502,7 @@ class Handler(BaseHTTPRequestHandler):
     def check_token(self, query: dict[str, str]) -> None:
         """Refuse requests without the token when the tool was started with one."""
         if self.app.token and query.get("t") != self.app.token:
-            raise UsageError("缺少访问令牌：请用启动时打印的完整网址打开")
+            raise UsageError(tr("缺少访问令牌：请用启动时打印的完整网址打开"))
 
     def respond(self, status: int, body: str, content_type: str = "text/html; charset=utf-8") -> None:
         """Send one response and close the connection."""
@@ -508,10 +528,10 @@ class Handler(BaseHTTPRequestHandler):
     def _error_page(self, title: str, detail: str, hint: str) -> str:
         url = self.app.url()
         return layout(
-            f"{title} · Firefight 模组编辑器",
-            bad(detail) + note(hint) + note_html(link(url("index"), "回到首页")),
+            tr("{} · Firefight 模组编辑器", title),
+            bad(detail) + note(hint) + note_html(link(url("index"), tr("回到首页"))),
             nav_bar(url),
-            f"作用域 {self.app.default_scope}",
+            tr("作用域 {}", self.app.default_scope),
         )
 
     # --- shared builders ----------------------------------------------------
@@ -519,7 +539,7 @@ class Handler(BaseHTTPRequestHandler):
     def shell(self, title: str, body: str, scope_name: str, subtitle: str = "") -> str:
         """A page with the standard navigation."""
         url = self.app.url(scope_name)
-        return layout(title, body, nav_bar(url), subtitle or f"作用域 {scope_name}")
+        return layout(title, body, nav_bar(url), subtitle or tr("作用域 {}", scope_name))
 
     def json_link(self, scope_name: str, command: str, **params) -> str:
         """A link to the same data as a raw payload."""
@@ -537,50 +557,50 @@ class Handler(BaseHTTPRequestHandler):
             here = self.app.url(name)
             links = " · ".join(
                 [
-                    link(here("list"), "列表"),
-                    link(here("stats"), "统计"),
-                    link(here("check"), "体检"),
+                    link(here("list"), tr("列表")),
+                    link(here("stats"), tr("统计")),
+                    link(here("check"), tr("体检")),
                 ]
             )
             rows.append([link(here("index"), name), esc(str(found.root)), esc(found.origin), links])
-        body = h2("可用的作用域")
-        body += table(["作用域", "根目录", "来源", "操作"], rows)
+        body = h2(tr("可用的作用域"))
+        body += table([tr("作用域"), tr("根目录"), tr("来源"), tr("操作")], rows)
         if not rows:
-            body += warn("没有解析到任何作用域：用 root=<目录> 启动，或先建一个含 mod.toml 的工程。")
+            body += warn(tr("没有解析到任何作用域：用 root=<目录> 启动，或先建一个含 mod.toml 的工程。"))
 
         listing = self.app.call("list", scope, "all")
         payload = listing.payload
         by_category: dict[str, int] = {}
         for entity in payload["entities"]:
             by_category[entity["category"]] = by_category.get(entity["category"], 0) + 1
-        body += h2(f"当前作用域：{scope.name}")
+        body += h2(tr("当前作用域：{}", scope.name))
         body += kv(
             [
-                ("根目录", esc(payload["root"])),
-                ("实体文件", esc(payload["count"])),
-                ("来源", esc(scope.origin)),
+                (tr("根目录"), esc(payload["root"])),
+                (tr("实体文件"), esc(payload["count"])),
+                (tr("来源"), esc(scope.origin)),
             ]
         )
         category_rows = [
             [link(url("list", type=category), category), esc(count)]
             for category, count in sorted(by_category.items(), key=lambda item: (-item[1], item[0]))
         ]
-        body += table(["分类", "数量"], category_rows, "这个作用域里没有实体文件")
-        body += h2("查找")
+        body += table([tr("分类"), tr("数量")], category_rows, tr("这个作用域里没有实体文件"))
+        body += h2(tr("查找"))
         body += form(
             url("find"),
             [
                 hidden("scope", scope.name),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("selector", "文件前缀", "", 24),
-                text_field("tag", "标签", "", 12),
-                text_field("value", "取值含", "", 16),
-                checkbox("ignore_case", "忽略大小写", True),
+                text_field("selector", tr("文件前缀"), "", 24),
+                text_field("tag", tr("标签"), "", 12),
+                text_field("value", tr("取值含"), "", 16),
+                checkbox("ignore_case", tr("忽略大小写"), True),
             ],
-            "查找",
+            tr("查找"),
         )
-        body += note("提示：列表页可以用路径片段过滤；统计、体检、引用查询都在导航栏里。")
-        return self.shell("Firefight 模组编辑器", body, scope.name)
+        body += note(tr("提示：列表页可以用路径片段过滤；统计、体检、引用查询都在导航栏里。"))
+        return self.shell(tr("Firefight 模组编辑器"), body, scope.name)
 
     def page_list(self, query: dict[str, str]) -> str:
         """Entity table with a text filter, a category filter and paging."""
@@ -607,27 +627,27 @@ class Handler(BaseHTTPRequestHandler):
             ]
             for item in window
         ]
-        body = h2("实体列表")
+        body = h2(tr("实体列表"))
         body += form(
             url("list"),
             [
                 hidden("scope", scope.name),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("prefix", "路径含", prefix, 28),
+                text_field("prefix", tr("路径含"), prefix, 28),
                 select_field(
                     "type",
-                    "分类",
-                    [("", "全部")] + [(name, name) for name in sorted({item["category"] for item in payload["entities"]})],
+                    tr("分类"),
+                    [("", tr("全部"))] + [(name, name) for name in sorted({item["category"] for item in payload["entities"]})],
                     wanted,
                 ),
             ],
-            "过滤",
+            tr("过滤"),
         )
-        body += note(f"根目录 {payload['root']} · 命中 {len(entities)} / {payload['count']} 个实体文件")
-        body += table(["路径", "分类", "格式", "字节"], rows, "没有匹配的实体")
+        body += note(tr("根目录 {} · 命中 {} / {} 个实体文件", payload['root'], len(entities), payload['count']))
+        body += table([tr("路径"), tr("分类"), tr("格式"), tr("字节")], rows, tr("没有匹配的实体"))
         body += pager(url, "list", page, len(entities), size, last, prefix=prefix, type=wanted)
-        body += note_html("等价命令：" + mono(f"ff {scope.name} list {prefix or 'all'} --json") + " · " + self.json_link(scope.name, "list", selector="all", type=wanted or None))
-        return self.shell("实体列表", body, scope.name)
+        body += note_html(tr("等价命令：") + mono(f"ff {scope.name} list {prefix or 'all'} --json") + " · " + self.json_link(scope.name, "list", selector="all", type=wanted or None))
+        return self.shell(tr("实体列表"), body, scope.name)
 
     def page_show(self, query: dict[str, str]) -> str:
         """One entity as raw text, TOML or XML, with its warnings."""
@@ -636,20 +656,20 @@ class Handler(BaseHTTPRequestHandler):
         path = query.get("path", "")
         view = query.get("as", "toml")
         if view not in TEXT_VIEWS:
-            raise UsageError(f"as={view!r} 不是 raw / toml / xml 之一")
+            raise UsageError(tr("as={} 不是 raw / toml / xml 之一", repr(view)))
         payload = self.app.call("show", scope, path, **{"as": view}).payload
-        body = crumbs([(url("index"), "首页"), (url("list"), "列表"), ("", payload["path"])])
+        body = crumbs([(url("index"), tr("首页")), (url("list"), tr("列表")), ("", payload["path"])])
         body += h2(payload["path"])
         links = []
         for name in TEXT_VIEWS:
-            label = {"raw": "原始内容", "toml": "TOML 视图", "xml": "XML 视图"}[name]
+            label = {"raw": tr("原始内容"), "toml": tr("TOML 视图"), "xml": tr("XML 视图")}[name]
             links.append(link(url("show", path=payload["path"], **{"as": name}), f"[{label}]" if name != view else f"[{label} ←]"))
-        links.append(link(url("refs", path=payload["path"]), "[本文件指向谁]"))
+        links.append(link(url("refs", path=payload["path"]), tr("[本文件指向谁]")))
         links.append(self.json_link(scope.name, "show", selector=payload["path"], **{"as": view}))
         body += "<p>" + " ".join(links) + "</p>"
         warnings = payload.get("warnings") or []
         if warnings:
-            body += warn(f"{len(warnings)} 条解析警告：" + "；".join(warnings[:5]) + ("；…" if len(warnings) > 5 else ""))
+            body += warn(tr("{} 条解析警告：", len(warnings)) + "；".join(warnings[:5]) + ("；…" if len(warnings) > 5 else ""))
         if "text" in payload:
             body += pre(payload["text"])
         elif "toml" in payload:
@@ -657,29 +677,29 @@ class Handler(BaseHTTPRequestHandler):
         elif "xml" in payload:
             body += pre(payload["xml"])
         elif "values" in payload:
-            body += h3(f"子树 {payload.get('key', '')}")
+            body += h3(tr("子树 {}", payload.get('key', '')))
             body += table(
-                ["路径", "行", "值"],
+                [tr("路径"), tr("行"), tr("值")],
                 [[esc(item["path"]), esc(item["line"]), esc(item["value"])] for item in payload["values"]],
             )
         else:
-            body += note("这是列表文件的内容。")
+            body += note(tr("这是列表文件的内容。"))
 
-        body += h2("读取字段")
+        body += h2(tr("读取字段"))
         body += form(
             url("get"),
             [
                 hidden("scope", scope.name),
                 hidden("path", payload["path"]),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("field", "字段路径", "", 24),
+                text_field("field", tr("字段路径"), "", 24),
             ],
-            "取值",
+            tr("取值"),
         )
-        body += note("字段路径相对根元素，点分，例如 name 或 ammo.type。")
+        body += note(tr("字段路径相对根元素，点分，例如 name 或 ammo.type。"))
         incoming = self.incoming_link(scope, payload["path"])
         if incoming:
-            body += note_html("被引用情况：" + incoming)
+            body += note_html(tr("被引用情况：") + incoming)
         return self.shell(payload["path"], body, scope.name)
 
     def incoming_link(self, scope, path: str) -> str:
@@ -692,7 +712,7 @@ class Handler(BaseHTTPRequestHandler):
         if len(values) != 1:
             return ""
         token = str(values[0]["value"])
-        return link(self.app.url(scope.name)("deps", value=token), f"谁引用了 {token}")
+        return link(self.app.url(scope.name)("deps", value=token), tr("谁引用了 {}", token))
 
     def page_get(self, query: dict[str, str]) -> str:
         """The values of one field, with the document path and source line."""
@@ -701,13 +721,13 @@ class Handler(BaseHTTPRequestHandler):
         path = query.get("path", "")
         field = query.get("field", "")
         payload = self.app.call("get", scope, path, field=field).payload
-        body = crumbs([(url("index"), "首页"), (url("list"), "列表"), (url("show", path=payload["path"]), payload["path"]), ("", payload["field"])])
+        body = crumbs([(url("index"), tr("首页")), (url("list"), tr("列表")), (url("show", path=payload["path"]), payload["path"]), ("", payload["field"])])
         body += h2(f"{payload['path']} · {payload['field']}")
         body += table(
-            ["文档路径", "行", "值"],
+            [tr("文档路径"), tr("行"), tr("值")],
             [[esc(item["path"]), esc(item["line"]), esc(item["value"])] for item in payload["values"]],
         )
-        body += note_html("等价命令：" + mono(f"ff {scope.name} get {payload['path']} field={field} --json") + " · " + self.json_link(scope.name, "get", selector=payload["path"], field=field))
+        body += note_html(tr("等价命令：") + mono(f"ff {scope.name} get {payload['path']} field={field} --json") + " · " + self.json_link(scope.name, "get", selector=payload["path"], field=field))
         return self.shell(f"{payload['path']} · {payload['field']}", body, scope.name)
 
     def page_find(self, query: dict[str, str]) -> str:
@@ -722,21 +742,21 @@ class Handler(BaseHTTPRequestHandler):
             [
                 hidden("scope", scope.name),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("selector", "文件前缀(all)", selector, 20),
-                text_field("tag", "标签", query.get("tag", ""), 12),
-                text_field("value", "取值含", query.get("value", ""), 16),
-                text_field("path", "文档路径前缀", query.get("path", ""), 16),
-                checkbox("ignore_case", "忽略大小写", query.get("ignore_case", "1") == "1"),
+                text_field("selector", tr("文件前缀(all)"), selector, 20),
+                text_field("tag", tr("标签"), query.get("tag", ""), 12),
+                text_field("value", tr("取值含"), query.get("value", ""), 16),
+                text_field("path", tr("文档路径前缀"), query.get("path", ""), 16),
+                checkbox("ignore_case", tr("忽略大小写"), query.get("ignore_case", "1") == "1"),
             ],
-            "查找",
+            tr("查找"),
         )
-        body = h2("查找")
+        body = h2(tr("查找"))
         body += form_html
         if not options.get("tag") and not options.get("value") and not options.get("path"):
-            body += note("至少填一个条件：标签名、取值包含、或文档路径前缀。")
-            return self.shell("查找", body, scope.name)
+            body += note(tr("至少填一个条件：标签名、取值包含、或文档路径前缀。"))
+            return self.shell(tr("查找"), body, scope.name)
         payload = self.app.call("find", scope, selector, **options).payload
-        body += note(f"命中 {payload['count']} 条" + ("（到达上限，请收窄条件）" if payload["truncated"] else ""))
+        body += note(tr("命中 {} 条", payload['count']) + (tr("（到达上限，请收窄条件）") if payload["truncated"] else ""))
         rows = []
         for item in payload["matches"]:
             if "error" in item:
@@ -750,8 +770,8 @@ class Handler(BaseHTTPRequestHandler):
                     esc(item["value"]),
                 ]
             )
-        body += table(["文件", "行", "标签", "取值"], rows, "没有命中")
-        return self.shell("查找", body, scope.name)
+        body += table([tr("文件"), tr("行"), tr("标签"), tr("取值")], rows, tr("没有命中"))
+        return self.shell(tr("查找"), body, scope.name)
 
     def page_refs(self, query: dict[str, str]) -> str:
         """Outgoing references of one entity."""
@@ -759,10 +779,10 @@ class Handler(BaseHTTPRequestHandler):
         url = self.app.url(scope.name)
         path = query.get("path", "")
         payload = self.app.call("refs", scope, path).payload
-        body = crumbs([(url("index"), "首页"), (url("list"), "列表"), (url("show", path=path), path), ("", "引用")])
-        body += h2("本文件指向谁")
-        by_kind = "、".join(f"{name}={count}" for name, count in sorted(payload["by_kind"].items())) or "无"
-        body += note(f"{path} 共 {payload['count']} 条向外引用（{by_kind}）")
+        body = crumbs([(url("index"), tr("首页")), (url("list"), tr("列表")), (url("show", path=path), path), ("", tr("引用"))])
+        body += h2(tr("本文件指向谁"))
+        by_kind = "、".join(f"{name}={count}" for name, count in sorted(payload["by_kind"].items())) or tr("无")
+        body += note(tr("{} 共 {} 条向外引用（{}）", path, payload['count'], by_kind))
         shown = payload["references"][: self.app.page_size]
         rows = [
             [
@@ -773,13 +793,13 @@ class Handler(BaseHTTPRequestHandler):
             ]
             for item in shown
         ]
-        body += table(["来源", "类型", "取值", "文档路径"], rows, "没有向外引用")
+        body += table([tr("来源"), tr("类型"), tr("取值"), tr("文档路径")], rows, tr("没有向外引用"))
         if len(payload["references"]) > len(shown):
-            body += note(f"另有 {len(payload['references']) - len(shown)} 条未显示，用 JSON 看全部。")
+            body += note(tr("另有 {} 条未显示，用 JSON 看全部。", len(payload['references']) - len(shown)))
         for item in payload.get("errors") or []:
             body += bad(f"{item['path']}: {item['error']}")
-        body += note_html("取值一列可以点开，看谁引用了它。" + " · " + self.json_link(scope.name, "refs", selector=path))
-        return self.shell(f"{path} · 引用", body, scope.name)
+        body += note_html(tr("取值一列可以点开，看谁引用了它。") + " · " + self.json_link(scope.name, "refs", selector=path))
+        return self.shell(tr("{} · 引用", path), body, scope.name)
 
     def page_deps(self, query: dict[str, str]) -> str:
         """Incoming references of a token, with the resolved target."""
@@ -787,28 +807,28 @@ class Handler(BaseHTTPRequestHandler):
         url = self.app.url(scope.name)
         value = query.get("value", "")
         kind = query.get("kind", "")
-        body = h2("谁引用了这个取值")
+        body = h2(tr("谁引用了这个取值"))
         body += form(
             url("deps"),
             [
                 hidden("scope", scope.name),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("value", "取值", value, 30),
-                text_field("kind", "类型(可空)", kind, 12),
+                text_field("value", tr("取值"), value, 30),
+                text_field("kind", tr("类型(可空)"), kind, 12),
             ],
-            "查询",
+            tr("查询"),
         )
         if not value:
-            body += note("填一个取值，例如 WEAPON_PISTOL_P38。")
-            return self.shell("引用查询", body, scope.name)
+            body += note(tr("填一个取值，例如 WEAPON_PISTOL_P38。"))
+            return self.shell(tr("引用查询"), body, scope.name)
         payload = self.app.call("deps", scope, "", **{"value": value, "kind": kind or None}).payload
         resolved = payload["resolved"]
         if payload["unresolved"]:
-            body += warn(f"{value} 没有解析到任何实体文件。")
+            body += warn(tr("{} 没有解析到任何实体文件。", value))
         else:
             targets = "、".join(link(url("show", path=target), target) for target in resolved)
-            body += note_html(f"解析到：{targets}")
-        body += note(f"共 {payload['count']} 条传入引用")
+            body += note_html(tr("解析到：{}", targets))
+        body += note(tr("共 {} 条传入引用", payload['count']))
         shown = payload["references"][: self.app.page_size]
         rows = [
             [
@@ -818,46 +838,45 @@ class Handler(BaseHTTPRequestHandler):
             ]
             for item in shown
         ]
-        body += table(["来源文件", "类型", "文档路径"], rows, "没有传入引用")
+        body += table([tr("来源文件"), tr("类型"), tr("文档路径")], rows, tr("没有传入引用"))
         if len(payload["references"]) > len(shown):
-            body += note(f"另有 {len(payload['references']) - len(shown)} 条未显示，用 JSON 看全部。")
+            body += note(tr("另有 {} 条未显示，用 JSON 看全部。", len(payload['references']) - len(shown)))
         for item in payload.get("errors") or []:
             body += bad(f"{item['path']}: {item['error']}")
-        body += note_html("等价命令：" + mono(f"ff {scope.name} deps value={value} --json") + " · " + self.json_link(scope.name, "deps", value=value, kind=kind or None))
-        return self.shell(f"引用 {value}", body, scope.name)
+        body += note_html(tr("等价命令：") + mono(f"ff {scope.name} deps value={value} --json") + " · " + self.json_link(scope.name, "deps", value=value, kind=kind or None))
+        return self.shell(tr("引用 {}", value), body, scope.name)
 
     def page_check(self, query: dict[str, str]) -> str:
         """Load errors, warnings and dangling references of a selection."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         selector = query.get("selector", "") or "all"
-        body = h2("工程体检")
+        body = h2(tr("工程体检"))
         body += form(
             url("check"),
             [
                 hidden("scope", scope.name),
                 *([hidden("t", self.app.token)] if self.app.token else []),
-                text_field("selector", "范围(目录前缀或 all)", selector, 26),
+                text_field("selector", tr("范围(目录前缀或 all)"), selector, 26),
             ],
-            "开始体检",
+            tr("开始体检"),
         )
-        body += note("体检会把范围内的每个实体读一遍；原版数据 1840 个文件需要几十秒。")
+        body += note(tr("体检会把范围内的每个实体读一遍；原版数据 1840 个文件需要几十秒。"))
         started = time.monotonic()
         payload = self.app.call("check", scope, selector).payload
         elapsed = time.monotonic() - started
         headline = (
-            f"{payload['loaded']} / {payload['files']} 个文件读取成功，跳过 {payload['skipped']} 个列表文件，"
-            f"{len(payload['errors'])} 个错误，{payload['warnings_total']} 条警告，{len(payload['dangling'])} 条悬空引用"
+            tr("{} / {} 个文件读取成功，跳过 {} 个列表文件，{} 个错误，{} 条警告，{} 条悬空引用", payload['loaded'], payload['files'], payload['skipped'], len(payload['errors']), payload['warnings_total'], len(payload['dangling']))
         )
         body += good(headline) if payload["ok"] else bad(headline)
-        body += note(f"耗时 {elapsed:.1f} 秒 · 作用域 {scope.name} · 范围 {selector}")
+        body += note(tr("耗时 {:.1f} 秒 · 作用域 {} · 范围 {}", elapsed, scope.name, selector))
         if payload["errors"]:
-            body += h3("读取错误")
-            body += table(["文件", "错误"], [[esc(item["path"]), esc(item["error"])] for item in payload["errors"]])
+            body += h3(tr("读取错误"))
+            body += table([tr("文件"), tr("错误")], [[esc(item["path"]), esc(item["error"])] for item in payload["errors"]])
         if payload["dangling"]:
-            body += h3("悬空引用")
+            body += h3(tr("悬空引用"))
             body += table(
-                ["来源", "类型", "取值", "文档路径"],
+                [tr("来源"), tr("类型"), tr("取值"), tr("文档路径")],
                 [
                     [
                         link(url("show", path=item["source"], **{"as": "toml"}), item["source"]),
@@ -869,46 +888,46 @@ class Handler(BaseHTTPRequestHandler):
                 ],
             )
             if len(payload["dangling"]) > 100:
-                body += note(f"另有 {len(payload['dangling']) - 100} 条悬空引用未列出。")
+                body += note(tr("另有 {} 条悬空引用未列出。", len(payload['dangling']) - 100))
         if payload["warning_samples"]:
-            body += h3(f"警告样本（{payload['warning_files']} 个文件共 {payload['warnings_total']} 条）")
+            body += h3(tr("警告样本（{} 个文件共 {} 条）", payload['warning_files'], payload['warnings_total']))
             rows = [
                 [link(url("show", path=item["path"], **{"as": "toml"}), item["path"]), esc("；".join(item["warnings"]))]
                 for item in payload["warning_samples"]
             ]
-            body += table(["文件", "警告"], rows)
-        body += note_html("等价命令：" + mono(f"ff {scope.name} check {selector} --json") + " · " + self.json_link(scope.name, "check", selector=selector))
-        return self.shell("工程体检", body, scope.name)
+            body += table([tr("文件"), tr("警告")], rows)
+        body += note_html(tr("等价命令：") + mono(f"ff {scope.name} check {selector} --json") + " · " + self.json_link(scope.name, "check", selector=selector))
+        return self.shell(tr("工程体检"), body, scope.name)
 
     def page_stats(self, query: dict[str, str]) -> str:
         """Counts by category, format and root element."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         payload = self.app.call("stats", scope, "all").payload
-        body = h2("统计")
+        body = h2(tr("统计"))
         body += kv(
             [
-                ("作用域", esc(payload["scope"])),
-                ("根目录", esc(payload["root"])),
-                ("文件", esc(payload["files"])),
-                ("字节", esc(payload["bytes"])),
-                ("列表文件", esc(payload["lists"])),
+                (tr("作用域"), esc(payload["scope"])),
+                (tr("根目录"), esc(payload["root"])),
+                (tr("文件"), esc(payload["files"])),
+                (tr("字节"), esc(payload["bytes"])),
+                (tr("列表文件"), esc(payload["lists"])),
             ]
         )
-        body += h3("按分类")
+        body += h3(tr("按分类"))
         body += table(
-            ["分类", "数量"],
+            [tr("分类"), tr("数量")],
             [[link(url("list", type=name), name), esc(count)] for name, count in sorted(payload["by_category"].items(), key=lambda item: (-item[1], item[0]))],
         )
-        body += h3("按格式")
-        body += table(["格式", "数量"], [[esc(name), esc(count)] for name, count in sorted(payload["by_format"].items(), key=lambda item: (-item[1], item[0]))])
-        body += h3("按根元素")
-        body += table(["根元素", "数量"], [[esc(name), esc(count)] for name, count in sorted(payload["by_root"].items(), key=lambda item: (-item[1], item[0]))])
+        body += h3(tr("按格式"))
+        body += table([tr("格式"), tr("数量")], [[esc(name), esc(count)] for name, count in sorted(payload["by_format"].items(), key=lambda item: (-item[1], item[0]))])
+        body += h3(tr("按根元素"))
+        body += table([tr("根元素"), tr("数量")], [[esc(name), esc(count)] for name, count in sorted(payload["by_root"].items(), key=lambda item: (-item[1], item[0]))])
         if payload["errors"]:
-            body += h3("读取失败")
-            body += table(["文件", "错误"], [[esc(item["path"]), esc(item["error"])] for item in payload["errors"]])
-        body += note_html("等价命令：" + mono(f"ff {scope.name} stats --json") + " · " + self.json_link(scope.name, "stats", selector="all"))
-        return self.shell("统计", body, scope.name)
+            body += h3(tr("读取失败"))
+            body += table([tr("文件"), tr("错误")], [[esc(item["path"]), esc(item["error"])] for item in payload["errors"]])
+        body += note_html(tr("等价命令：") + mono(f"ff {scope.name} stats --json") + " · " + self.json_link(scope.name, "stats", selector="all"))
+        return self.shell(tr("统计"), body, scope.name)
 
     def page_json(self, query: dict[str, str]) -> str:
         """The raw payload of one command, for cross-checking against the CLI."""
@@ -930,14 +949,14 @@ class Handler(BaseHTTPRequestHandler):
         url = self.app.url(scope.name)
         line = query.get("line", "").strip()
         as_json = query.get("json", "") in ("1", "yes", "true")
-        body = h2("命令行")
-        body += note("输入 python -m core.cli 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。")
-        body += note("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。写入类命令会照常运行，是否落盘由命令自身的门决定；web 会被拒绝。")
-        body += form(url("cmd"), [text_field("line", "命令", line, 80), checkbox("json", "JSON 输出", as_json)], "运行")
+        body = h2(tr("命令行"))
+        body += note(tr("输入 python -m core.cli 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。"))
+        body += note(tr("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。写入类命令会照常运行，是否落盘由命令自身的门决定；web 会被拒绝。"))
+        body += form(url("cmd"), [text_field("line", tr("命令"), line, 80), checkbox("json", tr("JSON 输出"), as_json)], tr("运行"))
         examples = ["list weapon", "stats", "check", "deps value=WEAPON_PISTOL_P38", 'show "Data/Infantry/American-Rifle Squad.txt" as=toml']
-        body += note_html("示例：" + " · ".join(link(url("cmd", line=item), item) for item in examples))
+        body += note_html(tr("示例：") + " · ".join(link(url("cmd", line=item), item) for item in examples))
         if not line:
-            return self.shell("命令行", body, scope.name)
+            return self.shell(tr("命令行"), body, scope.name)
         tokens = split_command_line(line)
         known = self.app.scopes()
         if len(tokens) > 1 and tokens[0] in known:
@@ -945,55 +964,55 @@ class Handler(BaseHTTPRequestHandler):
             url = self.app.url(scope.name)
         invocation = parse_argv(tokens)
         if not invocation.positionals:
-            raise UsageError("需要一个命令，例如 list weapon；把这一行补全再运行")
+            raise UsageError(tr("需要一个命令，例如 list weapon；把这一行补全再运行"))
         command = web_command(invocation.positionals[0])
         selector = " ".join(invocation.positionals[1:])
         started = time.monotonic()
         result = self.app.call(command, scope, selector, **invocation.options)
         elapsed = time.monotonic() - started
         shown = f"{scope.name} {command}" + (f" {selector}" if selector else "")
-        body += h2("输出")
+        body += h2(tr("输出"))
         if as_json:
             body += pre(json.dumps(result.payload, indent=2, ensure_ascii=False, default=str))
         else:
-            body += pre(result.text or "（这条命令没有文本输出；勾上 JSON 输出看载荷）")
-        rows = [("作用域", esc(scope.name)), ("命令", esc(command)), ("选择器", esc(selector or "all"))]
+            body += pre(result.text or tr("（这条命令没有文本输出；勾上 JSON 输出看载荷）"))
+        rows = [(tr("作用域"), esc(scope.name)), (tr("命令"), esc(command)), (tr("选择器"), esc(selector or "all"))]
         if invocation.options:
-            rows.append(("选项", esc(", ".join(f"{key}={value}" for key, value in sorted(invocation.options.items())))))
-        rows.append(("退出码", f"{result.code}（0 成功，1 已执行但有失败）"))
-        rows.append(("耗时", f"{elapsed:.2f} s"))
-        body += table(["项", "值"], rows)
+            rows.append((tr("选项"), esc(", ".join(f"{key}={value}" for key, value in sorted(invocation.options.items())))))
+        rows.append((tr("退出码"), tr("{}（0 成功，1 已执行但有失败）", result.code)))
+        rows.append((tr("耗时"), f"{elapsed:.2f} s"))
+        body += table([tr("项"), tr("值")], rows)
         body += note_html(
-            "等价命令行：" + mono(f"ff {shown}" + (" --json" if as_json else ""))
-            + " · " + link(url("json", command=command, selector=selector or "all", **invocation.options), "原始 JSON")
-            + " · " + link(url("cmd", line=shown + (" --json" if as_json else "")), "按 JSON 重跑")
+            tr("等价命令行：") + mono(f"ff {shown}" + (" --json" if as_json else ""))
+            + " · " + link(url("json", command=command, selector=selector or "all", **invocation.options), tr("原始 JSON"))
+            + " · " + link(url("cmd", line=shown + (" --json" if as_json else "")), tr("按 JSON 重跑"))
         )
-        return self.shell("命令行", body, scope.name)
+        return self.shell(tr("命令行"), body, scope.name)
 
     def page_help(self, query: dict[str, str]) -> str:
         """What every page does and the CLI command behind it."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
-        body = h2("页面与等价命令")
+        body = h2(tr("页面与等价命令"))
         rows = [
-            [link(url("index"), "/"), "作用域与清单", mono(f"ff {scope.name} list")],
-            [link(url("list"), "/list"), "实体表格，可按路径片段与分类过滤", mono(f"ff {scope.name} list <前缀>")],
-            [link(url("show", path=""), "/show"), "一个实体的原始 / TOML / XML 视图", mono(f"ff {scope.name} show <路径> as=toml")],
-            [link(url("get", path=""), "/get"), "某个字段的取值、文档路径与行号", mono(f"ff {scope.name} get <路径> field=<字段>")],
-            [link(url("find"), "/find"), "按标签、取值或文档路径搜索", mono(f"ff {scope.name} find <前缀> tag=…")],
-            [link(url("refs", path=""), "/refs"), "一个实体指向谁", mono(f"ff {scope.name} refs <路径>")],
-            [link(url("deps"), "/deps"), "谁引用了某个取值", mono(f"ff {scope.name} deps value=<取值>")],
-            [link(url("check"), "/check"), "读取错误、警告与悬空引用", mono(f"ff {scope.name} check <前缀>")],
-            [link(url("stats"), "/stats"), "按分类、格式、根元素统计", mono(f"ff {scope.name} stats")],
-            [link(url("cmd"), "/cmd"), "一行命令，输出与 CLI 完全相同（写入的命令由它自己的门决定）", mono(f"ff {scope.name} <命令> <选择器> 键=值")],
-            [link(url("json", command="list", selector="all"), "/json"), "任何命令的原始 JSON", mono("加 --json 的同一个命令")],
+            [link(url("index"), "/"), tr("作用域与清单"), mono(f"ff {scope.name} list")],
+            [link(url("list"), "/list"), tr("实体表格，可按路径片段与分类过滤"), mono(tr("ff {} list <前缀>", scope.name))],
+            [link(url("show", path=""), "/show"), tr("一个实体的原始 / TOML / XML 视图"), mono(tr("ff {} show <路径> as=toml", scope.name))],
+            [link(url("get", path=""), "/get"), tr("某个字段的取值、文档路径与行号"), mono(tr("ff {} get <路径> field=<字段>", scope.name))],
+            [link(url("find"), "/find"), tr("按标签、取值或文档路径搜索"), mono(tr("ff {} find <前缀> tag=…", scope.name))],
+            [link(url("refs", path=""), "/refs"), tr("一个实体指向谁"), mono(tr("ff {} refs <路径>", scope.name))],
+            [link(url("deps"), "/deps"), tr("谁引用了某个取值"), mono(tr("ff {} deps value=<取值>", scope.name))],
+            [link(url("check"), "/check"), tr("读取错误、警告与悬空引用"), mono(tr("ff {} check <前缀>", scope.name))],
+            [link(url("stats"), "/stats"), tr("按分类、格式、根元素统计"), mono(f"ff {scope.name} stats")],
+            [link(url("cmd"), "/cmd"), tr("一行命令，输出与 CLI 完全相同（写入的命令由它自己的门决定）"), mono(tr("ff {} <命令> <选择器> 键=值", scope.name))],
+            [link(url("json", command="list", selector="all"), "/json"), tr("任何命令的原始 JSON"), mono(tr("加 --json 的同一个命令"))],
         ]
-        body += table(["页面", "做什么", "等价命令"], rows)
-        body += h2("说明")
-        body += note("页面跑的是与命令行相同的代码，写入类命令也一样：命令自身的门（--write、工程目录限制）决定是否落盘。只拒绝 web，因为它会在一次请求里再起一个服务。")
-        body += note("链接里的 scope 参数指定作用域，t 参数是访问令牌（启动时带 token= 才需要）。")
-        body += note("单线程服务，一次处理一个请求；Ctrl-C 或页面上的「退出」停止。")
-        return self.shell("帮助", body, scope.name)
+        body += table([tr("页面"), tr("做什么"), tr("等价命令")], rows)
+        body += h2(tr("说明"))
+        body += note(tr("页面跑的是与命令行相同的代码，写入类命令也一样：命令自身的门（--write、工程目录限制）决定是否落盘。只拒绝 web，因为它会在一次请求里再起一个服务。"))
+        body += note(tr("链接里的 scope 参数指定作用域，t 参数是访问令牌（启动时带 token= 才需要）。"))
+        body += note(tr("单线程服务，一次处理一个请求；Ctrl-C 或页面上的「退出」停止。"))
+        return self.shell(tr("帮助"), body, scope.name)
 
     def page_quit(self, query: dict[str, str]) -> str:
         """Stop the server from the browser; /quit asks first, /quit?do=1 does it.
@@ -1005,17 +1024,17 @@ class Handler(BaseHTTPRequestHandler):
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         if query.get("do", "") not in ("1", "yes", "true"):
-            body = h2("退出 Web UI")
-            body += note("这个按钮会停止 127.0.0.1 上的本地服务进程，然后你可以关掉这个窗口。")
-            body += note("它不改任何数据文件，也不影响正在跑的编辑器 CLI。")
-            body += form(url("quit", do="1"), [], "退出 Web UI")
-            body += note_html("返回 " + link(url("index"), "首页"))
-            return self.shell("退出", body, scope.name)
+            body = h2(tr("退出 Web UI"))
+            body += note(tr("这个按钮会停止 127.0.0.1 上的本地服务进程，然后你可以关掉这个窗口。"))
+            body += note(tr("它不改任何数据文件，也不影响正在跑的编辑器 CLI。"))
+            body += form(url("quit", do="1"), [], tr("退出 Web UI"))
+            body += note_html(tr("返回 ") + link(url("index"), tr("首页")))
+            return self.shell(tr("退出"), body, scope.name)
         self.server.request_quit()  # type: ignore[attr-defined]
-        body = good("已退出：服务正在停止，刷新这个页面也不会再有响应。")
-        body += note("窗口里按 Ctrl-C 或直接关掉窗口即可；要重新打开界面，用启动器再启动一次。")
-        body += note_html(link(url("index"), "万一服务还在，回到首页"))
-        return self.shell("已退出", body, scope.name)
+        body = good(tr("已退出：服务正在停止，刷新这个页面也不会再有响应。"))
+        body += note(tr("窗口里按 Ctrl-C 或直接关掉窗口即可；要重新打开界面，用启动器再启动一次。"))
+        body += note_html(link(url("index"), tr("万一服务还在，回到首页")))
+        return self.shell(tr("已退出"), body, scope.name)
 
 
 class FfWebServer(ThreadingHTTPServer):
@@ -1170,20 +1189,24 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
     """
     token = options.get("token", "")
     size = _int_option(options, "pagesize", DEFAULT_LIMIT)
+    try:
+        language = use(options.get("lang") or LANGUAGE_DEFAULT)
+    except ValueError as error:
+        raise UsageError(str(error)) from None
     root = state_root(cwd)
     if options.get("port") in (None, ""):
         running = read_instance(root)
         if running is not None:
             address = str(running.get("url") or "")
-            print("Firefight 模组编辑器 Web UI · 已有实例在运行", flush=True)
-            print(f"  复用     pid {running.get('pid')} · 作用域 {running.get('scope') or scope_name}", flush=True)
-            print(f"  地址     {address}", flush=True)
+            print(tr("Firefight 模组编辑器 Web UI · 已有实例在运行"), flush=True)
+            print(tr("  复用     pid {} · 作用域 {}", running.get('pid'), running.get('scope') or scope_name), flush=True)
+            print(tr("  地址     {}", address), flush=True)
             open_browser(options, address)
             return address
         port = free_port(DEFAULT_PORT, host)
     else:
         port = _int_option(options, "port", DEFAULT_PORT)
-    app = App(options, cwd, scope_name, page_size=size, token=token)
+    app = App(options, cwd, scope_name, page_size=size, token=token, language=language)
     try:
         server = make_server(app, port, host)
     except OSError as error:
@@ -1201,19 +1224,19 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     }
     write_instance(root, record)
-    print(f"Firefight 模组编辑器 Web UI · 作用域 {scope_name}", flush=True)
-    print(f"  根目录   {app.scope(scope_name).root}", flush=True)
-    print(f"  地址     {address}", flush=True)
-    print(f"  实例记录 {instance_path(root)}", flush=True)
-    print("  无 JavaScript；Ctrl-C 停止，或点页面上的「退出」", flush=True)
+    print(tr("Firefight 模组编辑器 Web UI · 作用域 {}", scope_name), flush=True)
+    print(tr("  根目录   {}", app.scope(scope_name).root), flush=True)
+    print(tr("  地址     {}", address), flush=True)
+    print(tr("  实例记录 {}", instance_path(root)), flush=True)
+    print(tr("  无 JavaScript；Ctrl-C 停止，或点页面上的「退出」"), flush=True)
     open_browser(options, address)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n已停止。", flush=True)
+        print(tr("\n已停止。"), flush=True)
     else:
         if server.quit_requested:
-            print("\n已在浏览器里退出。", flush=True)
+            print(tr("\n已在浏览器里退出。"), flush=True)
             # an ASCII marker on purpose: the launcher's watchdog reads this log to tell a
             # graceful stop from a killed process, and ASCII survives any code page
             print("web: stopped by the quit link", flush=True)
