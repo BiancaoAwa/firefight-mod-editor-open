@@ -29,18 +29,28 @@ authors = ["a fixture"]
 license = "GPL-3.0"
 """
 
+# The blank lines are the shape the shipped mod.txt files use: one before every element
+# except the first two.  ``emit`` writes that shape back, so this fixture round-trips
+# byte for byte (core/settings.py, ``emit``).
 MOD_TXT = """<mod>
 \t<name>Settings Fixture</name>
 \t<author>a fixture</author>
+
 \t<show_scenarios>no</show_scenarios>
+
 \t<allow_vehicles>yes</allow_vehicles>
+
 \t<minimum_commonness>25</minimum_commonness>
+
 \t<nationality>
 \t\t<name>America</name>
 \t\t<surnames>surnames_american.txt</surnames>
+
 \t\t<equipment>news_main.txt</equipment>
 \t\t<equipment>equipment_american.txt</equipment>
+
 \t\t<voice>US</voice>
+
 \t\t<ranks>
 \t\t\t<1>Pvt</1>
 \t\t\t<2>PFC</2>
@@ -174,6 +184,123 @@ class SettingsTestCase(unittest.TestCase):
         code, _, err = run("Mod", "settings", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("nothing to render from", err)
+
+    # --- the emit direction -----------------------------------------------------
+
+    def stock(self) -> Path:
+        """The stock settings file the emitter writes back."""
+        return PROJECT / "Mod" / "mod.txt"
+
+    def render(self) -> None:
+        """Put the project file in place, as the render direction would."""
+        code, _, err = run("Mod", "settings", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+
+    def test_a_stock_file_round_trips_byte_for_byte(self) -> None:
+        before = self.stock().read_bytes()
+        self.render()
+        code, payload, err = run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["warnings"], 0)
+        self.assertEqual(self.stock().read_bytes(), before)
+
+    def test_emit_needs_write(self) -> None:
+        self.render()
+        code, _, err = run("Mod", "settings", "op=emit", cwd=PROJECT)
+        self.assertEqual(code, 2)
+        self.assertIn("settings needs --write", err)
+
+    def test_emit_refuses_the_stock_scope(self) -> None:
+        code, _, err = run("Firefight", "settings", "op=emit", "root=" + str(PROJECT / "Mod"), "--write", cwd=PROJECT)
+        self.assertEqual(code, 2)
+        self.assertIn("stock scope is read-only", err)
+
+    def test_emit_without_a_project_file_is_a_usage_error(self) -> None:
+        code, _, err = run("Mod", "settings", "op=emit", "--write", cwd=PROJECT)
+        self.assertEqual(code, 2)
+        self.assertIn("nothing to emit from", err)
+
+    def test_an_unknown_op_is_a_usage_error(self) -> None:
+        code, _, err = run("Mod", "settings", "op=sideways", "--write", cwd=PROJECT)
+        self.assertEqual(code, 2)
+        self.assertIn("op= is render or emit", err)
+
+    def test_emit_a_dry_run_writes_nothing(self) -> None:
+        self.render()
+        before = self.stock().read_bytes()
+        code, payload, _ = run_json("Mod", "settings", "op=emit", "--write", "--dry-run", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(self.stock().read_bytes(), before)
+
+    def test_emit_skips_a_stock_file_that_is_already_there(self) -> None:
+        self.render()
+        code, payload, _ = run_json("Mod", "settings", "op=emit", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["skipped"])
+
+    def test_emit_keeps_the_line_endings_of_the_stock_file(self) -> None:
+        crlf = MOD_TXT.replace("\n", "\r\n")
+        write(self.stock(), crlf)
+        self.render()
+        code, _, err = run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.stock().read_bytes(), crlf.encode("utf-8"))
+
+    def test_a_field_edited_in_the_project_file_reaches_the_stock_form(self) -> None:
+        self.render()
+        code, _, err = run_json("Mod", "set", "mod_setting.toml", "field=minimum_commonness", "value=40", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        code, _, err = run_json("Mod", "set", "mod_setting.toml", "field=allow_vehicles", "value=no", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)[0], 0
+        )
+        text = self.stock().read_text(encoding="utf-8")
+        self.assertIn("<minimum_commonness>40</minimum_commonness>", text)
+        self.assertIn("<allow_vehicles>no</allow_vehicles>", text)
+
+    def test_emit_reports_a_field_the_stock_form_has_no_element_for(self) -> None:
+        self.render()
+        path = self.settings()
+        write(path, path.read_text(encoding="utf-8").replace("[mod_setting]\n", "[mod_setting]\nmystery = 1\n", 1))
+        code, payload, _ = run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["warnings"], 1)
+        self.assertIn("not an element of a mod.txt", payload["sample_warnings"][0])
+        self.assertNotIn("mystery", self.stock().read_text(encoding="utf-8"))
+
+    def test_an_emit_can_be_undone(self) -> None:
+        self.render()
+        before = self.stock().read_bytes()
+        code, _, err = run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        code, _, err = run_json("Mod", "undo", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.stock().read_bytes(), before)
+        code, _, err = run_json("Mod", "redo", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+
+    def test_an_empty_target_is_replaced_and_undo_restores_it(self) -> None:
+        """An empty file is a file, not the "was not there yet" marker."""
+        self.settings().write_bytes(b"")
+        code, payload, err = run_json("Mod", "settings", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertTrue(payload["existed_before"])
+        self.assertEqual(payload["bytes_before"], 0)
+        self.assertGreater(self.settings().stat().st_size, 0)
+        code, _, err = run_json("Mod", "undo", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.settings().read_bytes(), b"")
+
+    def test_an_empty_stock_file_is_replaced_by_emit(self) -> None:
+        self.render()
+        expected = self.stock().read_bytes()
+        self.stock().write_bytes(b"")
+        code, payload, err = run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertTrue(payload["existed_before"])
+        self.assertEqual(self.stock().read_bytes(), expected)
 
 
 if __name__ == "__main__":

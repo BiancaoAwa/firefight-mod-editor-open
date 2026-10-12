@@ -32,7 +32,7 @@ Commands
   index            build the cross-reference tables under .editor/ (needs --write)
   add              create one entity document (needs --write)
   remove  (rm)     delete one entity document (needs --write)
-  settings         render mod_setting.toml from the stock Mod/mod.txt (needs --write)
+  settings         translate between the stock Mod/mod.txt and mod_setting.toml (needs --write)
   set              change one field of one document (needs --write)
   convert          turn the selection into project working files under to= (needs --write)
   log              log segments and the newest records inside them
@@ -54,11 +54,12 @@ Options
   limit=<n>        cap the rows printed (default 200; 0 prints every row)
   ignore_case=1    case-insensitive find
   from=<path>      add: copy this document instead of writing the schema skeleton
-  op=<name>        set: set (default), append or delete one array-of-tables entry
+  op=<name>        set: set (default), append or delete one array-of-tables entry;
+                   settings: render (default, stock mod.txt to TOML) or emit (TOML to mod.txt)
   from=<n>         set op=append: copy this array entry instead of an empty one
   overwrite=1      convert: replace a working file that is already there
   overwrite=0      export: leave a file that is already there untouched
-  overwrite=1      settings: replace an existing mod_setting.toml
+  overwrite=1      settings: replace an existing mod_setting.toml, or an existing Mod/mod.txt
   document=<text>  log: keep records whose document contains this text
   actor=cli|mcp    log: keep records written by this actor
   result=<name>    log: keep set, undo or redo records

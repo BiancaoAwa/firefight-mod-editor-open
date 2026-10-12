@@ -67,18 +67,19 @@ between surfaces without renaming anything.
 | `ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `ff_convert` | `scope`, `selector`, `to`, `type`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_settings` | `scope`, `op`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
 Every tool whose command writes files is registered only with `--write`, `ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server
 that reports itself read-only must not expose a tool that writes. `ff_set`, `ff_add`,
-`ff_remove`, `ff_index`, `ff_convert`, `ff_undo` and `ff_redo` take a `dryRun` parameter that
-maps to the CLI's `--dry-run`, so a write can be inspected before it happens.
+`ff_remove`, `ff_index`, `ff_convert`, `ff_settings`, `ff_undo` and `ff_redo` take a `dryRun`
+parameter that maps to the CLI's `--dry-run`, so a write can be inspected before it happens.
 
-`settings` has no MCP tool: it renders `mod_setting.toml` from the project's own stock
-`mod.txt`, which is a project bootstrap step rather than a read or an edit of the corpus.
-Run it from the CLI (docs/cli.md §4.7).
+`ff_settings` carries the two directions of the project's stock settings file: `op=render`
+reads `<project>/Mod/mod.txt` and writes `mod_setting.toml`, `op=emit` writes the stock file
+back (docs/cli.md §4.7).
 
 **One specification.** The tool table is one Python specification table, `core/cli/specs.py`,
 which the MCP server renders `tools/list` from and turns a call into a CLI invocation; the

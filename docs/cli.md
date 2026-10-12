@@ -68,7 +68,7 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
 | `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
 | `index` | | write `.editor/index.toml` and `.editor/refs.toml`; needs `--write` (§4.6) |
-| `settings` | | render `mod_setting.toml` from the project's stock `mod.txt`; needs `--write` (§4.7) |
+| `settings` | | translate between the project's stock `Mod/mod.txt` and `mod_setting.toml`; needs `--write` (§4.7) |
 | `convert` | | turn the selection into project working files under `to=<dir>`; needs `--write` (§4.3) |
 | `log` | | the log segments and the records inside them, with filters; read-only (§4.2) |
 | `undo` | | put back what the last writes replaced; needs `--write` (§4.2) |
@@ -262,28 +262,38 @@ python -m core.cli Mod index [selector] --write [--dry-run]
 * The lists (`equipment_*`), plain text files with no root element and unreadable files are
   counted as skipped; they are not errors.
 
-### 4.7 Rendering `mod_setting.toml`
+### 4.7 Translating between `Mod/mod.txt` and `mod_setting.toml`
 
 ```
-python -m core.cli Mod settings --write [--dry-run]
+python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=1]
 ```
 
-* The editor renders the TOML form of the project's stock `Mod/mod.txt` (docs/project-layout.md
-  §4) into `<project>/mod_setting.toml`: every element becomes its table or key, `<nationality>`
-  blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements
-  become one array per nation, the bare `<ranks>` numbers become quoted keys, and the nation
-  names keep the exact spelling of the source (the shipped WW3 file spells them
+* The editor carries the project's stock settings file (docs/project-layout.md §4) in two
+  forms, and this command moves between them. `op=render`, the default, reads
+  `<project>/Mod/mod.txt` and writes `<project>/mod_setting.toml`. `op=emit` reads
+  `<project>/mod_setting.toml` and writes `<project>/Mod/mod.txt`.
+* `render`: every element becomes its table or key, `<nationality>` blocks become
+  `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements become one array
+  per nation, the bare `<ranks>` numbers become quoted keys, and the nation names keep the
+  exact spelling of the source (the shipped WW3 file spells them
   `Taiwan, China(In Production)` and `Japan(In Production)`, without a space before the
   bracket).
-* The renderer is a pure function of the source bytes: the same `mod.txt` always renders the
-  same `mod_setting.toml`.
-* An existing `mod_setting.toml` is skipped unless `overwrite=1`; the stock file stays the
-  source of truth for the fields it carries, and edits made to the TOML file are lost when the
-  renderer runs again with `overwrite=1`. The shipped WW3 project proves the scale: its
-  hand-written `mod_setting.toml` holds 79 lines and one nation, while the renderer produces
-  333 lines and all twelve from the same `mod.txt`, with no warnings.
-* A project with no `Mod/mod.txt` is refused (`no mod.txt under <project>/Mod; nothing to
-  render from`), and the `Firefight` scope is refused.
+* `emit` is the exact inverse on a stock-shaped file: `Mod settings op=emit --write` over the
+  shipped WW3 `mod.txt` reproduces all 10170 bytes unchanged. The element order, the tab
+  indentation and the blank lines are the shape the stock files use, so a file already in that
+  shape round-trips byte for byte. `render` does not keep the layout of a file written
+  differently, so such a file comes back in this shape.
+* Both directions are pure functions of their source, and both report what they could not
+  carry rather than dropping it silently.
+* An existing target is skipped unless `overwrite=1`. The target of `op=render` is the
+  hand-editable `mod_setting.toml`, so `overwrite=1` discards those edits; `op=emit` replaces
+  the stock file the game reads, so the same flag there is the one that reaches a release
+  package. The shipped WW3 project shows the scale of `render`: its hand-written
+  `mod_setting.toml` holds 79 lines and one nation, while the renderer produces 333 lines and
+  all twelve from the same `mod.txt`, with no warnings.
+* The stock scope `Firefight` is refused, since both targets live in a project. `op` must be
+  `render` or `emit`; a missing source is refused (`nothing to <op> from: <path> is not
+  there`).
 
 ## 5. Exit codes
 
@@ -361,9 +371,11 @@ and prints the address it bound.
   which is covered too.
 * `.editor/index.toml` and `.editor/refs.toml` are now written by `index`; they are a cache
   with a whole-scope fingerprint, so one changed byte sends `refs` and `deps` back to the scan.
-* `settings` renders `mod_setting.toml` from the project's stock `mod.txt`. A project without
-  that file cannot be rendered, and a source element the renderer does not know is kept as a
-  plain value rather than interpreted.
+* `settings` translates between the project's stock `Mod/mod.txt` and `mod_setting.toml` in
+  either direction. A project without the source file of the requested direction cannot be
+  translated, and a source element the renderer does not know is kept as a plain value rather
+  than interpreted. `emit` writes XML by hand, so a value carrying a character the stock form
+  cannot hold literally is reported and left out of that element.
 * `export` keeps the source layout: sibling order, blank lines, indentation, `//` comments
   and the file's own newline style all come from the source text (toml-mapping §4). Files
   without source text — a `.toml` project document — use the canonical writer instead
