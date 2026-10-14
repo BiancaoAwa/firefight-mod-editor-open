@@ -65,10 +65,12 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
 | `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
+| `init` | | create a project: `mod.toml` and an empty `Mod/Data`; needs `--write` (§4.9) |
 | `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
 | `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
 | `index` | | write `.editor/index.toml` and `.editor/refs.toml`; needs `--write` (§4.6) |
 | `settings` | | translate between the project's stock `Mod/mod.txt` and `mod_setting.toml`; needs `--write` (§4.7) |
+| `pack` | | build `<name>-<version>.zip` from the project; needs `--write` (§4.8) |
 | `convert` | | turn the selection into project working files under `to=<dir>`; needs `--write` (§4.3) |
 | `log` | | the log segments and the records inside them, with filters; read-only (§4.2) |
 | `undo` | | put back what the last writes replaced; needs `--write` (§4.2) |
@@ -77,16 +79,18 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `web` | `serve` | serve the pages on `127.0.0.1` until Ctrl-C (§4.4, docs/web.md) |
 | `version` | | editor version, interpreter, resolved scopes |
 
-Options: `root=`, `workspace=`, `to=` (the `export` destination, or the project `convert`
-writes into), `as=`, `field=`, `type=`, `kind=`, `path=`, `op=`, `from=` (an index for
-`set op=append`, a document path for `add`), `limit=` (default 200 rows; `0` prints every
-row), `document=`, `actor=`, `result=`, `since=`, `until=` (`log` filters, §4.2),
-`lang=zh|en` (the web UI language, §4.4), `ignore_case=1`, `overwrite=1` (`1` replaces a
-file that is already there, `0` leaves it; `export` replaces by default, `convert` skips
-by default), `--json`. `set`, `add`, `remove`, `index`, `settings`, `convert`, `undo` and
-`redo` also take the bare flags `--write` (write the change) and `--dry-run` (report it
-without writing anything, §4.1, §4.3); `undo` and `redo` take an optional count as well
-(§4.2).
+Options: `root=`, `workspace=`, `to=` (the `export` destination, the project `convert`
+writes into, or the directory `pack` leaves the archive in — §4.8), `as=`, `field=`,
+`type=`, `kind=`, `path=`, `name=` (the mod name `init` writes, §4.9), `op=`, `from=` (an
+index for `set op=append`, a document path for `add`), `limit=` (default 200 rows; `0` prints
+every row), `document=`, `actor=`, `result=`, `since=`, `until=` (`log` filters, §4.2),
+`lang=zh|en` (the web UI language, §4.4), `strict=1` (`pack` refuses when a reference does not
+resolve, §4.8), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
+`0` leaves it; `export` and `pack` replace by default, `convert` and `settings` skip by
+default), `--json`. `init`, `set`, `add`, `remove`, `index`, `settings`, `convert`, `pack`,
+`undo` and `redo` also take the bare flags `--write` (write the change) and `--dry-run`
+(report it without writing anything, §4.1, §4.3); `undo` and `redo` take an optional count as
+well (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
@@ -295,13 +299,62 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
   `render` or `emit`; a missing source is refused (`nothing to <op> from: <path> is not
   there`).
 
+### 4.8 Building the mod-zip
+
+```
+python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [overwrite=1]
+```
+
+* The archive holds the layout the game installs (docs/project-layout.md §5): `Mod/`,
+  `README.md` and `LICENSE`, taken from the project directory. The default destination is
+  `<name>-<version>.zip` in the project directory; `to=<directory>` names another directory.
+* Inside `Mod/`, a document that exists as TOML is written back as stock XML. `Mod/mod.txt`
+  is rendered from `mod_setting.toml` when that file is there. Everything else, including
+  `Images/` and `Sounds/`, is copied byte for byte: a file placed by hand arrives unchanged,
+  and a document with only a TOML twin is emitted in canonical form (tabs, CRLF, UTF-8).
+* `strict=1` refuses the pack when a reference does not resolve, so a package cannot ship a
+  dangling reference by accident. Without it, the references are reported and the archive is
+  still written. The reference graph is built over the project alone; the stock corpus is not
+  consulted (see §9).
+* Members are written with a fixed timestamp, so packing an unchanged project twice produces
+  the same bytes.
+* `pack` changes no document and takes no lock, but a pack that writes appends one `pack`
+  record to the project log saying what was built. A `pack` record names no document and
+  sits on neither the undo nor the redo stack, so nothing reverts it (docs/project-layout.md
+  section 8). A `--dry-run`, a refused pack and one that skipped an existing archive leave
+  no record.
+* `pack` does refuse an on-disk `Mod/mod.txt` that disagrees with `mod_setting.toml`, because
+  replacing that file would otherwise drop content the shorter of the two does not carry. Run
+  `Mod settings op=render overwrite=1 --write` first when the TOML side is the newer one.
+* The stock scope `Firefight` is refused. `overwrite=1` replaces an archive that is already
+  there; without it the file is skipped.
+
+### 4.9 Creating a project
+
+```
+python -m core.cli Mod init --write [--dry-run] [name=<text>]
+```
+
+* `init` is the one command whose scope need not exist yet: `root=` or `workspace=` names the
+  directory to create the project in, the working directory otherwise, and the directory is
+  created when it is missing. Every other command resolves a scope that is already there.
+* It writes `mod.toml` from the schema skeleton (docs/project-layout.md §3) and an empty
+  `Mod/Data/`. `name=` fills the mod name in, the directory name otherwise. The stock scope
+  `Firefight` is refused: that installation is not a project.
+* A directory that already carries a `mod.toml` is refused, so an initialised project is never
+  overwritten. Removing a project is a plain directory delete; `init` has no counterpart.
+* The new `mod.toml` is recorded like any other new document, so `Mod undo --write` takes the
+  file away again. The empty `Mod/Data` is a directory rather than a document, and no record
+  reverts it.
+* A list-typed leaf such as `authors` is written as `key = []`, which the reader accepts.
+
 ## 5. Exit codes
 
 | Code | Meaning |
 |---|---|
 | 0 | the command ran and found nothing to report |
 | 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2); **or** at least one file failed to convert (§4.3) |
-| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2, §4.3) |
+| 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2, §4.3, §4.9) |
 | 130 | interrupted (Ctrl-C) |
 
 ## 6. Warnings
@@ -359,9 +412,13 @@ and prints the address it bound.
 ## 9. Limits of this slice
 
 * A write is one field, one array entry, one document (`add`, `remove`) or one whole selection
-  (`convert`, `settings`, `index`). There is no batch edit that applies several changes to
-  several documents in one invocation, and no packaging. The log and the baseline are per
-  project, and `Firefight` is never written.
+  (`convert`, `settings`, `index`, `pack`). There is no batch edit that applies several
+  changes to several documents in one invocation. The log and the baseline are per project,
+  and `Firefight` is never written.
+* `pack` builds the mod-zip. The stock-baseline comparison and the APK packaging of
+  docs/project-layout.md §5 are not implemented, and no command creates a project: `mod.toml`
+  is written by hand. `Mod/mod.txt` in the archive comes from `mod_setting.toml` when that
+  file is there; without it the existing `Mod/mod.txt` is copied as it stands.
 * `add` writes the schema skeleton of the document root, which leaves arrays out (their empty
   form would not be readable back); a document that needs array entries is created with
   `from=<an existing document>` or with `convert`, and its arrays are filled in with
@@ -381,6 +438,13 @@ and prints the address it bound.
   without source text — a `.toml` project document — use the canonical writer instead
   (tab indent, CRLF, schema order), and an edit invalidates the layout of the element it
   touches for as long as it is applied in memory.
+* `pack` writes the `Data/` documents and the project's `README.md`/`LICENSE`. `Images/` and
+  `Sounds/` are copied only when they are already in the project directory, because the
+  editor does not import them yet; a mod that ships its own artwork therefore needs those
+  files placed by hand, and the pack summary says nothing about what is missing.
+* `init` writes `mod.toml` and an empty `Mod/Data` only. It does not import stock data (`convert`
+  does that, §4.3), does not write `mod_setting.toml` (`settings op=render`, §4.7), and does not
+  read a template from anywhere else.
 * Whether the engine accepts a file we re-emit is verified by an in-game load check, not here.
 * `Maps/`, `Surnames/` and `equipment_*` are out of scope.
 * Modules are not loaded through `mod.txt` yet; a mod is a directory with `Data/`.

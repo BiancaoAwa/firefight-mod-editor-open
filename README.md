@@ -12,12 +12,14 @@ whole documents; `log`, `undo` and `redo` record every write and revert it from 
 under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2, §4.5) — one-command import of the stock
 data as project documents (`convert`), the reference index (`.editor/index.toml` and
 `.editor/refs.toml`, [cli.md](docs/cli.md) §4.6), the translation between the stock `Mod/mod.txt`
-and `mod_setting.toml` in both directions ([cli.md](docs/cli.md) §4.7), the MCP server
-`python -m core.mcp`,
+and `mod_setting.toml` in both directions ([cli.md](docs/cli.md) §4.7), the mod-zip builder
+`pack` ([cli.md](docs/cli.md) §4.8), the MCP server `python -m core.mcp`,
 which offers the commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI
-that runs the same commands, writing ones included, in Chinese or English. `export` reproduces
-a stock file byte for byte, layout included — 1840 of 1840 files on the installed game
-(`tools/export_fidelity.py`). No batch edit and no packaging yet.
+that runs the same commands, writing ones included, in Chinese or English. `init` creates a
+project in an empty directory ([cli.md](docs/cli.md) §4.9). `export` reproduces a stock file
+byte for byte, layout included — 1840 of 1840 files on the installed game
+(`tools/export_fidelity.py`). [flow.md](docs/flow.md) shows how the pieces fit together. No
+batch edit yet.
 
 ## Quick start
 

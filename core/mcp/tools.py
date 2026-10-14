@@ -80,6 +80,7 @@ def run_command_call(
     settings = {**(defaults or {}), **options}
     if write:
         settings["write"] = "1"
+        settings["actor"] = "mcp"
     try:
         text = scope_name if not selector else f"{scope_name}/{selector}"
         _, relative, doc_path = split_spec(text)

@@ -16,6 +16,7 @@ import sys
 import unittest
 from pathlib import Path
 
+from core import journal
 from core.cli import specs
 from core.mcp import resources, tools
 from core.mcp.server import PROTOCOL_VERSIONS, SERVER_NAME, STATELESS_VERSION, Server, parse_argv
@@ -86,12 +87,21 @@ EXPECTED_WRITE_TOOLS = {
     "ff_redo": {
         "scope": False, "count": False, "dryRun": False, "root": False, "workspace": False,
     },
+    "ff_init": {
+        "scope": False, "name": False, "dryRun": False, "root": False, "workspace": False,
+    },
+    "ff_pack": {
+        "scope": False, "to": False, "overwrite": False, "strict": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
 }
 
 PLUGIN_CANDIDATES = (
     os.environ.get("FIREFIGHT_PLUGIN_SPECS", ""),
+    str(REPO / "dsh-firefight-mod-tools" / "lib" / "specs.js"),
     str(REPO.parent / "dsh-firefight-mod-tools" / "lib" / "specs.js"),
-    str(REPO.parents[2] / "firefight-mod-editor-open" / "ffplugin" / "lib" / "specs.js"),
+    # The workspace layout: WorkSpace/<project>/ffplugin beside WorkSpace/<project>/editor-src.
+    str(REPO.parent / "ffplugin" / "lib" / "specs.js"),
 )
 
 
@@ -383,6 +393,18 @@ class ServerTest(unittest.TestCase):
         self.assertTrue(answer["result"]["isError"])
         self.assertEqual(answer["result"]["structuredContent"]["exit_code"], 1)
         self.assertTrue(answer["result"]["structuredContent"]["dangling"])
+
+    def test_a_write_from_this_server_is_logged_as_the_mcp_actor(self) -> None:
+        made = "Data/Weapons/WEAPON_MADE.toml"
+        self.addCleanup(lambda: (PROJECT / "Mod" / made).unlink(missing_ok=True))
+        answer = self.writing.handle(
+            call(1, "tools/call", {"name": exposed("ff_add"), "arguments": {"scope": "Mod", "selector": made}})
+        )
+        self.assertFalse(answer["result"]["isError"], answer)
+        written = [event for event in journal.read_events(PROJECT) if event.get("result") == "add"]
+        self.assertTrue(written, "the write left no record")
+        self.assertEqual(written[-1]["actor"], "mcp")
+        self.assertEqual(written[-1]["document"], f"Mod/{made}")
 
     def test_a_bad_parameter_is_an_invalid_params_error(self) -> None:
         answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_show"), "arguments": [1]}))

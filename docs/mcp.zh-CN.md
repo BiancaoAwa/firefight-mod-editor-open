@@ -45,14 +45,18 @@
 | `mcp_ff_add` | `scope`、`selector`、`type`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_remove` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_index` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `mcp_ff_convert` | `scope`、`selector`、`to`、`type`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_convert` | `scope`、`selector`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_settings` | `scope`、`op`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_undo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_redo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_init` | `scope`、`name`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_pack` | `scope`、`to`、`overwrite`、`strict`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 
-凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`mcp_ff_set`、`mcp_ff_add`、`mcp_ff_remove`、`mcp_ff_index`、`mcp_ff_convert`、`mcp_ff_settings`、`mcp_ff_undo` 与 `mcp_ff_redo` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
+凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`mcp_ff_set`、`mcp_ff_add`、`mcp_ff_remove`、`mcp_ff_index`、`mcp_ff_convert`、`mcp_ff_settings`、`mcp_ff_undo`、`mcp_ff_redo`、`mcp_ff_init` 与 `mcp_ff_pack` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
 
 `mcp_ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/Mod/mod.txt` 写 `mod_setting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
+
+`mcp_ff_init` 在还不是工程的目录里建工程，`mcp_ff_pack` 生成可安装的模组 zip（docs/cli.zh-CN.md §4.9、§4.8）。
 
 **一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
 
@@ -109,7 +113,7 @@
 4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。该用例目前对 `mcp_ff_export` 验证：库存作用域与其目标目录均未被改动；锁与事件日志两个用例随写入工具落地。
 5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。该次实测完成后结果补入本节；在此之前被接受的修订属未验证。
 
-编辑器仓库内已实测：`tests/test_mcp.py` 的 17 个用例，覆盖两个协议族、精确的工具集、`--write` 注册、库存作用域拒绝、带命令行退出码的工具级失败形状、资源、提示、命令行选项与插件快照（跨仓那一半在 `ffplugin/lib/specs.js` 可达时真跑）。
+编辑器仓库内已实测：`tests/test_mcp.py` 的 18 个用例，覆盖两个协议族、精确的工具集、`--write` 注册、库存作用域拒绝、带命令行退出码的工具级失败形状、资源、提示、命令行选项与插件快照（跨仓那一半在 `ffplugin/lib/specs.js` 可达时真跑）。
 
 ## 9. 非目标
 
