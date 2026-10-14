@@ -23,9 +23,10 @@ entry point `python -m core.mcp`. It is standard-library only, speaks stdio JSON
 the CLI: an in-process call keeps the permission gate, the exit-code semantics and the JSON payload
 identical to the command line.
 
-**Overlap rule.** Tool names are the same across surfaces, so an MCP client that also installs the DSH
-plugin exposes duplicate tool names. Do not enable both in one DSH session; use the plugin or the MCP
-server, and say which one a workflow assumes.
+**Overlap rule.** Both surfaces register the same canonical tool names, each behind its own prefix: this
+server answers to `mcp_<name>` (`mcp_ff_list`), the DSH plugin registers `dsh_<name>` (`dsh_ff_list`).
+The registered names cannot collide, so one DSH session may carry both, and a workflow states which
+surface it assumes.
 
 ## 2. Transport and protocol revision
 
@@ -47,37 +48,38 @@ authentication, `sampling`, `roots` and `logging` (deprecated upstream), tasks, 
 
 ## 3. Tool surface and the single source of truth
 
-**Naming.** Tool names are byte-identical to the plugin table in `dsh-firefight-mod-tools`
+**Naming.** The canonical tool name is byte-identical to the plugin table in `dsh-firefight-mod-tools`
 `lib/specs.js`, and parameters keep the plugin's camelCase spelling, so one prompt or skill can move
-between surfaces without renaming anything.
+between surfaces without renaming anything. Each surface exposes that name behind its own prefix (§1);
+the table below lists the names this server answers to.
 
 | Tool | Parameters | Writes | Registered |
 |---|---|---|---|
-| `ff_list` | `scope`, `selector`, `type`, `root`, `workspace` | no | always |
-| `ff_show` | `scope`, `selector`, `as`, `root`, `workspace` | no | always |
-| `ff_get` | `scope`, `selector`, `field`, `root`, `workspace` | no | always |
-| `ff_find` | `scope`, `selector`, `tag`, `value`, `path`, `ignoreCase`, `limit`, `root`, `workspace` | no | always |
-| `ff_stats` | `scope`, `selector`, `root`, `workspace` | no | always |
-| `ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
-| `ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
-| `ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
-| `ff_export` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_set` | `scope`, `selector`, `field`, `value`, `op`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_convert` | `scope`, `selector`, `to`, `type`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_settings` | `scope`, `op`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_list` | `scope`, `selector`, `type`, `root`, `workspace` | no | always |
+| `mcp_ff_show` | `scope`, `selector`, `as`, `root`, `workspace` | no | always |
+| `mcp_ff_get` | `scope`, `selector`, `field`, `root`, `workspace` | no | always |
+| `mcp_ff_find` | `scope`, `selector`, `tag`, `value`, `path`, `ignoreCase`, `limit`, `root`, `workspace` | no | always |
+| `mcp_ff_stats` | `scope`, `selector`, `root`, `workspace` | no | always |
+| `mcp_ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
+| `mcp_ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
+| `mcp_ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
+| `mcp_ff_export` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_set` | `scope`, `selector`, `field`, `value`, `op`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_convert` | `scope`, `selector`, `to`, `type`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_settings` | `scope`, `op`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
-Every tool whose command writes files is registered only with `--write`, `ff_export` included:
+Every tool whose command writes files is registered only with `--write`, `mcp_ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server
-that reports itself read-only must not expose a tool that writes. `ff_set`, `ff_add`,
-`ff_remove`, `ff_index`, `ff_convert`, `ff_settings`, `ff_undo` and `ff_redo` take a `dryRun`
+that reports itself read-only must not expose a tool that writes. `mcp_ff_set`, `mcp_ff_add`,
+`mcp_ff_remove`, `mcp_ff_index`, `mcp_ff_convert`, `mcp_ff_settings`, `mcp_ff_undo` and `mcp_ff_redo` take a `dryRun`
 parameter that maps to the CLI's `--dry-run`, so a write can be inspected before it happens.
 
-`ff_settings` carries the two directions of the project's stock settings file: `op=render`
+`mcp_ff_settings` carries the two directions of the project's stock settings file: `op=render`
 reads `<project>/Mod/mod.txt` and writes `mod_setting.toml`, `op=emit` writes the stock file
 back (docs/cli.md §4.7).
 
@@ -94,8 +96,8 @@ per command.
 
 | Kind | URI or name | Content |
 |---|---|---|
-| Resource | `firefight://{scope}/entity/{path}` | The document at `path`, rendered the same way `ff_show` renders it |
-| Resource | `firefight://{scope}/list/{category}` | The entity paths of one category, as `ff_list` returns them |
+| Resource | `firefight://{scope}/entity/{path}` | The document at `path`, rendered the same way `mcp_ff_show` renders it |
+| Resource | `firefight://{scope}/list/{category}` | The entity paths of one category, as `mcp_ff_list` returns them |
 | Resource | `firefight://{scope}/log` | The event-log segments of a project scope, read-only |
 | Prompt | `firefight-editor-workflow` | The procedure in the editor-folder `skills/firefight-editor/SKILL.md`: locate the document, read it, stage a change, validate, confirm, write, verify |
 
@@ -118,7 +120,7 @@ working directory cannot resolve — the stock installation, typically — must 
 * Every write appends an event-log record whose `actor` is `mcp`, so an audit trail distinguishes agent
   writes from command-line writes.
 * Per-action approval belongs to the client: the MCP protocol has no approval primitive. DSH asks before
-  each write; other clients are expected to gate the `ff_set`/`ff_undo` calls themselves, and the server's
+  each write; other clients are expected to gate the `mcp_ff_set`/`mcp_ff_undo` calls themselves, and the server's
   `--write` flag is the second, server-side gate.
 * Moving to `danger-full-access` is out of scope for this plan.
 
@@ -140,7 +142,7 @@ working directory cannot resolve — the stock installation, typically — must 
 codes and are not reused. The four codes for write refusals — `-32001` lock held, `-32003` document
 changed after staging, `-32004` value not representable, `-32005` value rejected by the schema — are
 implemented together with the writing tools, which are the only calls that raise them; `-32000` is
-implemented already, because the scope rule applies to `ff_export` too.
+implemented already, because the scope rule applies to `mcp_ff_export` too.
 Errors raised by a command itself (a dangling reference, a syntax error) are
 tool-level failures: the result carries `isError: true` and the payload keeps the CLI shape, including the
 exit code (`0` success, `1` command failure, `2` usage refusal). The protocol channel and the tool channel
@@ -175,7 +177,7 @@ problem".
 3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused as an
    unknown tool.
 4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched. The
-   case is verified for `ff_export` today, which leaves the stock scope and its destination untouched. The
+   case is verified for `mcp_ff_export` today, which leaves the stock scope and its destination untouched. The
    lock and the event log are exercised through the CLI suite, where `tests/test_set.py`,
    `tests/test_undo.py`, `tests/test_documents.py` and `tests/test_entries.py` drive the same guards the
    write tools reach; no MCP case asserts them directly yet.

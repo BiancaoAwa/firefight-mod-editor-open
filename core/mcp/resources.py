@@ -8,6 +8,7 @@ has no tool of its own.
 
 from pathlib import Path
 
+from core.cli.specs import exposed_name as tool_name
 from core.cli.scope import UsageError, resolve_all
 from core.mcp.tools import CallRefused, run_command_call, success
 
@@ -19,13 +20,13 @@ RESOURCE_TEMPLATES = (
     {
         "uriTemplate": f"{SCHEME}{{scope}}/entity/{{path}}",
         "name": "entity",
-        "description": "One document of a scope, rendered the way ff_show renders it.",
+        "description": f"One document of a scope, rendered the way {tool_name('ff_show')} renders it.",
         "mimeType": "text/plain",
     },
     {
         "uriTemplate": f"{SCHEME}{{scope}}/list/{{category}}",
         "name": "category",
-        "description": "The entities of one editor category, as ff_list returns them.",
+        "description": f"The entities of one editor category, as {tool_name('ff_list')} returns them.",
         "mimeType": "text/plain",
     },
     {
@@ -36,21 +37,21 @@ RESOURCE_TEMPLATES = (
     },
 )
 
-PROCEDURE = """\
+PROCEDURE = f"""\
 Procedure for one edit, over the tools of this server:
 
-1. Locate the document: ff_stats or ff_list to find the entity path, ff_check to see the
-   state of the scope before the change.
-2. Read it: ff_show for the document as stored (as=toml converts), ff_get for one field,
-   ff_refs and ff_deps for the references in and out.
-3. Stage the change with ff_set and dryRun=true, and report the printed before/after pair
+1. Locate the document: {tool_name('ff_stats')} or {tool_name('ff_list')} to find the entity path,
+   {tool_name('ff_check')} to see the state of the scope before the change.
+2. Read it: {tool_name('ff_show')} for the document as stored (as=toml converts), {tool_name('ff_get')} for one field,
+   {tool_name('ff_refs')} and {tool_name('ff_deps')} for the references in and out.
+3. Stage the change with {tool_name('ff_set')} and dryRun=true, and report the printed before/after pair
    and the enum check to the caller.
 4. Validate: the staged value must be declared by the schema, by the editor's enum table or
    by another document of the same project. An unknown value is refused; do not retry it.
-5. Confirm with the caller, then call ff_set without dryRun. It writes one field: every
+5. Confirm with the caller, then call {tool_name('ff_set')} without dryRun. It writes one field: every
    other byte of the document stays as it was.
-6. Verify with ff_check and ff_get, and read firefight://<scope>/log for the recorded event.
-   A wrong change is taken back with ff_undo, never by editing the file by hand.
+6. Verify with {tool_name('ff_check')} and {tool_name('ff_get')}, and read firefight://<scope>/log for the recorded
+   event. A wrong change is taken back with {tool_name('ff_undo')}, never by editing the file by hand.
 
 A refusal is final: no partial write happened, and retrying the identical call is not useful.
 """

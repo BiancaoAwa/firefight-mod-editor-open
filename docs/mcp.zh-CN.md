@@ -15,7 +15,7 @@
 
 **归属与形态。** MCP 服务属于编辑器仓库，放在 `core/mcp/`，入口为 `python -m core.mcp`。仅用标准库，讲 stdio JSON-RPC，进程内构造 `Context` 并调用 `core.cli.commands.run_command`，复用 `Result`，不 spawn 命令行：进程内调用使权限门、退出码语义与 JSON 负载同命令行完全一致。
 
-**重叠规则。** 各交付面的工具名相同，因此同时装入 DSH 插件与 MCP 服务的客户端会出现重名工具。同一个 DSH 会话不要同时启用两者；文档里说明某流程按哪一个交付面工作。
+**重叠规则。** 两个交付面注册的是同一批规范工具名，各自带自己的前缀：本服务应答 `mcp_<名字>`（`mcp_ff_list`），DSH 插件注册 `dsh_<名字>`（`dsh_ff_list`）。注册名不会冲突，因此同一个 DSH 会话可以同时启用两者；文档里说明某流程按哪一个交付面工作。
 
 ## 2. 传输与协议修订
 
@@ -28,31 +28,31 @@
 
 ## 3. 工具面与唯一来源
 
-**命名。** 工具名与 `dsh-firefight-mod-tools` `lib/specs.js` 中的插件表逐字相同，参数沿用插件的 camelCase 拼写，使同一提示词或技能可在各交付面之间迁移而无需改名。
+**命名。** 规范工具名与 `dsh-firefight-mod-tools` `lib/specs.js` 中的插件表逐字相同，参数沿用插件的 camelCase 拼写，使同一提示词或技能可在各交付面之间迁移而无需改名。各交付面把该名字放在自己的前缀之后（§1）；下表列出本服务应答的名字。
 
 | 工具 | 参数 | 是否写入 | 注册条件 |
 |---|---|---|---|
-| `ff_list` | `scope`、`selector`、`type`、`root`、`workspace` | 否 | 始终 |
-| `ff_show` | `scope`、`selector`、`as`、`root`、`workspace` | 否 | 始终 |
-| `ff_get` | `scope`、`selector`、`field`、`root`、`workspace` | 否 | 始终 |
-| `ff_find` | `scope`、`selector`、`tag`、`value`、`path`、`ignoreCase`、`limit`、`root`、`workspace` | 否 | 始终 |
-| `ff_stats` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
-| `ff_refs` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
-| `ff_deps` | `scope`、`value`、`kind`、`root`、`workspace` | 否 | 始终 |
-| `ff_check` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
-| `ff_export` | `scope`、`selector`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_set` | `scope`、`selector`、`field`、`value`、`op`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_add` | `scope`、`selector`、`type`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_remove` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_index` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_convert` | `scope`、`selector`、`to`、`type`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_settings` | `scope`、`op`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_undo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
-| `ff_redo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_list` | `scope`、`selector`、`type`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_show` | `scope`、`selector`、`as`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_get` | `scope`、`selector`、`field`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_find` | `scope`、`selector`、`tag`、`value`、`path`、`ignoreCase`、`limit`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_stats` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_refs` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_deps` | `scope`、`value`、`kind`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_check` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_export` | `scope`、`selector`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_set` | `scope`、`selector`、`field`、`value`、`op`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_add` | `scope`、`selector`、`type`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_remove` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_index` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_convert` | `scope`、`selector`、`to`、`type`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_settings` | `scope`、`op`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_undo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_redo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 
-凡命令会写文件的工具都只在 `--write` 下注册，`ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`ff_set`、`ff_add`、`ff_remove`、`ff_index`、`ff_convert`、`ff_settings`、`ff_undo` 与 `ff_redo` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
+凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`mcp_ff_set`、`mcp_ff_add`、`mcp_ff_remove`、`mcp_ff_index`、`mcp_ff_convert`、`mcp_ff_settings`、`mcp_ff_undo` 与 `mcp_ff_redo` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
 
-`ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/Mod/mod.txt` 写 `mod_setting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
+`mcp_ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/Mod/mod.txt` 写 `mod_setting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
 
 **一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
 
@@ -60,8 +60,8 @@
 
 | 类型 | URI 或名称 | 内容 |
 |---|---|---|
-| 资源 | `firefight://{scope}/entity/{path}` | `path` 处的文档，渲染方式与 `ff_show` 相同 |
-| 资源 | `firefight://{scope}/list/{category}` | 某个分类的实体路径，同 `ff_list` 返回的内容 |
+| 资源 | `firefight://{scope}/entity/{path}` | `path` 处的文档，渲染方式与 `mcp_ff_show` 相同 |
+| 资源 | `firefight://{scope}/list/{category}` | 某个分类的实体路径，同 `mcp_ff_list` 返回的内容 |
 | 资源 | `firefight://{scope}/log` | 工程作用域的事件日志分段，只读 |
 | 提示 | `firefight-editor-workflow` | 编辑器文件夹 `skills/firefight-editor/SKILL.md` 中的流程：定位文档 → 读取 → 暂存改动 → 校验 → 确认 → 写入 → 复核 |
 
@@ -75,7 +75,7 @@
 * 启用写入的服务：写入限于工程目录内（`Mod/` 与 `.editor/`）。指向 `Firefight` 库存作用域的写入无条件拒绝；游戏安装目录永不被修改。
 * 拒绝即终态。服务不重试、不在同一次调用里再次询问，并把拒绝如实报给调用方；fail-closed 行为与命令行一致。
 * 每次写入追加一条事件日志记录，`actor` 为 `mcp`，使审计链能区分智能体写入与命令行写入。
-* 逐动作批准属于客户端：MCP 协议没有批准原语。DSH 在每次写入前询问；其他客户端应自行对 `ff_set`/`ff_undo` 调用设门，服务的 `--write` 是第二道、服务端的门。
+* 逐动作批准属于客户端：MCP 协议没有批准原语。DSH 在每次写入前询问；其他客户端应自行对 `mcp_ff_set`/`mcp_ff_undo` 调用设门，服务的 `--write` 是第二道、服务端的门。
 * 切到 `danger-full-access` 不在本计划范围内。
 
 ## 6. 错误映射
@@ -92,7 +92,7 @@
 | 值无法用文档编码表示 | `-32004` |
 | 值被 schema 拒绝 | `-32005` |
 
-`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。四个写入拒绝码——`-32001` 锁被持有、`-32003` 暂存后文档被改动、`-32004` 值无法表示、`-32005` 值被 schema 拒绝——随写入工具一并落地，因为只有这些调用会抛出它们；`-32000` 已经实现，因为作用域规则同样适用于 `ff_export`。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
+`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。四个写入拒绝码——`-32001` 锁被持有、`-32003` 暂存后文档被改动、`-32004` 值无法表示、`-32005` 值被 schema 拒绝——随写入工具一并落地，因为只有这些调用会抛出它们；`-32000` 已经实现，因为作用域规则同样适用于 `mcp_ff_export`。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
 
 ## 7. 入口与分发
 
@@ -106,7 +106,7 @@
 1. **转录测试。** 测试套件以子进程启动服务，把脚本化的请求序列写入其 stdin，断言 stdout 的行：经典握手（中间夹 `notifications/initialized`）、无状态的 `server/discover` 族、`tools/list`、一次只读工具调用、一次被拒绝的写入、一行格式错误的内容与一个不支持的协议修订。
 2. **快照测试。** `tools/list` 的工具名、参数名与必填性等于 `dsh-firefight-mod-tools` `lib/specs.js`；工具名集合在编辑器仓库内也按精确相等断言，任一仓库改名都会让测试失败。该跨仓比较在找不到该检出时跳过（可用 `FIREFIGHT_PLUGIN_SPECS` 指向其 `lib/specs.js`）。
 3. **只读模式。** `tools/list` 中不出现写入工具，直接调用写入工具按未知工具拒绝。
-4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。该用例目前对 `ff_export` 验证：库存作用域与其目标目录均未被改动；锁与事件日志两个用例随写入工具落地。
+4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。该用例目前对 `mcp_ff_export` 验证：库存作用域与其目标目录均未被改动；锁与事件日志两个用例随写入工具落地。
 5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。该次实测完成后结果补入本节；在此之前被接受的修订属未验证。
 
 编辑器仓库内已实测：`tests/test_mcp.py` 的 17 个用例，覆盖两个协议族、精确的工具集、`--write` 注册、库存作用域拒绝、带命令行退出码的工具级失败形状、资源、提示、命令行选项与插件快照（跨仓那一半在 `ffplugin/lib/specs.js` 可达时真跑）。

@@ -1,8 +1,10 @@
-"""The tool table of the MCP surface: one specification per tool.
+"""The tool table shared by both AI surfaces: one specification per tool.
 
 Tool names and parameter names are byte-identical to the plugin table in
 ``dsh-firefight-mod-tools`` ``lib/specs.js``, so one prompt or skill moves between the two
-surfaces; ``tests/test_mcp.py`` compares the two tables (docs/mcp.md section 3).  Each entry
+surfaces; ``tests/test_mcp.py`` compares the two tables (docs/mcp.md section 3).  The name
+written down here is the canonical one; each surface exposes it behind its own prefix, so
+this server answers to ``mcp_<name>`` and the plugin registers ``dsh_<name>``.  Each entry
 is data: ``tools/list`` is rendered from it and a call turns the arguments into the Context
 ``core.cli.commands.run_command`` expects.
 """
@@ -11,6 +13,7 @@ from dataclasses import dataclass
 
 SCOPE_DEFAULT = "Mod"
 CONTENT_TYPES = ("string", "integer", "boolean")
+TOOL_PREFIX = "mcp_"
 
 
 @dataclass(frozen=True)
@@ -438,6 +441,18 @@ def tool_named(name: str) -> ToolSpec | None:
         if spec.name == name:
             return spec
     return None
+
+
+def exposed_name(name: str) -> str:
+    """The name a client sees: the canonical tool name behind this surface's prefix."""
+    return f"{TOOL_PREFIX}{name}"
+
+
+def canonical_name(name: str) -> str | None:
+    """The canonical tool name an exposed one stands for, else ``None``."""
+    if not name.startswith(TOOL_PREFIX):
+        return None
+    return name[len(TOOL_PREFIX):]
 
 
 def registered(*, write: bool) -> tuple[ToolSpec, ...]:
