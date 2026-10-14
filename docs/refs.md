@@ -119,5 +119,5 @@ summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
 - Comparisons are exact and case-folded only where §2 says so; no glob or wildcard targets.
 
 Tests: `tests/test_refs.py` (21 cases); the full suite is `python -m unittest discover -s tests
--t .` with 231 cases.
+-t .` (309 cases at the time of writing).
 

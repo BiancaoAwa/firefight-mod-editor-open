@@ -5,7 +5,8 @@
 状态：**除三个写入者外只读**。`set` 修改一个工程文档的一个字段，`undo` 与 `redo` 按日志记录回退与重做，`export` 把原版 XML
 写入调用方指定的目录；其余命令只打印结果。写入者都只改动它们触及的内容：`set` 按字段保证（§4.1），`undo` 与 `redo` 写入
 记录下来的字节而非重新序列化的结果（§4.2），`export` 按文件保证（顺序、空行、缩进、注释与换行风格，见 §9 与
-toml-mapping §4）。`web` 把同样的只读结果作为页面发布在 `127.0.0.1`（见 docs/web.md）。没有打包：该阶段尚不存在。
+toml-mapping §4）。`web` 把同样的结果作为页面发布在 `127.0.0.1`，页面跑的就是同一批命令，写入类命令也一样（见
+docs/web.md）。没有打包：该阶段尚不存在。
 
 ## 1. 调用方式
 
@@ -56,20 +57,23 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `deps` | | `value=<令牌>` 的入向引用（谁指向它） |
 | `check` | `lint` | 全量加载；报告加载错误、警告与悬空引用 |
 | `set` | | 修改一个文档的一个字段；需要 `--write`（§4.1） |
+| `convert` | | 把选择范围转成工程工作文件，写入 `to=<目录>`；需要 `--write`（§4.3） |
 | `log` | | 列出日志分段与其中的最新记录；只读（§4.2） |
 | `undo` | | 回退最后若干次写入所替换的内容；需要 `--write`（§4.2） |
 | `redo` | | 重做最后一次撤销所回退的内容；需要 `--write`（§4.2） |
 | `export` | `emit` | 把选择范围写成原版 XML（`to=<目录>`）；来自磁盘的文件按源字节写入 |
-| `web` | `serve` | 在 `127.0.0.1` 上发布只读页面，直到 Ctrl-C（见 docs/web.md） |
+| `web` | `serve` | 在 `127.0.0.1` 上发布页面，直到 Ctrl-C（§4.4，见 docs/web.md） |
 | `version` | | 编辑器版本、解释器、已解析的作用域 |
 
-选项：`root=`、`workspace=`、`to=`、`as=`、`field=`、`type=`、`kind=`、`path=`、`limit=`（默认 200 行）、
-`ignore_case=1`、`--json`；`set` 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1）；
+选项：`root=`、`workspace=`、`to=`（`export` 的目标目录，或 `convert` 写入的工程目录）、`as=`、`field=`、`type=`、
+`kind=`、`path=`、`limit=`（默认 200 行）、`ignore_case=1`、`overwrite=1`（`convert`：覆盖已存在的工作文件）、
+`--json`；`set` 与 `convert` 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；
 `undo` 与 `redo` 接受 `--write` 与一个可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
 
-`web` 另有四个选项：`port=`（默认 8765）、`token=<文本>`（设置后每个 URL 都必须带 `?t=<文本>`）、`pagesize=`
-（默认每页 200 行）、`browser=1`（打开默认浏览器，而不只是打印地址）。
+`web` 另有四个选项：`port=`（显式指定端口；不给时复用已在运行的实例，否则取 8765 及以上的第一个空闲端口，§4.4）、
+`token=<文本>`（设置后每个 URL 都必须带 `?t=<文本>`）、`pagesize=`（默认每页 200 行）、`browser=1`（打开默认浏览器，
+而不只是打印地址）。
 
 ### 4.1 写一个字段
 
@@ -116,13 +120,44 @@ python -m core.cli Mod redo [计数] --write [--json]
   拒绝即终态，不重试。
 * 新的 `set` 会丢弃可重做的内容，与编辑器中的新改动一致。
 
+### 4.3 把原版文件转成工程工作文件
+
+```
+python -m core.cli Firefight convert to=<工程> --write [--dry-run] [type=<类别>] [--json]
+```
+
+* 从作用域读出选择范围，写到 `<工程>/Mod/<相对路径>`，后缀换成 `.toml`。目标目录自身最后一段已经是 `Mod` 时按原样
+  使用。缺少的目录会被创建，因此 `convert` 是唯一能从游戏数据建立工程目录的命令；它不写 `mod.toml`，因为工程元数据
+  由作者填（docs/project-layout.md §3）。
+* 已存在的目标文件被跳过并计入统计；`overwrite=1` 覆盖它。非实体文件同样跳过并计入统计——例如 `mod.txt` 这类清单文件。
+* 输出为 UTF-8 无 BOM、CRLF 换行，即 TOML 写入器的规范排版，因此结果与来源的原版 `Data/*.txt` 并不逐字节相同。逐字节
+  复现是 `export` 的职责，不是 `convert` 的。
+* 不带 `--write` 属于用法错误（退出码 2）。`--dry-run` 报告同一份计划且什么都不写，连目标目录也不建。
+* 至少一个文件转换失败时退出码为 1，否则为 0。
+* `convert` 写的是尚无记录版本的文档，因此不追加事件日志记录，也不持有 `.editor/lock`，连 `.editor/` 都不创建。由此有
+  两处缺口：它写入的文件无法用 `undo` 回退，并发的 `set` 也不被排除。
+
+### 4.4 Web 界面与运行实例记录
+
+```
+python -m core.cli Mod web [port=<n>] [token=<文本>] [pagesize=<n>] [browser=1]
+```
+
+* 显式给出 `port=` 时总在该端口启动服务。不给端口时，若已记录的实例仍然应答就复用：打印它的地址，调用方要求打开
+  浏览器时打开其页面，本进程立即返回，因此不会意外起第二个后端。否则取 8765 及以上的第一个空闲端口。
+* 运行中的实例记录在 `<编辑器文件夹>/.editor/web.json`，识别不出编辑器文件夹时记录在工程目录下，字段为 `pid`、
+  `host`、`port`、`url`、`scope`、`token` 与 `started`。正常停止会删除记录。被强杀的进程会留下陈旧记录，此时由其地址
+  的探测结果决定，因此崩溃过的界面不会阻塞下一次启动——启动器（`tools/launcher/ff-tool.ps1`）采用同一规则。
+* 页面可以运行写入类命令，而命令自身的门始终是最终裁决：页面为接受 `write=1` 的命令传递它，被拒绝时的读法与命令行
+  完全一致。`web` 本身在请求内被拒绝，因为它会试图绑定第二个端口（docs/web.md §3）。
+
 ## 5. 退出码
 
 | 码 | 含义 |
 |---|---|
 | 0 | 命令执行完成，没有需要报告的内容 |
-| 1 | `check` 发现加载错误、悬空引用或警告；**或**解析/IO 错误导致命令中止（消息会指出文件，已知时给出行号）；**或**已记录的文档版本无法读取（§4.2） |
-| 2 | 用法错误：未知作用域或命令、缺少或未知选项、路径无法解析，以及所有被拒绝的写入（§4.1、§4.2） |
+| 1 | `check` 发现加载错误、悬空引用或警告；**或**解析/IO 错误导致命令中止（消息会指出文件，已知时给出行号）；**或**已记录的文档版本无法读取（§4.2）；**或**至少一个文件转换失败（§4.3） |
+| 2 | 用法错误：未知作用域或命令、缺少或未知选项、路径无法解析，以及所有被拒绝的写入（§4.1、§4.2、§4.3） |
 | 130 | 被中断（Ctrl-C） |
 
 ## 6. 警告
@@ -161,17 +196,21 @@ python -m core.cli Firefight check  "root=<Firefight>" --json
 python -m core.cli Firefight refs   "root=<Firefight>" --json --limit 5
 python -m core.cli Firefight deps   "value=WEAPON_PISTOL_P38" "root=<Firefight>"
 python -m core.cli Firefight export Vehicles "root=<Firefight>" "to=<某个目录>"
+python -m core.cli Firefight convert "root=<Firefight>" "to=<新工程>" --write --dry-run
 python -m core.cli WW3 stats "root=<解包的 WW3>/.Mod"
 python -m core.cli Firefight web    "root=<Firefight>" port=8765
 ```
 
-两个语料上 `check` 都退出 1，这是有意的报告而非崩溃。`deps` 是作用域级的：一次只回答一个作用域。`web` 会一直
-阻塞到 Ctrl-C，并打印它绑定到的地址。
+两个语料上 `check` 都退出 1，这是有意的报告而非崩溃。`deps` 是作用域级的：一次只回答一个作用域。在已安装的游戏上
+`convert` 计划 1792 个文件、跳过 48 个清单文件；不带 `--dry-run` 时就把它们写出来。`web` 会一直阻塞到 Ctrl-C，并
+打印它绑定到的地址。
 
 ## 9. 本部分的限制
 
-* 没有工程文件类命令、没有 `add`/`remove`、没有批量编辑、没有打包。写入一次只改一个文档的一个叶子；日志与基线属于
-  单个工程，`Firefight` 永不被写入。
+* 没有 `add`/`remove`、没有批量编辑、没有打包。写入一次改一个文档的一个叶子，`convert` 则一次写一整个选择范围；
+  日志与基线属于单个工程，`Firefight` 永不被写入。工程元数据类命令仍然缺失：`mod.toml` 与 `mod_setting.toml` 只被
+  读取而不被写入，`.editor/refs.toml` 与 `.editor/index.toml` 仍是空占位，因此 `refs` 与 `deps` 每次现算引用图，
+  而不是读索引。
 * `export` 保留源排版：兄弟节点顺序、空行、缩进、`//` 注释与文件自身的换行风格全部来自源文本
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。

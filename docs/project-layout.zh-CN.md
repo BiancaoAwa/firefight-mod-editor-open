@@ -214,9 +214,11 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 ```
 <仓库>/
 ├── core/          代码
-│   ├── cli/       命令行：作用域解析、命令、main
-│   ├── web/       本地只读 Web 界面：server
-│   └── *.py       schema、解析器（XML/TOML）、模型、转换、引用图
+│   ├── cli/       命令行：作用域解析、命令、main、工具表
+│   ├── mcp/       在这些命令之上的 stdio MCP 服务（docs/mcp.md）
+│   ├── web/       本地 Web 界面：服务、页面、运行实例记录
+│   └── *.py       schema、解析器（XML/TOML）、模型、转换、引用图、
+│                  编辑（edit、journal、history）
 ├── docs/          规范：编辑器做什么、如何构建；英文文件 + `*.zh-CN.md` 中文对照（本文件所在）
 ├── tests/         测试套件（无需安装游戏、无需联网）
 ├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、
@@ -224,7 +226,8 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
 
-命令行与 Web 界面位于 `core/cli` 与 `core/web`，以 `core.cli.*` / `core.web.*` 导入。
+命令行、MCP 服务与 Web 界面位于 `core/cli`、`core/mcp` 与 `core/web`，以
+`core.cli.*` / `core.mcp.*` / `core.web.*` 导入。
 `core/cli/scope.py`（`_editor_root`）是唯一识别编辑器文件夹的地方——仓库或发行版都识别——因此内置的
 `Firefight/` 副本无需安装游戏也能找到。
 

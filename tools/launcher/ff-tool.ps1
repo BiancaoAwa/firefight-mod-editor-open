@@ -6,7 +6,8 @@ ff-tool.ps1 - one-click start / stop for the Firefight mod editor tool (the `cor
   restart  stop, then start
   status   show the paths, what exists, and what is still running
   run      pass the rest of the command line straight to the CLI (this is what `ff` does)
-  web      serve the read-only web UI on 127.0.0.1 (-Port, default 8765)
+  web      serve the web UI on 127.0.0.1 (-Port <n> pins a port; without it the action reuses
+           the instance this editor already records, else takes the first free port from 8765)
            -Window serves it hidden with the page in its own app window and a watchdog;
            -Scope <name> picks the scope (default Firefight, -Project implies Mod);
            -NoBrowser opens no page, -Browser uses the default browser instead of the app window
@@ -43,31 +44,72 @@ $ErrorActionPreference = 'Stop'
 $script:Self = $PSCommandPath
 
 $editorParent = Split-Path $PSScriptRoot -Parent
-$bundledPython = 'C:\Users\BC_aw\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe'
-$defaultPython = if (Test-Path $bundledPython) { $bundledPython } else { 'python' }
+# The DSH-bundled interpreter is a machine fact, not a repository constant: DSH_HOME names the
+# installation directory, so no user name and no drive letter is written into this file.
+$bundledPython = if ($env:DSH_HOME) {
+    Join-Path $env:DSH_HOME 'dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe'
+}
+$defaultPython = if ($bundledPython -and (Test-Path -LiteralPath $bundledPython)) { $bundledPython } else { 'python' }
 # The launcher ships in two layouts, so the entry point is resolved instead of hard-coded:
-#   repository: m3-cli\tools\launcher\ff-tool.ps1  +  ..\..\core\cli\__main__.py
-#   release   : <editor>\launcher\ff-tool.ps1      +  ..\core\cli\__main__.py
+#   repository: tools\launcher\ff-tool.ps1     +  ..\..\core\cli\__main__.py
+#   release   : <editor>\launcher\ff-tool.ps1  +  ..\core\cli\__main__.py
 $cliCandidates = @(
     (Join-Path $editorParent 'core\cli\__main__.py'),
-    (Join-Path $editorParent '..\core\cli\__main__.py'),
-    (Join-Path $editorParent 'm3-cli\core\cli\__main__.py'),
-    (Join-Path $PSScriptRoot '..\core\cli\__main__.py')
+    (Join-Path $editorParent '..\core\cli\__main__.py')
 )
 $defaultCli = $cliCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (-not $defaultCli) { $defaultCli = $cliCandidates[0] }
-# The game data sits next to the editor root: <editor>\Firefight in a release, Steam in the repository.
 $editorRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $defaultCli))
-$steamRoot = 'D:\Program Files (x86)\Steam\steamapps\common\Firefight'
 $bundledRoot = Join-Path $editorRoot 'Firefight'
-$defaultRoot = if (Test-Path $steamRoot) { $steamRoot } elseif (Test-Path $bundledRoot) { $bundledRoot } else { $steamRoot }
 $defaultWork = $PSScriptRoot
 
 if (-not $Python) { $Python = $defaultPython }
 if (-not $Cli) { $Cli = $defaultCli }
-if (-not $Root) { $Root = $defaultRoot }
 if (-not $WorkDir) { $WorkDir = $defaultWork }
-if ($Port -le 0) { $Port = if ($env:FF_PORT) { [int]$env:FF_PORT } else { 8765 } }
+
+function Get-ConfiguredFirefightRoot {
+    # Reads `firefight = "<path>"` from CONFIG_NAME, the key core/cli/scope.py resolves.
+    foreach ($dir in @($WorkDir, (Split-Path -Parent $WorkDir), $editorRoot)) {
+        if (-not $dir) { continue }
+        $configPath = Join-Path $dir '.ff-editor.local.toml'
+        $text = Get-Content -LiteralPath $configPath -Raw -ErrorAction SilentlyContinue
+        if ($text -and $text -match '(?m)^\s*firefight\s*=\s*"([^"]+)"') {
+            return ($Matches[1] -replace '/', '\')
+        }
+    }
+    return $null
+}
+
+function Get-SteamFirefightRoot {
+    # The game directory is a machine fact: probe the standard Steam library roots on every fixed
+    # drive rather than naming one drive.
+    $relative = @(
+        'Program Files (x86)\Steam\steamapps\common\Firefight',
+        'Program Files\Steam\steamapps\common\Firefight',
+        'Steam\steamapps\common\Firefight',
+        'SteamLibrary\steamapps\common\Firefight'
+    )
+    foreach ($drive in (Get-PSDrive -PSProvider FileSystem -ErrorAction SilentlyContinue)) {
+        foreach ($part in $relative) {
+            $candidate = Join-Path $drive.Root $part
+            if (Test-Path -LiteralPath $candidate) { return $candidate }
+        }
+    }
+    return $null
+}
+
+$configuredRoot = Get-ConfiguredFirefightRoot
+if (-not $Root) {
+    $steamRoot = Get-SteamFirefightRoot
+    $Root = if ($configuredRoot -and (Test-Path -LiteralPath $configuredRoot)) { $configuredRoot }
+        elseif (Test-Path -LiteralPath $bundledRoot) { $bundledRoot }
+        elseif ($steamRoot) { $steamRoot }
+        else { $bundledRoot }
+}
+# $Port stays 0 when the caller named none: the web actions then reuse the instance this editor
+# already records, else take the first free port at or above $script:DefaultPort.
+if ($Port -le 0 -and $env:FF_PORT) { $Port = [int]$env:FF_PORT }
+$script:DefaultPort = 8765
 
 $script:LogFile = $null
 $script:OutDir = Join-Path $WorkDir 'out'
@@ -304,7 +346,9 @@ function Start-Web {
     # the server runs in the foreground and streams its banner, so this does not go through
     # Invoke-Ff (which buffers the child's output until it exits)
     $scope = Get-WebScope
-    $call = @($scope, 'web') + @(Get-WebRootArgs $scope) + @(('port=' + $Port)) + @($Rest)
+    # no port named: the CLI reuses the recorded instance or takes the first free port itself
+    $portArgs = if ($Port -gt 0) { @('port=' + $Port) } else { @() }
+    $call = @($scope, 'web') + @(Get-WebRootArgs $scope) + $portArgs + @($Rest)
     # in the foreground there is no launcher left to open a window, so the CLI opens the
     # default browser itself; -NoBrowser (or an inherited FF_WEB_BROWSER=0) suppresses that
     if ((-not $NoBrowser) -and ($env:FF_WEB_BROWSER -ne '0')) { $call += 'browser=1' }
@@ -331,6 +375,42 @@ function Start-Web {
     return $code
 }
 
+function Get-WebInstanceFile {
+    # the record the CLI writes for the instance it serves (core/web/server.py)
+    Join-Path $editorRoot '.editor\web.json'
+}
+
+function Read-WebInstance {
+    # the recorded instance when its address still answers, else $null; the file is written by
+    # this editor only, so a port answered by another program is never taken for ours
+    $file = Get-WebInstanceFile
+    if (-not (Test-Path $file)) { return $null }
+    try { $record = Get-Content $file -Raw | ConvertFrom-Json } catch { return $null }
+    if (-not $record.url) { return $null }
+    if ($record.url -match ':(\d+)/' -and (Test-PortOpen ([int]$Matches[1]))) { return $record }
+    return $null
+}
+
+function Find-FreePort([int]$Start) {
+    # first port at or above $Start nothing answers on; the CLI resolves the same way
+    for ($p = $Start; $p -lt ($Start + 50); $p++) { if (-not (Test-PortOpen $p)) { return $p } }
+    return $Start
+}
+
+function Open-ReusedPage([string]$Url) {
+    # no watchdog here: the server belongs to whoever started it, not to this window
+    if ($NoBrowser) { Write-Info 'page     not opened (-NoBrowser) - the address is above'; return }
+    $exe = if ($Browser) { '' } else { Find-AppBrowser }
+    try {
+        if ($exe) {
+            Start-Process -FilePath $exe -ArgumentList @(("--app=" + $Url), '--no-first-run', '--no-default-browser-check') | Out-Null
+            Write-Ok 'page     opened in its own window (reused server)'
+        }
+        else { Start-Process $Url | Out-Null; Write-Ok 'page     opened in the default browser' }
+    }
+    catch { Write-Info ("page     could not be opened: " + $_.Exception.Message) }
+}
+
 function Start-WebWindow {
     # Serve hidden in the background: the server runs directly (python ... web) with its
     # output redirected into the work log folder, so no console window is left behind.
@@ -338,6 +418,20 @@ function Start-WebWindow {
     Write-Head 'web ui (background)'
     if (-not (Test-Path $Python)) { Write-Bad "python not found: $Python"; return 2 }
     if (-not (Test-Path $Cli)) { Write-Bad "cli not found: $Cli"; return 2 }
+    if ($Port -le 0) {
+        # no port named: reuse the instance this editor records, else take the first free port.
+        # The CLI picks the same way when it is started without port=, so both stay in step.
+        $running = Read-WebInstance
+        if ($running) {
+            $Port = [int]$running.port
+            Write-Ok ("reusing the instance already running (pid " + $running.pid + ")")
+            Write-Info ("url      " + $running.url)
+            Open-ReusedPage $running.url
+            return 0
+        }
+        $Port = Find-FreePort $script:DefaultPort
+        Write-Info ("port      none named - first free one: " + $Port)
+    }
     if (Test-PortOpen $Port) {
         Write-Bad ("port {0} is already in use - an older server is probably still running (pid {1})" -f $Port, (Get-PortOwner $Port))
         Write-Info 'close it from its page (退出), or run:  stop'
@@ -375,15 +469,19 @@ function Start-WebWindow {
         Start-Sleep -Milliseconds 250
     }
     if ($ready) {
-        # the port answers: make sure it is our server and not a leftover from an earlier run
+        # The port answers: make sure it is the server this tool just started. The instance
+        # record the CLI writes names that pid exactly and needs no WMI, which is unavailable in
+        # locked-down sessions; the leftover checks stay as a fallback for older entry points.
         $owner = Get-PortOwner $Port
         $ours = $false
         $how = 'process name'
-        if ($owner -gt 0) {
+        $record = Read-WebInstance
+        if ($record -and ([int]$record.pid -eq $proc.Id)) { $ours = $true; $how = 'instance record' }
+        elseif ($owner -gt 0) {
             $who = Get-CimInstance -ClassName Win32_Process -Filter ("ProcessId = " + $owner) -ErrorAction SilentlyContinue
             if ($who -and $who.CommandLine) {
                 # the exact check; WMI can be unavailable in locked-down sessions, then fall back
-                $ours = ($who.CommandLine -match 'ff\.py' -and $who.CommandLine -match '\sweb(\s|$)')
+                $ours = ($who.CommandLine -match '(ff\.py|m\s+core\.cli)' -and $who.CommandLine -match '\sweb(\s|$)')
                 $how = 'command line'
             }
             else {
@@ -396,6 +494,8 @@ function Start-WebWindow {
             Write-Bad ("port {0} is answered by pid {1}, which is not this server" -f $Port, $owner)
             Write-Info 'that process was already there - close it, or start on another port with -Port'
             $ready = $false
+            # do not leave the server this tool just started running behind a failed check
+            if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
         }
     }
     else { Write-Bad ("nothing answered on port {0} after 10 s" -f $Port) }

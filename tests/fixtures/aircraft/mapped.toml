@@ -1,22 +1,29 @@
 [aircraft]
+
 [aircraft.description]
 type = "TYPE_PLANE"
 long_name = "Demo Plane"
 speed = 200
+
 [aircraft.availability]
+
 [[aircraft.availability.data]]
 month = 3
 year = 1943
 number = 100
+
 [aircraft.armament]
+
 [[aircraft.armament.weapon]]
 type = "WEAPON_CANNON_20MM"
 offsetX = -315
 offsetY = 32
+
 [[aircraft.armament.weapon]]
 type = "WEAPON_CANNON_20MM"
 offsetX = 331
 offsetY = 28
+
 [[aircraft.armament.ammo]]
 for = "WEAPON_CANNON_20MM"
 flavour = "FLAVOUR_HE"

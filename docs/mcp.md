@@ -59,19 +59,28 @@ between surfaces without renaming anything.
 | `ff_find` | `scope`, `selector`, `tag`, `value`, `path`, `ignoreCase`, `limit`, `root`, `workspace` | no | always |
 | `ff_stats` | `scope`, `selector`, `root`, `workspace` | no | always |
 | `ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
-| `ff_deps` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
+| `ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
 | `ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
-| `ff_export` | `scope`, `selector`, `to`, `as`, `root`, `workspace` | yes | always (export is the existing write path) |
+| `ff_export` | `scope`, `selector`, `to`, `root`, `workspace` | yes | only with `--write` |
 | `ff_set` | `scope`, `selector`, `field`, `value`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_undo` | `scope`, `selector`, `count`, `root`, `workspace` | yes | only with `--write` |
+| `ff_undo` | `scope`, `count`, `root`, `workspace` | yes | only with `--write` |
+
+Every tool whose command writes files is registered only with `--write`, `ff_export` included:
+the CLI's `export` needs no flag because its destination is an explicit option, but a server
+that reports itself read-only must not expose a tool that writes. `ff_set` and `ff_undo`
+arrive with the writing stage, so their row describes the intended shape; until then a call
+to either is answered as an unknown tool.
 
 Later work adds `ff_add` and `ff_remove` with the same rule.
 
-**One specification.** The CLI help, the web UI and the MCP tool table read one Python specification
-table (candidate `core/cli/specs.py`) instead of three hand-written lists. A snapshot test asserts that
-`tools/list` names, parameter names and required-ness equal the plugin table, and that read-only mode
-exposes no write tool. Cross-repository consistency is enforced by that test plus this document; no shared
-build is introduced.
+**One specification.** The tool table is one Python specification table, `core/cli/specs.py`,
+which the MCP server renders `tools/list` from and turns a call into a CLI invocation; the
+plugin's `lib/specs.js` is its cross-repository twin. A snapshot test asserts that `tools/list`
+names, parameter names and required-ness equal the plugin table, and that read-only mode
+exposes no write tool. Cross-repository consistency is enforced by that test plus this
+document; no shared build is introduced. Feeding the CLI help and the web UI from the same
+table is later work: the command line lists commands, not tools, and the web UI builds a form
+per command.
 
 ## 4. Resources and prompts
 
@@ -84,7 +93,9 @@ build is introduced.
 
 Resources are read-only. Subscriptions are not implemented (2026-07-28 moved them to a long-lived
 `subscriptions/listen` stream), so clients re-read a resource when they need it. Prompt arguments: `scope`,
-`selector` and an optional `goal`.
+`selector` and an optional `goal`. A resource URI names a scope but takes no root, so a scope the server's
+working directory cannot resolve — the stock installation, typically — must be supplied at start-up with
+`root=<directory>` or `firefight=<directory>`; a tool call can still override it per call.
 
 ## 5. Permissions and approval
 
@@ -118,7 +129,11 @@ Resources are read-only. Subscriptions are not implemented (2026-07-28 moved the
 | Value rejected by the schema | `-32005` |
 
 `-32000`–`-32019` are reserved for implementation-defined codes; `-32020`–`-32099` are specification
-codes and are not reused. Errors raised by a command itself (a dangling reference, a syntax error) are
+codes and are not reused. The four codes for write refusals — `-32001` lock held, `-32003` document
+changed after staging, `-32004` value not representable, `-32005` value rejected by the schema — are
+implemented together with the writing tools, which are the only calls that raise them; `-32000` is
+implemented already, because the scope rule applies to `ff_export` too.
+Errors raised by a command itself (a dangling reference, a syntax error) are
 tool-level failures: the result carries `isError: true` and the payload keeps the CLI shape, including the
 exit code (`0` success, `1` command failure, `2` usage refusal). The protocol channel and the tool channel
 therefore stay distinguishable: a client can tell "the call failed" from "the call ran and reported a
@@ -126,7 +141,10 @@ problem".
 
 ## 7. Entry point and distribution
 
-* Repository: `python -m core.mcp` (`core/mcp/__main__.py`), the same shape as `core/cli`.
+* Repository: `python -m core.mcp` (`core/mcp/__main__.py`), the same shape as `core/cli`. It
+  takes `--write` to expose the writing tools, and `workspace=<directory>`,
+  `root=<directory>` and `firefight=<directory>` as the defaults every tool call and every
+  resource read inherits; a call can override the first two.
 * Editor folder (a release, not the repository): `ff-mcp.cmd` next to `ff-ai.cmd` and `ff-web.cmd`. It
   forwards its arguments to the module, writes nothing to stdout beyond the protocol, and never waits for
   a keypress.
@@ -139,16 +157,25 @@ problem".
 ## 8. Tests and verification
 
 1. **Transcript tests.** The suite starts the server as a subprocess, writes a scripted request sequence to
-   its stdin and asserts the stdout lines: handshake in both protocol families, `tools/list`, one read-only
-   tool call, one refused write, one malformed request.
+   its stdin and asserts the stdout lines: the classic handshake with `notifications/initialized` in between,
+   the stateless `server/discover` family, `tools/list`, one read-only tool call, one refused write, one
+   malformed line and one unsupported protocol version.
 2. **Snapshot test.** `tools/list` names, parameter names and required-ness equal
-   `dsh-firefight-mod-tools` `lib/specs.js`; the tool-name set is asserted exactly, so a rename in either
-   repository fails the test.
-3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused.
-4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched.
+   `dsh-firefight-mod-tools` `lib/specs.js`; the tool-name set is asserted exactly in the editor repository
+   too, so a rename in either repository fails the test. The cross-repository half is skipped when that
+   checkout is not reachable (point `FIREFIGHT_PLUGIN_SPECS` at its `lib/specs.js`).
+3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused as an
+   unknown tool.
+4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched. The
+   case is verified for `ff_export` today, which leaves the stock scope and its destination untouched; the
+   lock and event-log cases arrive with the writing tools.
 5. **Live client check.** One manual session against a real MCP client, recording which protocol revision
    was accepted and the exact startup configuration. The result is appended to this section once that
    session runs; until then the accepted revision is unverified.
+
+Verified in the editor repository: 15 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
+the exact read-only surface, `--write` registration, the stock-scope refusal, the tool-level failure shape
+with the CLI exit code, resources, prompts, the command line and the plugin snapshot.
 
 ## 9. Non-goals
 

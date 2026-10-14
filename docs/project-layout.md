@@ -273,9 +273,11 @@ the editor ships as loose code or as a packed executable.
 ```
 <repo>/
 ├── core/          the code
-│   ├── cli/       command line: scope resolution, commands, main
-│   ├── web/       the local read-only web UI: server
-│   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph
+│   ├── cli/       command line: scope resolution, commands, main, the tool table
+│   ├── mcp/       the stdio MCP server over those commands (docs/mcp.md)
+│   ├── web/       the local web UI: server, pages, running-instance record
+│   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph,
+│                  editing (edit, journal, history)
 ├── docs/          specification: what the editor does and how it is built, English plus *.zh-CN.md mirror (this file lives here)
 ├── tests/         the suite (no game install, no network)
 ├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
@@ -284,10 +286,10 @@ the editor ships as loose code or as a packed executable.
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
 
-The CLI and the web UI live in `core/cli` and `core/web` and are imported as
-`core.cli.*` / `core.web.*`. `core/cli/scope.py` (`_editor_root`) is the one place that
-recognises an editor folder — repository or distribution — so a bundled `Firefight/` copy
-can be found without an installed game.
+The CLI, the MCP server and the web UI live in `core/cli`, `core/mcp` and `core/web` and are
+imported as `core.cli.*` / `core.mcp.*` / `core.web.*`. `core/cli/scope.py` (`_editor_root`) is
+the one place that recognises an editor folder — repository or distribution — so a bundled
+`Firefight/` copy can be found without an installed game.
 
 The CLI entry is the module `core.cli`, started from the repository root; there is no
 `ff.py` at the top level, so `python -m core.cli <scope> <command> ...` is the only form.

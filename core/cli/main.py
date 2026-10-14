@@ -30,6 +30,7 @@ Commands
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
   set              change one field of one document (needs --write)
+  convert          turn the selection into project working files under to= (needs --write)
   log              log segments and the newest records inside them
   undo             put back what the last writes replaced (needs --write)
   redo             re-apply what the last undo reverted (needs --write)
@@ -40,7 +41,7 @@ Commands
 Options
   root=<dir>       scope root override
   workspace=<dir>  directory holding Mods/ (default: current directory)
-  to=<dir>         export destination
+  to=<dir>         export destination, or the project convert writes into
   as=raw|toml|xml  how show renders a document
   field=<a.b.c>    field path for get
   type=<category>  filter by editor category
@@ -48,12 +49,14 @@ Options
   path=<a/b>       document path prefix for find
   limit=<n>        cap the rows printed (default 200)
   ignore_case=1    case-insensitive find
-  port=<n>         web UI port (default 8765)
+  overwrite=1      convert: replace a working file that is already there
+  port=<n>         web UI port; without it the first free port at or above 8765 is used,
+                   unless an instance is already running and is reused instead
   token=<text>     web UI access token; links then need ?t=<text>
   pagesize=<n>     web UI rows per page (default 200)
   browser=1        web UI: open the default browser on start
-  --write          set, undo and redo: write the change into the document
-  --dry-run        set: report the change without writing anything
+  --write          set, convert, undo and redo: write the change into the document
+  --dry-run        set and convert: report the change without writing anything
   --json           print the machine payload instead of the text table
 """
 

@@ -4,6 +4,8 @@ The server runs on an ephemeral port and every page is fetched over a real socke
 routing, escaping, filtering and the token check are exercised as a browser would hit them.
 """
 
+import contextlib
+import io
 import json
 import re
 import shutil
@@ -12,6 +14,7 @@ import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from unittest import mock
 from urllib.parse import urlencode
 
 from core.cli.main import main
@@ -417,7 +420,7 @@ class WebTestCase(unittest.TestCase):
         status, body = self.fetch("/help")
         self.assertEqual(status, 200)
         self.assertIn("页面与等价命令", body)
-        self.assertIn("只读", body)
+        self.assertIn("写入由命令自身的门决定", body)
 
     # --- the command line page ----------------------------------------------
 
@@ -464,17 +467,114 @@ class WebTestCase(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("没有这个命令", body)
 
-    def test_cmd_refuses_the_writing_commands(self) -> None:
-        """export writes files and web would bind a second port; the UI stays read-only."""
-        for line in ("export to=C:/tmp/nowhere", "emit to=C:/tmp/nowhere", "web port=8899", "serve"):
+    def test_cmd_refuses_only_the_command_that_would_bind_a_port(self) -> None:
+        """`web` cannot run inside a request; the writing commands are the command's own call."""
+        for line in ("web port=8899", "serve"):
             status, body = self.fetch("/cmd", line=line)
             self.assertEqual(status, 400, line)
-            self.assertIn("不可用", body, line)
+            self.assertIn("不能在页面里运行", body, line)
 
-    def test_json_route_refuses_the_writing_commands_too(self) -> None:
-        status, body = self.fetch("/json", command="export", to="C:/tmp/nowhere")
+    def test_json_route_also_refuses_web(self) -> None:
+        status, body = self.fetch("/json", command="web", port="8899")
         self.assertEqual(status, 400)
-        self.assertIn("不可用", body)
+        self.assertIn("不能在页面里运行", body)
+
+    def test_a_page_may_run_a_writing_command(self) -> None:
+        """The UI can change a project document; the command's own gate still applies."""
+        document = PROJECT / "Mod" / "Data" / "Weapons" / "WEAPON_WEB.txt"
+        write(document, WEAPON_XML)
+        before = document.read_bytes()
+        app = App({"workspace": str(WORKSPACE)}, PROJECT, "Mod")
+        server = make_server(app, 0)
+        server.quiet = True
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = f"http://127.0.0.1:{server.server_port}"
+            query = urlencode(
+                {
+                    "command": "set",
+                    "selector": "Data/Weapons/WEAPON_WEB.txt",
+                    "field": "name",
+                    "value": "Web Pistol",
+                    "write": "1",
+                }
+            )
+            with urllib.request.urlopen(f"{base}/json?{query}", timeout=20) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            self.assertTrue(payload["written"])
+            self.assertIn(b"Web Pistol", document.read_bytes())
+            self.assertNotEqual(document.read_bytes(), before)
+            without = f"{base}/json?" + urlencode(
+                {"command": "set", "selector": "Data/Weapons/WEAPON_WEB.txt", "field": "name", "value": "Nope"}
+            )
+            try:
+                urllib.request.urlopen(without, timeout=20)
+                self.fail("a write without the flag was accepted")
+            except urllib.error.HTTPError as error:
+                self.assertEqual(error.code, 400)
+                self.assertIn("set needs --write", error.read().decode("utf-8"))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            document.unlink(missing_ok=True)
+
+    # --- ports and the running-instance record ------------------------------
+
+    def test_free_port_skips_a_port_that_is_taken(self) -> None:
+        taken = self.server.server_port
+        self.assertTrue(server.port_is_taken(taken))
+        self.assertFalse(server.port_is_taken(0))
+        chosen = server.free_port(taken)
+        self.assertNotEqual(chosen, taken)
+        self.assertFalse(server.port_is_taken(chosen))
+        self.assertEqual(server.free_port(0), 0)
+
+    def test_a_recorded_instance_is_reused_instead_of_starting_a_second_server(self) -> None:
+        root = SCRATCH / "editor-root"
+        record = {"pid": 4321, "host": "127.0.0.1", "port": self.server.server_port, "url": self.base + "/", "scope": "Firefight"}
+        server.write_instance(root, record)
+        try:
+            self.assertEqual(server.read_instance(root), record)
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), mock.patch.object(server, "state_root", lambda cwd: root):
+                address = server.serve({}, root, "Firefight")
+            self.assertEqual(address, self.base + "/")
+            self.assertIn("已有实例在运行", out.getvalue())
+            self.assertIn(f"pid {record['pid']}", out.getvalue())
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_a_stale_record_does_not_block_a_new_server(self) -> None:
+        root = SCRATCH / "editor-stale"
+        dead = server.free_port(self.server.server_port + 1)
+        server.write_instance(root, {"pid": 1, "port": dead, "url": f"http://127.0.0.1:{dead}/"})
+        try:
+            self.assertIsNone(server.read_instance(root), "a dead record must not look alive")
+            self.assertFalse(server.answers(f"http://127.0.0.1:{dead}/", timeout=0.2))
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_the_instance_record_is_only_cleared_by_its_owner(self) -> None:
+        root = SCRATCH / "editor-owner"
+        mine = {"pid": 11, "port": 1, "url": "http://127.0.0.1:1/"}
+        other = {"pid": 22, "port": 2, "url": "http://127.0.0.1:2/"}
+        try:
+            server.write_instance(root, mine)
+            server.clear_instance(root, other)
+            self.assertTrue(server.instance_path(root).is_file(), "another owner's record was removed")
+            server.clear_instance(root, mine)
+            self.assertFalse(server.instance_path(root).is_file())
+            server.clear_instance(root, mine)
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_the_state_root_is_the_editor_folder_when_there_is_one(self) -> None:
+        self.assertEqual(server.state_root(WORKSPACE), server._editor_root(WORKSPACE))
+        record = server.instance_path(WORKSPACE)
+        self.assertEqual(record.name, "web.json")
+        self.assertEqual(record.parent.name, ".editor")
 
     def test_token_is_required_and_carried_in_links(self) -> None:
         app = App(self.options, SCRATCH, "Firefight", token="s3cret")

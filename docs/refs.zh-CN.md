@@ -107,5 +107,5 @@ summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
   负责。
 * 比较是精确的，仅在 §2 所述之处折叠大小写；不支持通配或模式目标。
 
-测试：`tests/test_refs.py`（21 条）；全套为 `python -m unittest discover -s tests -t .`，231 条。
+测试：`tests/test_refs.py`（21 条）；全套为 `python -m unittest discover -s tests -t .`（写作时 309 条）。
 
