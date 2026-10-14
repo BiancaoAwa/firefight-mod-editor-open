@@ -60,7 +60,7 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `add` | `new` | 新建一个实体文档，内容取自 schema 骨架或 `from=<路径>`；需要 `--write`（§4.5） |
 | `remove` | `rm` | 删除一个实体文档；需要 `--write`（§4.5） |
 | `index` | | 写出 `.editor/index.toml` 与 `.editor/refs.toml`；需要 `--write`（§4.6） |
-| `settings` | | 由工程的原版 `mod.txt` 渲染 `mod_setting.toml`；需要 `--write`（§4.7） |
+| `settings` | | 在工程的原版 `Mod/mod.txt` 与 `mod_setting.toml` 之间转换；需要 `--write`（§4.7） |
 | `convert` | | 把选择范围转成工程工作文件，写入 `to=<目录>`；需要 `--write`（§4.3） |
 | `log` | | 列出日志分段与其中的记录，可过滤；只读（§4.2） |
 | `undo` | | 回退最后若干次写入所替换的内容；需要 `--write`（§4.2） |
@@ -198,22 +198,28 @@ python -m core.cli Mod index [选择器] --write [--dry-run]
   （`origin` 为 `index` 或 `scan`），两张表只是某一次查询的缓存，不是第二个事实源。
 * 清单文件（`equipment_*`）、没有根元素的纯文本文件与读不了的文件都计入跳过，不算错误。
 
-### 4.7 渲染 `mod_setting.toml`
+### 4.7 在原版 `Mod/mod.txt` 与 `mod_setting.toml` 之间转换
 
 ```
-python -m core.cli Mod settings --write [--dry-run]
+python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=1]
 ```
 
-* 编辑器把工程自带原版 `Mod/mod.txt` 的 TOML 形态（docs/project-layout.md §4）渲染成 `<工程>/mod_setting.toml`：
-  每个元素成为它的表或键，`<nationality>` 块成为 `[[mod_setting.nationality]]` 项，重复的 `<equipment>` 元素成为
-  每个国籍一个数组，裸的 `<ranks>` 数字成为带引号的键，国籍名保持来源的确切拼写（随附的 WW3 文件里写作
+* 编辑器以两种形态承载工程的原版设置文件（docs/project-layout.md §4），本命令在两者之间移动。`op=render`（默认）
+  读 `<工程>/Mod/mod.txt`，写 `<工程>/mod_setting.toml`；`op=emit` 读 `<工程>/mod_setting.toml`，写
+  `<工程>/Mod/mod.txt`。
+* `render`：每个元素成为它的表或键，`<nationality>` 块成为 `[[mod_setting.nationality]]` 项，重复的 `<equipment>`
+  元素成为每个国籍一个数组，裸的 `<ranks>` 数字成为带引号的键，国籍名保持来源的确切拼写（随附的 WW3 文件里写作
   `Taiwan, China(In Production)` 与 `Japan(In Production)`，括号前无空格）。
-* 渲染器是源字节的纯函数：同一份 `mod.txt` 总是渲染出同一份 `mod_setting.toml`。
-* 已存在的 `mod_setting.toml` 会被跳过，除非给出 `overwrite=1`；原版文件仍是它所承载字段的事实源，再次以
-  `overwrite=1` 渲染时，对 TOML 文件的改动会丢失。随附的 WW3 工程可以说明规模：手写的 `mod_setting.toml` 是 79 行、
-  一个国籍，而渲染器从同一份 `mod.txt` 产出 333 行、全部十二个国籍，无警告。
-* 工程没有 `Mod/mod.txt` 时被拒绝（`no mod.txt under <工程>/Mod; nothing to render from`），`Firefight` 作用域同样
-  被拒绝。
+* `emit` 在原版形态的文件上是 `render` 的精确逆运算：对随附 WW3 的 `mod.txt` 执行
+  `Mod settings op=emit --write`，10170 字节原样重现。元素顺序、制表符缩进与空行都采用原版文件的形态，因此本来就
+  该形态的文件逐字节往返。写法不同的文件不被 `render` 保留布局，会以该形态回来。
+* 两个方向都是各自源文件的纯函数，并且都会报告无法承载的内容，而不是静默丢弃。
+* 目标已存在时会被跳过，除非给出 `overwrite=1`。`op=render` 的目标是可手工编辑的 `mod_setting.toml`，`overwrite=1`
+  会丢弃那些编辑；`op=emit` 替换的是游戏读取的原版文件，那一下才会进发行包。随附的 WW3 工程可以说明 `render` 的
+  规模：手写的 `mod_setting.toml` 是 79 行、一个国籍，而渲染器从同一份 `mod.txt` 产出 333 行、全部十二个国籍，
+  无警告。
+* `Firefight` 原版作用域被拒绝，因为两个目标都在工程内。`op` 必须是 `render` 或 `emit`；源文件不存在时被拒绝
+  （`nothing to <op> from: <path> is not there`）。
 
 ## 5. 退出码
 
@@ -279,8 +285,9 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
   `at_gun` 文件夹承载的是 `squad` 根，同样在覆盖范围内。
 * `.editor/index.toml` 与 `.editor/refs.toml` 现在由 `index` 写出；它们是带整作用域指纹的缓存，因此改动一个字节就会让
   `refs` 与 `deps` 退回现算。
-* `settings` 从工程自带原版 `mod.txt` 渲染 `mod_setting.toml`。没有该文件的工程无法渲染；源文件里渲染器不认识的元素
-  按普通值保留，而不作解释。
+* `settings` 在工程自带的原版 `Mod/mod.txt` 与 `mod_setting.toml` 之间双向转换。没有所求方向源文件的工程无法转换；
+  源文件里渲染器不认识的元素按普通值保留，而不作解释。`emit` 手写 XML，因此带有原版形态无法直接承载的字符的值会被
+  报告，并从该元素里略去。
 * `export` 保留源排版：兄弟节点顺序、空行、缩进、`//` 注释与文件自身的换行风格全部来自源文本
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。

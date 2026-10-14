@@ -46,12 +46,13 @@
 | `ff_remove` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `ff_index` | `scope`、`selector`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `ff_convert` | `scope`、`selector`、`to`、`type`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `ff_settings` | `scope`、`op`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `ff_undo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `ff_redo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 
-凡命令会写文件的工具都只在 `--write` 下注册，`ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`ff_set`、`ff_add`、`ff_remove`、`ff_index`、`ff_convert`、`ff_undo` 与 `ff_redo` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
+凡命令会写文件的工具都只在 `--write` 下注册，`ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`ff_set`、`ff_add`、`ff_remove`、`ff_index`、`ff_convert`、`ff_settings`、`ff_undo` 与 `ff_redo` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
 
-`settings` 没有 MCP 工具：它从工程自带的原版 `mod.txt` 渲染 `mod_setting.toml`，属于工程初始化步骤，而不是对语料的读取或编辑。请从命令行运行（docs/cli.zh-CN.md §4.7）。
+`ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/Mod/mod.txt` 写 `mod_setting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
 
 **一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
 
