@@ -32,11 +32,11 @@ def listing(*, write: bool) -> list[dict]:
     """The ``tools/list`` entries of a server started with or without ``--write``."""
     return [
         {
-            "name": spec.name,
+            "name": specs.exposed_name(spec.name),
             "description": spec.description,
             "inputSchema": spec.inputs(),
             "annotations": {
-                "title": spec.name,
+                "title": specs.exposed_name(spec.name),
                 "readOnlyHint": not spec.writes,
                 "idempotentHint": not spec.writes,
                 "openWorldHint": False,
@@ -48,7 +48,8 @@ def listing(*, write: bool) -> list[dict]:
 
 def call(name: str, arguments: dict, *, write: bool, defaults: dict, cwd: Path) -> dict:
     """Run one tool and return its ``tools/call`` result."""
-    spec = specs.tool_named(name)
+    canonical = specs.canonical_name(name)
+    spec = specs.tool_named(canonical) if canonical else None
     if spec is None or not spec.available or (spec.writes and not write):
         raise CallRefused(METHOD_NOT_FOUND, f"unknown tool {name!r}")
     scope_name, selector, options = spec.call(arguments, defaults=defaults)

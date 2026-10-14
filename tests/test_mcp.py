@@ -94,6 +94,15 @@ PLUGIN_CANDIDATES = (
     str(REPO.parents[2] / "firefight-mod-editor-open" / "ffplugin" / "lib" / "specs.js"),
 )
 
+
+def exposed(name: str) -> str:
+    """The name a client calls: every canonical tool name carries the server's prefix."""
+    return specs.exposed_name(name)
+
+
+EXPOSED_READ_TOOLS = [exposed(name) for name in EXPECTED_READ_TOOLS]
+EXPOSED_WRITE_TOOLS = [exposed(name) for name in EXPECTED_WRITE_TOOLS]
+
 FIXTURES: dict[str, bytes] = {}
 _ENV: dict[str, str | None] = {}
 
@@ -249,8 +258,8 @@ class TranscriptTest(unittest.TestCase):
                 json.dumps(call(1, "initialize", {"protocolVersion": "2025-06-18"})) + "\n",
                 json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n",
                 json.dumps(call(2, "tools/list")) + "\n",
-                json.dumps(call(3, "tools/call", {"name": "ff_show", "arguments": {"scope": "Mod", "selector": "Data/Weapons/WEAPON_DEMO.txt"}})) + "\n",
-                json.dumps(call(4, "tools/call", {"name": "ff_export", "arguments": {"scope": "Mod", "to": "out"}})) + "\n",
+                json.dumps(call(3, "tools/call", {"name": exposed("ff_show"), "arguments": {"scope": "Mod", "selector": "Data/Weapons/WEAPON_DEMO.txt"}})) + "\n",
+                json.dumps(call(4, "tools/call", {"name": exposed("ff_export"), "arguments": {"scope": "Mod", "to": "out"}})) + "\n",
                 "this line is not JSON\n",
             ]
         )
@@ -262,14 +271,14 @@ class TranscriptTest(unittest.TestCase):
         self.assertEqual(handshake["serverInfo"]["name"], SERVER_NAME)
         self.assertIn("tools", handshake["capabilities"])
         names = [tool["name"] for tool in answers[1]["result"]["tools"]]
-        self.assertEqual(names, list(EXPECTED_READ_TOOLS))
+        self.assertEqual(names, EXPOSED_READ_TOOLS)
         shown = answers[2]["result"]
         self.assertFalse(shown["isError"])
         self.assertIn("<name>Demo Rifle</name>", shown["content"][0]["text"])
         self.assertEqual(shown["structuredContent"]["exit_code"], 0)
         self.assertEqual(shown["structuredContent"]["path"], "Data/Weapons/WEAPON_DEMO.txt")
         self.assertEqual(answers[3]["error"]["code"], -32601)
-        self.assertIn("ff_export", answers[3]["error"]["message"])
+        self.assertIn(exposed("ff_export"), answers[3]["error"]["message"])
         self.assertEqual(answers[4]["error"]["code"], -32700)
         self.assertFalse(OUT.exists(), "a refused export wrote something")
 
@@ -310,7 +319,7 @@ class TranscriptTest(unittest.TestCase):
                         2,
                         "tools/call",
                         {
-                            "name": "ff_export",
+                            "name": exposed("ff_export"),
                             "arguments": {"scope": "Firefight", "root": str(STOCK), "to": str(refused_to)},
                         },
                     )
@@ -320,17 +329,17 @@ class TranscriptTest(unittest.TestCase):
                     call(
                         3,
                         "tools/call",
-                        {"name": "ff_export", "arguments": {"scope": "Mod", "selector": "Data/Weapons", "to": str(OUT)}},
+                        {"name": exposed("ff_export"), "arguments": {"scope": "Mod", "selector": "Data/Weapons", "to": str(OUT)}},
                     )
                 )
                 + "\n",
-                json.dumps(call(4, "tools/call", {"name": "ff_nothing", "arguments": {"scope": "Mod"}})) + "\n",
+                json.dumps(call(4, "tools/call", {"name": exposed("ff_nothing"), "arguments": {"scope": "Mod"}})) + "\n",
             ],
             write=True,
         )
         self.assertEqual((code, err), (0, ""))
         names = [tool["name"] for tool in answers[0]["result"]["tools"]]
-        self.assertEqual(names, list(EXPECTED_READ_TOOLS) + list(EXPECTED_WRITE_TOOLS))
+        self.assertEqual(names, EXPOSED_READ_TOOLS + EXPOSED_WRITE_TOOLS)
         self.assertEqual(answers[1]["error"]["code"], -32000)
         self.assertIn("read-only", answers[1]["error"]["message"])
         self.assertEqual(sorted(path.name for path in STOCK.rglob("*")), before)
@@ -362,25 +371,25 @@ class ServerTest(unittest.TestCase):
             self.assertEqual(answer["id"], identifier, message)
 
     def test_a_read_tool_call_reports_a_report_as_a_result(self) -> None:
-        answer = self.server.handle(call(1, "tools/call", {"name": "ff_check", "arguments": {"scope": "Mod"}}))
+        answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_check"), "arguments": {"scope": "Mod"}}))
         self.assertFalse(answer["result"]["isError"])
         self.assertEqual(answer["result"]["structuredContent"]["exit_code"], 0)
-        answer = self.server.handle(call(2, "tools/call", {"name": "ff_list", "arguments": {"scope": "Mod", "type": "weapon"}}))
+        answer = self.server.handle(call(2, "tools/call", {"name": exposed("ff_list"), "arguments": {"scope": "Mod", "type": "weapon"}}))
         self.assertEqual(answer["result"]["structuredContent"]["count"], 1)
 
     def test_a_command_failure_is_a_tool_result_with_the_exit_code(self) -> None:
         broken = Server(write=False, cwd=BROKEN)
-        answer = broken.handle(call(1, "tools/call", {"name": "ff_check", "arguments": {"scope": "Mod"}}))
+        answer = broken.handle(call(1, "tools/call", {"name": exposed("ff_check"), "arguments": {"scope": "Mod"}}))
         self.assertTrue(answer["result"]["isError"])
         self.assertEqual(answer["result"]["structuredContent"]["exit_code"], 1)
         self.assertTrue(answer["result"]["structuredContent"]["dangling"])
 
     def test_a_bad_parameter_is_an_invalid_params_error(self) -> None:
-        answer = self.server.handle(call(1, "tools/call", {"name": "ff_show", "arguments": [1]}))
+        answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_show"), "arguments": [1]}))
         self.assertEqual(answer["error"]["code"], -32602)
-        answer = self.server.handle(call(2, "tools/call", {"name": "ff_show", "arguments": {"scope": "Nope", "selector": "x"}}))
+        answer = self.server.handle(call(2, "tools/call", {"name": exposed("ff_show"), "arguments": {"scope": "Nope", "selector": "x"}}))
         self.assertEqual(answer["error"]["code"], -32602)
-        answer = self.server.handle(call(3, "tools/call", {"name": "ff_show", "arguments": {"selector": "Data/Weapons/NOPE.txt"}}))
+        answer = self.server.handle(call(3, "tools/call", {"name": exposed("ff_show"), "arguments": {"selector": "Data/Weapons/NOPE.txt"}}))
         self.assertEqual(answer["error"]["code"], -32602)
         answer = self.server.handle(call(4, "tools/call", {"arguments": {}}))
         self.assertEqual(answer["error"]["code"], -32602)
@@ -389,9 +398,9 @@ class ServerTest(unittest.TestCase):
         for name in ("ff_nope", "ff_add_thing"):
             answer = self.writing.handle(call(1, "tools/call", {"name": name, "arguments": {}}))
             self.assertEqual(answer["error"]["code"], -32601, name)
-        answer = self.server.handle(call(1, "tools/call", {"name": "ff_export", "arguments": {"to": OUT}}))
+        answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_export"), "arguments": {"to": OUT}}))
         self.assertEqual(answer["error"]["code"], -32601)
-        answer = self.server.handle(call(1, "tools/call", {"name": "ff_set", "arguments": {}}))
+        answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_set"), "arguments": {}}))
         self.assertEqual(answer["error"]["code"], -32601, "a read-only server does not expose the writing tools")
 
     def test_resources_and_prompts(self) -> None:
@@ -444,14 +453,14 @@ class ServerTest(unittest.TestCase):
 
     def test_the_defaults_reach_the_call(self) -> None:
         server = Server(write=False, defaults={"root": str(STOCK)}, cwd=PROJECT)
-        answer = server.handle(call(1, "tools/call", {"name": "ff_list", "arguments": {"scope": "Firefight"}}))
+        answer = server.handle(call(1, "tools/call", {"name": exposed("ff_list"), "arguments": {"scope": "Firefight"}}))
         self.assertFalse(answer["result"]["isError"])
         self.assertEqual(answer["result"]["structuredContent"]["count"], 1)
         self.assertEqual(answer["result"]["structuredContent"]["scope"], "Firefight")
 
     def test_the_stock_scope_is_reachable_when_the_server_names_its_directory(self) -> None:
         server = Server(write=False, defaults={"firefight": str(STOCK)}, cwd=PROJECT)
-        answer = server.handle(call(1, "tools/call", {"name": "ff_stats", "arguments": {"scope": "Firefight"}}))
+        answer = server.handle(call(1, "tools/call", {"name": exposed("ff_stats"), "arguments": {"scope": "Firefight"}}))
         self.assertFalse(answer["result"]["isError"])
         self.assertEqual(answer["result"]["structuredContent"]["files"], 1)
         answer = server.handle(call(2, "resources/read", {"uri": "firefight://Firefight/list/weapon"}))
