@@ -25,7 +25,7 @@ BASELINE_DIR = "baseline"
 SEGMENT_SUFFIX = ".jsonl"
 SEGMENT_IDLE_SECONDS = 300
 LOCK_STALE_SECONDS = 1800
-RESULTS = ("set", "add", "remove", "undo", "redo")
+RESULTS = ("set", "add", "remove", "pack", "undo", "redo")
 
 CLOCK: Callable[[], float] = time.time
 
@@ -199,7 +199,8 @@ def stacks(events: list[dict]) -> tuple[list[dict], list[dict]]:
     A ``set``, an ``add`` or a ``remove`` applies a change, an ``undo`` takes the change it
     names off the applied stack and leaves it on the reverted one, a ``redo`` moves it back.
     A new change of any of those three kinds clears the reverted stack, as a fresh edit
-    discards what could be redone.
+    discards what could be redone.  A ``pack`` record is kept in the log but reverts nothing,
+    so it appears on neither stack.
     """
     by_id = {event["id"]: event for event in events if event.get("id")}
     applied: list[str] = []

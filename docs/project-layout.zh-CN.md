@@ -187,10 +187,11 @@ python -m core.cli Mod export --out dist/ --format mod-zip
   * 回滚与时间旅行按文件名字顺序读分段，而该顺序即时间顺序。
   * 分段文件没有大小上限；5 分钟规则是**唯一**的切分条件（不是进程启动/停止，也不是自然日）。
 * **一条记录**是每行一个 JSON 对象，字段顺序为：`id`（`<分段名>:<行号>`）、`segment`、`timestamp`（带偏移的本地
-  ISO 8601）、`actor`（`cli` 或 `mcp`）、`result`（`set`、`undo` 或 `redo`）、`target`（undo/redo 所回退记录的
+  ISO 8601）、`actor`（`cli` 或 `mcp`）、`result`（`set`、`add`、`remove`、`pack`、`undo` 或 `redo`）、
+  `target`（undo/redo 所回退记录的
   `id`，否则 `null`）、`document`（相对于工程的 POSIX 路径）、`entity`、`field`、`before`、`after`、
   `digest_before`、`digest_after`、`bytes_before`、`bytes_after`（均为 sha256 十六进制）与 `dry_run`（恒为
-  `false`：空跑不是事件）。
+  `false`：空跑不是事件）。`pack` 记录不指向任何文档，也不带摘要：它只记下打过一次包，且不在任何可回滚的栈上。
 * **字节级回滚**：每次写入都把文档写入前与写入后的内容存到 `.editor/baseline/<sha256>`，按内容寻址、跨改动去重，
   因此 `undo` 与 `redo` 写的是记录下来的字节，而不是重新序列化的结果。摘要对应的字节丢失、或字节与其摘要不符时命令
   失败；记录之后文档在磁盘上被改动时拒绝回退，而不是覆盖它。

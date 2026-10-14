@@ -521,6 +521,35 @@ class WebTestCase(unittest.TestCase):
             thread.join(timeout=5)
             document.unlink(missing_ok=True)
 
+    def test_a_page_may_build_a_package_without_writing_it(self) -> None:
+        """`pack` runs from a page too; its own gates decide what reaches the disk."""
+        write(PROJECT / "mod.toml", '[mod]\n\tname = "Web Mod"\n\tversion_name = "0.0.1"\n')
+        (PROJECT / "Mod" / "Data").mkdir(parents=True, exist_ok=True)
+        app = App({"workspace": str(WORKSPACE)}, PROJECT, "Mod")
+        server = make_server(app, 0)
+        server.quiet = True
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = f"http://127.0.0.1:{server.server_port}"
+            query = urlencode({"command": "pack", "write": "1", "dry-run": "1"})
+            with urllib.request.urlopen(f"{base}/json?{query}", timeout=20) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            self.assertTrue(payload["dry_run"])
+            self.assertTrue(payload["archive"].endswith("Web Mod-0.0.1.zip"))
+            self.assertFalse(Path(payload["archive"]).exists(), "a dry run wrote the archive")
+            without = f"{base}/json?" + urlencode({"command": "pack"})
+            try:
+                urllib.request.urlopen(without, timeout=20)
+                self.fail("pack without the flag was accepted")
+            except urllib.error.HTTPError as error:
+                self.assertEqual(error.code, 400)
+                self.assertIn("pack needs --write", error.read().decode("utf-8"))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
     # --- ports and the running-instance record ------------------------------
 
     def test_free_port_skips_a_port_that_is_taken(self) -> None:

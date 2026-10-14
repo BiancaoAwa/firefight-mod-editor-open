@@ -11,13 +11,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from core import __version__ as core_version
-from core import convert, index as index_core, refs as refs_core, textio, toml, xml
+from core import convert, index as index_core, journal, refs as refs_core, textio, toml, xml
 from core.errors import FfError, SchemaError, XmlStructureError
 from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 from core.xml import XmlElement
 
-from core.cli.scope import DATA_FOLDER, MOD_FOLDER, Scope, UsageError, entity_files
+from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, Scope, UsageError, entity_files
 
 
 SUFFIX_TOML = ".toml"
@@ -257,6 +257,15 @@ def row_limit(ctx: Context, default: int = DEFAULT_LIMIT) -> int | None:
 def tally(shown: int, total: int) -> str:
     """``7 of 200`` when rows were capped, else ``200``."""
     return f"{shown} of {total}" if shown != total else str(total)
+
+
+def write_actor(ctx: Context) -> str:
+    """Who is recording a change: the command line, or the MCP server that set ``actor``.
+
+    ``core/mcp/tools.py`` sets ``actor=mcp`` on a writing call, so the log names the face that
+    made the change (docs/project-layout.md section 8).
+    """
+    return ctx.options.get("actor") or "cli"
 
 
 # --- shared helpers ---------------------------------------------------------
@@ -989,6 +998,59 @@ def cmd_check(ctx: Context) -> Result:
     )
 
 
+def cmd_init(ctx: Context) -> Result:
+    """Create a project: ``mod.toml`` and an empty ``Mod/Data`` (docs/cli.md section 4.9).
+
+    ``root=`` or ``workspace=`` names the directory to create the project in, the working
+    directory when neither is given; that directory may be empty and is created when it is
+    missing.  Every other command resolves a scope that already exists — ``init`` is the one
+    that makes one.  An existing ``mod.toml`` is refused, so an initialised project is never
+    overwritten.  ``name=`` fills the mod name in, the directory name otherwise.  The record
+    goes into the log like any other new document, so ``undo`` takes the ``mod.toml`` away
+    again; the empty ``Mod/Data`` is a directory, not a document, and no record reverts it.
+    """
+    from core import edit
+
+    if ctx.scope.name != "Mod":
+        raise UsageError(f"init creates a project under Mod, not {ctx.scope.name}")
+    if ctx.options.get("write") != "1":
+        raise UsageError("init needs --write; add --dry-run to inspect the result without writing")
+    dry_run = ctx.options.get("dry-run") == "1"
+    project = Path(ctx.scope.root)
+    manifest = project / PROJECT_FILE
+    if manifest.is_file():
+        raise UsageError(f"{manifest}: a project is already here; nothing was written")
+    name = (ctx.options.get("name") or "").strip() or project.name
+    if not name:
+        raise UsageError("init needs a name: this directory has none, so pass name=<name>")
+
+    data_root = project / MOD_FOLDER / DATA_FOLDER
+    plan = edit.plan_create(manifest, PROJECT_FILE, edit.project_skeleton(name), entity=name)
+    if dry_run:
+        payload = edit.apply_document(plan, project, dry_run=True)
+    else:
+        data_root.mkdir(parents=True, exist_ok=True)
+        payload = edit.apply_document(plan, project, actor=write_actor(ctx))
+    payload = payload | {
+        "scope": ctx.scope.name,
+        "project": str(project),
+        "name": name,
+        "data_root": str(data_root),
+        "files": [PROJECT_FILE],
+    }
+    return Result(payload, _init_text(payload), 0)
+
+
+def _init_text(payload: dict) -> str:
+    """One line for a created project."""
+    state = "would be created" if payload.get("dry_run") else "created"
+    tail = f" [{payload['id']}]" if payload.get("id") else ""
+    return (
+        f"{payload['project']}: {payload['name']} {state} "
+        f"({PROJECT_FILE} and an empty {MOD_FOLDER}/{DATA_FOLDER}){tail}"
+    )
+
+
 def cmd_add(ctx: Context) -> Result:
     """Create one entity document; needs --write and never writes the stock scope.
 
@@ -1026,7 +1088,9 @@ def cmd_add(ctx: Context) -> Result:
         text = edit.skeleton(root_tag)
     try:
         plan = edit.plan_create(path, relative, text, entity=entity)
-        payload = edit.apply_document(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+        payload = edit.apply_document(
+        plan, project_root, dry_run=ctx.options.get("dry-run") == "1", actor=write_actor(ctx)
+    )
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     payload["scope"] = scope.name
@@ -1052,7 +1116,9 @@ def cmd_remove(ctx: Context) -> Result:
     project_root = edit.project_root_of(scope.root)
     try:
         plan = edit.plan_remove(path, relative, entity=edit.entity_of(document, relative))
-        payload = edit.apply_document(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+        payload = edit.apply_document(
+        plan, project_root, dry_run=ctx.options.get("dry-run") == "1", actor=write_actor(ctx)
+    )
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     payload["scope"] = scope.name
@@ -1103,7 +1169,9 @@ def cmd_set(ctx: Context) -> Result:
             )
         else:
             plan = edit.plan_entry(document, field, op, copy_from=entry_index(ctx))
-        report = edit.apply_plan(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+        report = edit.apply_plan(
+        plan, project_root, dry_run=ctx.options.get("dry-run") == "1", actor=write_actor(ctx)
+    )
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     report["scope"] = scope.name
@@ -1197,8 +1265,8 @@ def cmd_log(ctx: Context) -> Result:
     outcome = filters["result"]
     if actor is not None and actor not in ("cli", "mcp"):
         raise UsageError(f"actor= is cli or mcp, not {actor!r}")
-    if outcome is not None and outcome not in ("set", "undo", "redo"):
-        raise UsageError(f"result= is set, undo or redo, not {outcome!r}")
+    if outcome is not None and outcome not in journal.RESULTS:
+        raise UsageError(f"result= is {', '.join(journal.RESULTS[:-1])} or {journal.RESULTS[-1]}, not {outcome!r}")
     events = journal.read_events(project_root)
     found: dict[str, list[dict]] = {}
     for event in events:
@@ -1293,7 +1361,9 @@ def _restore(ctx: Context, result: str) -> Result:
     project_root = edit.project_root_of(ctx.scope.root)
     try:
         restores = history.plan_undo(project_root, count) if result == "undo" else history.plan_redo(project_root, count)
-        payload = history.apply(project_root, restores, dry_run=ctx.options.get("dry-run") == "1")
+        payload = history.apply(
+            project_root, restores, dry_run=ctx.options.get("dry-run") == "1", actor=write_actor(ctx)
+        )
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     payload["scope"] = ctx.scope.name
@@ -1430,7 +1500,9 @@ def cmd_settings(ctx: Context) -> Result:
             text, warnings = settings.emit(edit.root_table(document.table, document.root_tag))
             newline, encoding = _stock_style(stock)
             plan = edit.plan_render(target, f"{MOD_FOLDER}/{settings.MOD_TXT}", text, entity="mod_setting", newline=newline, encoding=encoding)
-        result = edit.apply_document(plan, edit.project_root_of(scope.root), dry_run=dry_run)
+        result = edit.apply_document(
+        plan, edit.project_root_of(scope.root), dry_run=dry_run, actor=write_actor(ctx)
+    )
     except FfError as error:
         raise UsageError(str(error)) from None
     payload = payload | result | {"warnings": len(warnings), "sample_warnings": warnings[:CHECK_SAMPLES]}
@@ -1473,6 +1545,182 @@ def _convert_text(payload: dict) -> str:
         f"{payload['skipped']} skipped, {len(payload['errors'])} error(s)"
     )
     return table_of(["path", "result"], rows, summary)
+
+
+def cmd_pack(ctx: Context) -> Result:
+    """Build the mod-zip the game installs (docs/cli.md section 4.8).
+
+    Every managed document is rendered back to stock XML, ``mod_setting.toml`` becomes
+    ``Mod/mod.txt``, unmanaged files are copied, and the archive is named after the
+    project's ``mod.toml``.  It goes to ``to=``, the project directory when that is not
+    given; an archive that is already there is replaced unless ``overwrite=0``.  The whole
+    package is rendered before anything is written, so a document that cannot be read
+    leaves nothing behind.  ``strict=1`` also refuses while the project has dangling
+    references.  A pack that writes appends one ``pack`` record to the project log, so the
+    project keeps a note of what was built; a ``pack`` record names no document and nothing
+    reverts it (docs/project-layout.md section 8).
+    """
+    from core import edit, pack as pack_core, settings as settings_core
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; pack refuses to read under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("pack needs --write; add --dry-run to inspect the package without writing")
+    dry_run = ctx.options.get("dry-run") == "1"
+    overwrite = ctx.options.get("overwrite", "1") == "1"
+    limit = row_limit(ctx)
+    project = edit.project_root_of(scope.root)
+
+    manifest = project / pack_core.MANIFEST
+    if not manifest.is_file():
+        raise UsageError(f"pack needs {pack_core.MANIFEST} at the project root: {manifest}")
+    found = pack_core.metadata(toml.parse(textio.read_source(manifest).text, str(manifest)))
+    if not found.get("name"):
+        raise UsageError(f"{manifest}: no [mod] name; the archive is named after it")
+    archive = Path(ctx.options.get("to") or project) / pack_core.archive_name(
+        found["name"], found.get("version_name", "")
+    )
+
+    if ctx.options.get("strict") == "1":
+        checked = run_command(
+            "check", Context(scope=scope, selector="", doc_path=(), options={}, cwd=ctx.cwd)
+        )
+        dangling = int(checked.payload.get("dangling_total", 0))
+        if dangling:
+            raise UsageError(
+                f"pack strict=1: the project has {dangling} dangling reference(s); nothing was written"
+            )
+
+    warnings: list[str] = []
+    setting = project / pack_core.SETTING_FILE
+    stock = project / MOD_FOLDER / pack_core.MOD_TXT
+    setting_data: bytes | None = None
+    if setting.is_file():
+        newline, encoding = _stock_style(stock)
+        source = textio.read_source(setting)
+        inner = edit.root_table(toml.parse(source.text, str(setting)), "mod_setting")
+        rendered, emitted = settings_core.emit(inner, newline=newline)
+        setting_data = textio.encode_export(
+            rendered, file=pack_core.MOD_TXT, encoding=encoding, newline=""
+        )
+        if stock.is_file() and stock.read_bytes() != setting_data:
+            raise UsageError(
+                f"{stock}: the bytes differ from what {pack_core.SETTING_FILE} renders "
+                f"({stock.stat().st_size} vs {len(setting_data)} bytes); run "
+                f"'settings op=emit --write overwrite=1' to reconcile the two, then pack again"
+            )
+        warnings.extend(emitted)
+
+    pieces, skipped = pack_core.plan(project)
+    members: list[tuple[str, bytes]] = []
+    errors: list[dict] = []
+    for piece in pieces:
+        if not piece.rendered:
+            members.append((piece.name, piece.path.read_bytes()))
+            continue
+        relative = piece.path.relative_to(project).as_posix()
+        try:
+            text, encoding, item_warnings, newline = _export_text(piece.path, relative)
+        except FfError as error:
+            errors.append({"path": relative, "error": str(error)})
+            continue
+        twin = piece.path.with_suffix(SUFFIX_XML)
+        if twin.is_file():
+            encoding = textio.read_source(twin).encoding
+        warnings.extend(item_warnings)
+        members.append(
+            (
+                piece.name,
+                textio.encode_export(text, file=piece.name, encoding=encoding, newline=newline),
+            )
+        )
+    if setting_data is not None:
+        members.append((f"{pack_core.MOD_FOLDER}/{pack_core.MOD_TXT}", setting_data))
+    members.sort(key=lambda member: member[0])
+
+    if errors:
+        rows = [[item["path"], item["error"]] for item in errors]
+        return Result(
+            {
+                "scope": scope.name,
+                "project": str(project),
+                "archive": str(archive),
+                "dry_run": dry_run,
+                "count": 0,
+                "shown": 0,
+                "files": [],
+                "content_bytes": 0,
+                "archive_bytes": 0,
+                "skipped": list(skipped),
+                "warnings": warnings,
+                "errors": errors,
+            },
+            table_of(
+                ["path", "error"], rows, f"{len(errors)} document(s) could not be rendered; nothing was written"
+            ),
+            1,
+        )
+
+    content_bytes = sum(len(data) for _, data in members)
+    left_alone: list[dict] = []
+    archive_bytes = 0
+    recorded: dict | None = None
+    if archive.exists() and not overwrite:
+        left_alone.append(
+            {"path": str(archive), "reason": "already there; pass overwrite=1 to replace it"}
+        )
+        state = "left alone"
+    elif dry_run:
+        state = "planned for"
+    else:
+        archive_bytes = pack_core.build(members, archive)
+        state = "written to"
+        recorded = journal.append(
+            project,
+            {
+                "actor": write_actor(ctx),
+                "result": "pack",
+                "target": None,
+                "document": "",
+                "entity": "",
+                "field": "",
+                "before": "",
+                "after": f"{len(members)} member(s) in {archive.name}",
+                "digest_before": "",
+                "digest_after": "",
+                "bytes_before": 0,
+                "bytes_after": archive_bytes,
+                "dry_run": False,
+            },
+        )
+
+    shown = members if limit is None else members[:limit]
+    rows = [[name, len(data)] for name, data in shown]
+    summary = (
+        f"{len(members)} member(s) {state} {archive} "
+        f"({content_bytes} bytes rendered, {archive_bytes} on disk), "
+        f"{len(skipped) + len(left_alone)} file(s) skipped"
+    )
+    return Result(
+        {
+            "scope": scope.name,
+            "project": str(project),
+            "archive": str(archive),
+            "dry_run": dry_run,
+            "count": len(members),
+            "shown": len(shown),
+            "files": [{"name": name, "bytes": len(data)} for name, data in shown],
+            "content_bytes": content_bytes,
+            "archive_bytes": archive_bytes,
+            "recorded": recorded["id"] if recorded else "",
+            "skipped": list(skipped) + left_alone,
+            "warnings": warnings,
+            "errors": [],
+        },
+        table_of(["member", "bytes"], rows, summary),
+        0,
+    )
 
 
 def cmd_export(ctx: Context) -> Result:
@@ -1587,6 +1835,7 @@ COMMANDS = {
     "deps": cmd_deps,
     "check": cmd_check,
     "index": cmd_index,
+    "init": cmd_init,
     "add": cmd_add,
     "remove": cmd_remove,
     "set": cmd_set,
@@ -1596,6 +1845,7 @@ COMMANDS = {
     "undo": cmd_undo,
     "redo": cmd_redo,
     "export": cmd_export,
+    "pack": cmd_pack,
     "version": cmd_version,
     "web": cmd_web,
 }

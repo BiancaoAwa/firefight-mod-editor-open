@@ -695,10 +695,12 @@ def skeleton(root_tag: str) -> str:
 def _skeleton_table(node) -> TomlTable:
     """One schema node as a table of leaves and sub-tables.
 
-    Array nodes are left out: the reader accepts no inline array
-    (core/toml.py, ``_parse_value``), so an empty ``key = []`` would make the
-    document unreadable.  ``from=`` copies a document that has them
-    (docs/cli.md section 4.5).
+    Something the schema calls an array of tables is left out: an empty
+    ``[[key]]`` block carries no field to fill in and ``set`` has ``op=append``
+    for adding one, so ``from=`` or ``op=append`` is the way to a document that
+    has them (docs/cli.md section 4.1).  A leaf the schema types as a list is
+    written as ``key = []``, which the reader accepts
+    (core/toml.py, ``_parse_value``).
     """
     table = TomlTable()
     for child in node.children:
@@ -707,9 +709,27 @@ def _skeleton_table(node) -> TomlTable:
         elif child.shape == "array":
             continue
         else:
-            raw = SKELETON_VALUES.get(child.type, '""')
+            raw = "[]" if child.type == "list" else SKELETON_VALUES.get(child.type, '""')
             table.entries.append((child.name, TomlValue(raw, raw, 0)))
     return table
+
+
+def project_skeleton(name: str) -> str:
+    """``mod.toml`` as ``init`` writes it: the schema's table with the mod name filled in.
+
+    Every other leaf keeps the schema's empty value of its own type, so the file parses and
+    ``set`` can fill each one in; the array leaf is left out for the reason given in
+    ``_skeleton_table`` (docs/cli.md section 4.9, docs/project-layout.md section 3).
+    """
+    declared = schema_for("mod")
+    empty = _skeleton_table(declared.root) if declared is not None else TomlTable()
+    filled = TomlTable()
+    for key, entry in empty.entries:
+        if key == "name":
+            filled.entries.append((key, TomlValue(toml.quote_string(name), name, 0)))
+        else:
+            filled.entries.append((key, entry))
+    return toml.render(TomlTable([("mod", filled)]))
 
 
 def plan_create(path: Path, relative: str, text: str, *, entity: str) -> DocumentPlan:
