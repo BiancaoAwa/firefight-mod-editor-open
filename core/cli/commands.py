@@ -198,6 +198,8 @@ CATEGORIES = ("infantry", "vehicle", "weapon", "at_gun", "aircraft", "equipment"
 DEFAULT_LIMIT = 200
 LOG_ROWS = 20
 CHECK_SAMPLES = 20
+# The two trees a mod carries beside Data/; `convert assets=1` copies them as they are.
+ASSET_FOLDERS = ("Images", "Sounds")
 
 
 @dataclass
@@ -1398,7 +1400,8 @@ def cmd_convert(ctx: Context) -> Result:
 
     A stock ``.txt`` entity becomes the ``.toml`` a project works with (UTF-8 without BOM,
     the canonical layout of the TOML writer); a file that is already there is skipped unless
-    ``overwrite=1``.  Nothing is written without ``--write`` (docs/cli.md section 4.3).
+    ``overwrite=1``.  ``assets=1`` also copies the scope's ``Images/`` and ``Sounds/`` trees
+    byte for byte.  Nothing is written without ``--write`` (docs/cli.md section 4.3).
     """
     from core import journal
 
@@ -1411,8 +1414,10 @@ def cmd_convert(ctx: Context) -> Result:
     destination = Path(target)
     data_root = destination if destination.name == MOD_FOLDER else destination / MOD_FOLDER
     overwrite = ctx.options.get("overwrite") == "1"
+    assets = ctx.options.get("assets") == "1"
     dry_run = ctx.options.get("dry-run") == "1"
     written: list[dict] = []
+    copied: list[dict] = []
     skipped: list[dict] = []
     errors: list[dict] = []
     for path in filter_category(targets(ctx), ctx, scope):
@@ -1436,15 +1441,37 @@ def cmd_convert(ctx: Context) -> Result:
             errors.append({"path": relative, "error": str(error)})
             continue
         written.append({"path": relative, "out": str(out), "bytes": len(data)})
+    if assets:
+        for folder in ASSET_FOLDERS:
+            source_root = scope.root / folder
+            if not source_root.is_dir():
+                continue
+            for path in sorted(source_root.rglob("*")):
+                if not path.is_file():
+                    continue
+                relative_asset = f"{folder}/{path.relative_to(source_root).as_posix()}"
+                out = data_root / Path(relative_asset)
+                if out.exists() and not overwrite:
+                    skipped.append({"path": relative_asset, "reason": "exists"})
+                    continue
+                if dry_run:
+                    copied.append({"path": relative_asset, "out": str(out), "bytes": 0})
+                    continue
+                data = path.read_bytes()
+                out.parent.mkdir(parents=True, exist_ok=True)
+                journal.write_atomic(out, data)
+                copied.append({"path": relative_asset, "out": str(out), "bytes": len(data)})
     payload = {
         "scope": scope.name,
         "to": str(destination),
         "data_root": str(data_root),
-        "count": len(written) + len(skipped) + len(errors),
+        "count": len(written) + len(copied) + len(skipped) + len(errors),
         "written": len(written),
+        "assets": len(copied),
         "skipped": len(skipped),
         "errors": errors,
         "files": written,
+        "asset_files": copied,
         "skipped_files": skipped,
         "dry_run": dry_run,
     }
@@ -1537,11 +1564,13 @@ def _settings_text(payload: dict) -> str:
 def _convert_text(payload: dict) -> str:
     """Rows of one convert invocation."""
     rows = [[item["path"], item["bytes"]] for item in payload["files"][:DEFAULT_LIMIT]]
+    rows += [[item["path"], item["bytes"]] for item in payload["asset_files"][:DEFAULT_LIMIT]]
     rows += [[item["path"], f"skipped: {item['reason']}"] for item in payload["skipped_files"][:DEFAULT_LIMIT]]
     rows += [[item["path"], item["error"]] for item in payload["errors"][:DEFAULT_LIMIT]]
     state = "planned" if payload["dry_run"] else "written"
     summary = (
         f"{payload['written']} file(s) {state} to {payload['data_root']}, "
+        f"{payload['assets']} asset(s), "
         f"{payload['skipped']} skipped, {len(payload['errors'])} error(s)"
     )
     return table_of(["path", "result"], rows, summary)
@@ -1554,9 +1583,13 @@ def cmd_pack(ctx: Context) -> Result:
     ``Mod/mod.txt``, unmanaged files are copied, and the archive is named after the
     project's ``mod.toml``.  It goes to ``to=``, the project directory when that is not
     given; an archive that is already there is replaced unless ``overwrite=0``.  The whole
-    package is rendered before anything is written, so a document that cannot be read
-    leaves nothing behind.  ``strict=1`` also refuses while the project has dangling
-    references.  A pack that writes appends one ``pack`` record to the project log, so the
+    package is rendered before anything is written.
+
+    The project is checked first and the counts of load errors and dangling references go
+    into the payload.  By default neither stops the pack, and a document that cannot be
+    rendered is reported and left out of the archive; ``strict=1`` refuses instead, writing
+    nothing while the project has a load error or a dangling reference.  A pack that writes
+    appends one ``pack`` record to the project log, so the
     project keeps a note of what was built; a ``pack`` record names no document and nothing
     reverts it (docs/project-layout.md section 8).
     """
@@ -1582,15 +1615,17 @@ def cmd_pack(ctx: Context) -> Result:
         found["name"], found.get("version_name", "")
     )
 
-    if ctx.options.get("strict") == "1":
-        checked = run_command(
-            "check", Context(scope=scope, selector="", doc_path=(), options={}, cwd=ctx.cwd)
+    strict = ctx.options.get("strict") == "1"
+    checked = run_command(
+        "check", Context(scope=scope, selector="", doc_path=(), options={}, cwd=ctx.cwd)
+    )
+    checked_errors = len(checked.payload.get("errors", []))
+    dangling = int(checked.payload.get("dangling_total", 0))
+    if strict and (checked_errors or dangling):
+        raise UsageError(
+            f"pack strict=1: the project has {checked_errors} load error(s) and "
+            f"{dangling} dangling reference(s); nothing was written"
         )
-        dangling = int(checked.payload.get("dangling_total", 0))
-        if dangling:
-            raise UsageError(
-                f"pack strict=1: the project has {dangling} dangling reference(s); nothing was written"
-            )
 
     warnings: list[str] = []
     setting = project / pack_core.SETTING_FILE
@@ -1639,7 +1674,7 @@ def cmd_pack(ctx: Context) -> Result:
         members.append((f"{pack_core.MOD_FOLDER}/{pack_core.MOD_TXT}", setting_data))
     members.sort(key=lambda member: member[0])
 
-    if errors:
+    if errors and strict:
         rows = [[item["path"], item["error"]] for item in errors]
         return Result(
             {
@@ -1657,10 +1692,15 @@ def cmd_pack(ctx: Context) -> Result:
                 "errors": errors,
             },
             table_of(
-                ["path", "error"], rows, f"{len(errors)} document(s) could not be rendered; nothing was written"
+                ["path", "error"],
+                rows,
+                f"pack strict=1: {len(errors)} document(s) could not be rendered; nothing was written",
             ),
             1,
         )
+    # Without strict=1 a document that cannot be rendered is reported and left out of the
+    # archive instead of stopping the pack (docs/cli.md section 4.8).
+    warnings.extend(f"{item['path']}: {item['error']}" for item in errors)
 
     content_bytes = sum(len(data) for _, data in members)
     left_alone: list[dict] = []
@@ -1700,7 +1740,8 @@ def cmd_pack(ctx: Context) -> Result:
     summary = (
         f"{len(members)} member(s) {state} {archive} "
         f"({content_bytes} bytes rendered, {archive_bytes} on disk), "
-        f"{len(skipped) + len(left_alone)} file(s) skipped"
+        f"{len(skipped) + len(left_alone)} file(s) skipped; "
+        f"check: {checked_errors} error(s), {dangling} dangling reference(s)"
     )
     return Result(
         {
@@ -1716,7 +1757,8 @@ def cmd_pack(ctx: Context) -> Result:
             "recorded": recorded["id"] if recorded else "",
             "skipped": list(skipped) + left_alone,
             "warnings": warnings,
-            "errors": [],
+            "check": {"errors": checked_errors, "dangling": dangling},
+            "errors": errors,
         },
         table_of(["member", "bytes"], rows, summary),
         0,

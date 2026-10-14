@@ -38,7 +38,7 @@ flowchart TD
     E1["&lt;name&gt;-&lt;version&gt;.zip<br/>Mod/ + README.md + LICENSE"]
 
     A1 -->|convert| B4
-    A2 -.->|not imported| B5
+    A2 -->|"convert assets=1"| B5
     A1 -->|firefight scope| C1
     C1 -->|init| B1
     B3 -->|settings op=render| B2
@@ -119,8 +119,8 @@ These have no marker yet:
 
 * `init` writes `mod.toml` and an empty `Mod/Data` and nothing else; it reads no template and
   imports no stock data.
-* `Images/` and `Sounds/` are not imported; references to them stay dangling until the
-  files are placed by hand.
+* `Images/` and `Sounds/` are imported only when `convert` is asked for them with `assets=1`;
+  references to them stay dangling until the files are imported or placed by hand.
 * `Maps/`, `Surnames/` and `equipment_*` lists are outside the schema.
 * a reference that does not resolve inside one scope is not retried against the stock
   corpus; the fallback is measured (882 of 912 references in one real project) but not

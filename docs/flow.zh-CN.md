@@ -37,7 +37,7 @@ flowchart TD
     E1["&lt;名称&gt;-&lt;版本&gt;.zip<br/>Mod/ + README.md + LICENSE"]
 
     A1 -->|convert| B4
-    A2 -.->|尚未导入| B5
+    A2 -->|"convert assets=1"| B5
     A1 -->|firefight 作用域| C1
     B3 -->|settings op=render| B2
     B2 -->|settings op=emit| B3
@@ -113,7 +113,7 @@ flowchart TD
 以下尚无标记：
 
 * `init` 只写出 `mod.toml` 与空的 `Mod/Data`，不读模板、不导入原版数据。
-* `Images/` 与 `Sounds/` 不导入；指向它们的引用在手工放置文件前一直是悬空引用。
+* `Images/` 与 `Sounds/` 只在 `convert` 带 `assets=1` 时导入；指向它们的引用在导入或手工放置文件前一直是悬空引用。
 * `Maps/`、`Surnames/` 与 `equipment_*` 清单不在 schema 范围内。
 * 在某一个作用域内解析不到的引用不会再向原版语料回退；该回退已测量（某个真实工程
   912 条中 882 条可解析）但未实现。

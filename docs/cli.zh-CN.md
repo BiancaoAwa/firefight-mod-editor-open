@@ -74,7 +74,8 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 选项：`root=`、`workspace=`、`to=`（`export` 的目标目录、`convert` 写入的工程目录，或 `pack` 放置压缩包的目录，§4.8）、
 `as=`、`field=`、`type=`、`kind=`、`path=`、`name=`（`init` 写入的模组名，§4.9）、`op=`、`from=`（`set op=append`
 用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、`document=`、`actor=`、`result=`、`since=`、`until=`
-（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、`strict=1`（`pack` 在引用解析不到时拒绝打包，§4.8）、
+（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、`strict=1`（`pack` 在工程存在加载错误或悬空引用时
+拒绝写出，§4.8）、`assets=1`（`convert` 另把作用域的 `Images/` 与 `Sounds/` 两棵树复制进来，§4.3）、
 `ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
 默认跳过）、`--json`；`init`、`set`、`add`、`remove`、`index`、`settings`、`convert`、`pack`、`undo` 与 `redo`
 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个
@@ -142,7 +143,7 @@ python -m core.cli Mod redo [计数] --write [--dry-run] [--json]
 ### 4.3 把原版文件转成工程工作文件
 
 ```
-python -m core.cli Firefight convert to=<工程> --write [--dry-run] [type=<类别>] [--json]
+python -m core.cli Firefight convert to=<工程> --write [--dry-run] [assets=1] [type=<类别>] [--json]
 ```
 
 * 从作用域读出选择范围，写到 `<工程>/Mod/<相对路径>`，后缀换成 `.toml`。目标目录自身最后一段已经是 `Mod` 时按原样
@@ -152,6 +153,9 @@ python -m core.cli Firefight convert to=<工程> --write [--dry-run] [type=<类�
 * 输出为 UTF-8 无 BOM、CRLF 换行，即 TOML 写入器的规范排版，因此结果与来源的原版 `Data/*.txt` 并不逐字节相同。逐字节
   复现是 `export` 的职责，不是 `convert` 的。
 * 不带 `--write` 属于用法错误（退出码 2）。`--dry-run` 报告同一份计划且什么都不写，连目标目录也不建。
+* `assets=1` 另把作用域的 `Images/` 与 `Sounds/` 两棵树逐字节复制到 `<工程>/Mod/` 下，跳过规则相同（`overwrite=1` 覆盖）。
+  默认关闭：原版作用域下的这两棵树是游戏自带的图与音，携带替换资源的模组应指向持有它们的那个作用域（工程作用域），
+  或显式传 `assets=1`。此后 §4.8 的打包会像其他非受管文件一样把它们带进压缩包。
 * 至少一个文件转换失败时退出码为 1，否则为 0。
 * `convert` 写的是尚无记录版本的文档，因此不追加事件日志记录，也不持有 `.editor/lock`，连 `.editor/` 都不创建。由此有
   两处缺口：它写入的文件无法用 `undo` 回退，并发的 `set` 也不被排除。
@@ -236,7 +240,9 @@ python -m core.cli Mod pack --write [--dry-run] [to=<目录>] [strict=1] [overwr
 * `Mod/` 内，以 TOML 存在的文档回写为原版 XML；该文件存在时，`Mod/mod.txt` 由 `mod_setting.toml` 渲染。
   其余文件（含 `Images/`、`Sounds/`）逐字节复制：手工放入的文件原样进入压缩包，而只有 TOML 孪生文件的文档
   以规范形式写出（制表符、CRLF、UTF-8）。
-* `strict=1` 在有引用解析不到时拒绝打包，避免把悬空引用带进包里。不给该选项时仍会报告引用情况并写出压缩包。
+* 每次打包先跑 §4.3 的检查，载荷里带上它的计数（`check.errors`、`check.dangling`）。无法渲染的文档
+  记入 `errors`、不进入压缩包，打包照常继续。
+* `strict=1` 把两者都变成拒绝：工程存在加载错误或解析不到的引用时不写出任何内容，避免两种问题被无意带进包里。
   引用图只在工程内建立，不查原版语料（见 §9）。
 * 成员使用固定时间戳，因此同一工程两次打包得到相同字节。
 * `pack` 不改变任何文档、不加锁，但真正写出压缩包时会向工程日志追加一条 `pack` 记录，说明打了什么包。
@@ -334,8 +340,8 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 * `export` 保留源排版：兄弟节点顺序、空行、缩进、`//` 注释与文件自身的换行风格全部来自源文本
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。
-* `pack` 写出 `Data/` 下的文档以及工程里的 `README.md`/`LICENSE`。`Images/` 与 `Sounds/` 只在工程目录中已经存在时
-  才被复制，因为本编辑器尚未导入资源；因此自带贴图音效的模组需要手工放入这些文件，打包摘要也不会说明缺了什么。
+* `pack` 写出 `Data/` 下的文档以及工程里的 `README.md`/`LICENSE`。`Images/` 与 `Sounds/` 已在工程目录中时被复制；
+  把它们带进工程的是 `convert assets=1`（§4.3），从未导入的文件自然不在包里。打包摘要不说明缺了什么。
 * `init` 只写出 `mod.toml` 与空的 `Mod/Data`。它不导入原版数据（那是 `convert`，§4.3）、不写 `mod_setting.toml`
   （那是 `settings op=render`，§4.7）、也不从别处读取模板。
 * 重新输出的文件是否被引擎接受，要在游戏内加载验证，本工具不做这件事。

@@ -68,7 +68,7 @@ the table below lists the names this server answers to.
 | `mcp_ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `mcp_ff_convert` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_convert` | `scope`, `selector`, `to`, `overwrite`, `assets`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_settings` | `scope`, `op`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |

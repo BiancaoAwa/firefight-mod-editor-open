@@ -96,7 +96,7 @@ A project is a directory holding `mod.toml`, `mod_setting.toml` and `Mod/` (the 
 overwrite, so anything it does not carry is read from the stock scope. The editor reads `.toml`
 under a project and `.txt` under the stock scope. `convert` turns the stock data into project
 documents one file at a time (`to=<project directory> --write`, existing targets skipped;
-`Images/` and `Sounds/` stay placeholders). `export` writes a selection back to stock XML under
+`assets=1` also copies the scope's `Images/` and `Sounds/` trees). `export` writes a selection back to stock XML under
 `to=<directory>`, keeping the source layout of any file that came from disk. Nothing is
 written to a scope: the game installation is never modified.
 
