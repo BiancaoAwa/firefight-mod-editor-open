@@ -1382,10 +1382,12 @@ def cmd_convert(ctx: Context) -> Result:
 
 
 def cmd_settings(ctx: Context) -> Result:
-    """Render ``mod_setting.toml`` from the stock ``Mod/mod.txt`` of this project.
+    """Translate between the stock ``Mod/mod.txt`` and ``mod_setting.toml``.
 
-    The stock file stays the source of truth; an existing ``mod_setting.toml`` is skipped
-    unless ``overwrite=1``, and nothing is written without ``--write`` (docs/cli.md section 4.7).
+    ``op=render`` (the default) turns the stock file the game loads into the project file,
+    ``op=emit`` turns the project file back into the stock one.  Either way an existing
+    target is skipped unless ``overwrite=1``, and nothing is written without ``--write``
+    (docs/cli.md section 4.7).
     """
     from core import edit, settings
 
@@ -1394,15 +1396,22 @@ def cmd_settings(ctx: Context) -> Result:
         raise UsageError("the stock scope is read-only; settings refuses to write under Firefight")
     if ctx.options.get("write") != "1":
         raise UsageError("settings needs --write; add --dry-run to inspect the result without writing")
+    op = ctx.options.get("op", "render")
+    if op not in ("render", "emit"):
+        raise UsageError(f"op= is render or emit, not {op!r}")
     project = scope.project
-    source = settings.source_path(project)
+    stock = settings.source_path(project)
+    if op == "render":
+        source, target = stock, project / "mod_setting.toml"
+    else:
+        source, target = project / "mod_setting.toml", stock
     if not source.is_file():
-        raise UsageError(f"no {settings.MOD_TXT} under {project / MOD_FOLDER}; nothing to render from")
-    target = project / "mod_setting.toml"
+        raise UsageError(f"nothing to {op} from: {source} is not there")
     overwrite = ctx.options.get("overwrite") == "1"
     dry_run = ctx.options.get("dry-run") == "1"
     payload = {
         "scope": scope.name,
+        "op": op,
         "from": str(source),
         "to": str(target),
         "skipped": False,
@@ -1411,9 +1420,16 @@ def cmd_settings(ctx: Context) -> Result:
     if target.is_file() and not overwrite:
         return Result(payload | {"skipped": True}, _settings_text(payload | {"skipped": True}), 0)
     try:
-        source_text = textio.read_source(source)
-        table, warnings = settings.render(source_text.text, str(source))
-        plan = edit.plan_render(target, "mod_setting.toml", toml.render(table), entity="mod_setting")
+        if op == "render":
+            source_text = textio.read_source(source)
+            table, warnings = settings.render(source_text.text, str(source))
+            text = toml.render(table)
+            plan = edit.plan_render(target, "mod_setting.toml", text, entity="mod_setting")
+        else:
+            document = load_document(source, "mod_setting.toml")
+            text, warnings = settings.emit(edit.root_table(document.table, document.root_tag))
+            newline, encoding = _stock_style(stock)
+            plan = edit.plan_render(target, f"{MOD_FOLDER}/{settings.MOD_TXT}", text, entity="mod_setting", newline=newline, encoding=encoding)
         result = edit.apply_document(plan, edit.project_root_of(scope.root), dry_run=dry_run)
     except FfError as error:
         raise UsageError(str(error)) from None
@@ -1421,8 +1437,24 @@ def cmd_settings(ctx: Context) -> Result:
     return Result(payload, _settings_text(payload), 0)
 
 
+def _stock_style(path: Path) -> tuple[str, str]:
+    """The line ending and encoding a stock file already uses, or the model of the corpus.
+
+    The shipped ``mod.txt`` files are UTF-8 with LF, so a project without one is written
+    that way (docs/toml-mapping.md section 5).
+    """
+    if not path.is_file():
+        return "\n", "utf-8"
+    data = path.read_bytes()
+    try:
+        _, encoding = textio.decode_source(data, str(path))
+    except FfError:
+        encoding = "utf-8"
+    return ("\r\n" if b"\r\n" in data else "\n"), encoding
+
+
 def _settings_text(payload: dict) -> str:
-    """One line for one settings render."""
+    """One line for one settings render or emit."""
     if payload.get("skipped"):
         return f"{payload['to']}: already there; pass overwrite=1 to replace it"
     state = "would be written" if payload.get("dry_run") else "written"

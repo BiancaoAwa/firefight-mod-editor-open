@@ -128,7 +128,7 @@ DRY_RUN = Parameter(
 OVERWRITE = Parameter(
     "overwrite",
     "boolean",
-    "Replace a file that is already there. Defaults to true, so pass false to keep it.",
+    "Replace a file that is already there. The default belongs to the command: export replaces, convert and settings keep what is there.",
     target="overwrite",
 )
 SELECTOR = Parameter("selector", "string", "Optional folder or path prefix, for example Weapons or Data/Weapons.", target="selector")
@@ -367,6 +367,32 @@ TOOLS: tuple[ToolSpec, ...] = (
             SCOPE,
             Parameter("selector", "string", "Optional entity or folder to convert instead of the whole scope.", target="selector"),
             Parameter("to", "string", "Destination project directory, passed as to=<directory>; the editor appends Mod/.", target="to", required=True),
+            OVERWRITE,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_settings",
+        command="settings",
+        description=(
+            "Translate between the stock Mod/mod.txt of a project and its mod_setting.toml. "
+            "op=render reads the stock file and writes the project file, op=emit writes the "
+            "stock file back. This writes; a target that is already there is skipped unless "
+            "overwrite is true."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter(
+                "op",
+                "string",
+                "render (default) for stock mod.txt to mod_setting.toml, emit for the other direction.",
+                target="op",
+                enum=("render", "emit"),
+            ),
             OVERWRITE,
             DRY_RUN,
             ROOT,

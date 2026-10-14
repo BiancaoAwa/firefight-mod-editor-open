@@ -87,7 +87,7 @@ license = "CC BY-SA 4.0"
 
 ## 4. `mod_setting.toml`（= 原版 `mod.txt`）
 
-实测 `mod.txt` 结构：10170 字节 / 428 行 / 12 个国家。映射示例见 [英文版](project-layout.md) 同节（`[mod_setting]` 基本字段、`[mod_setting.years]`、`[mod_setting.credits]`、
+实测 `mod.txt` 结构：10170 字节 / 428 行 / 12 个国家。`settings` 在两者之间双向转换（docs/cli.zh-CN.md §4.7）：`op=render` 读原版文件写 TOML 形态，`op=emit` 反向写回。映射示例见 [英文版](project-layout.md) 同节（`[mod_setting]` 基本字段、`[mod_setting.years]`、`[mod_setting.credits]`、
 `[mod_setting.text_colours]`、`[[mod_setting.nationality]]` 及其 `.flags` / `.ranks` / `.default_images`
 子表）。
 
@@ -219,7 +219,7 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 │   ├── web/       本地 Web 界面：服务、页面、运行实例记录、i18n.py（语言表）
 │   └── *.py       schema、解析器（XML/TOML）、模型、转换、引用图、
 │                  编辑（edit、journal、history）、index.py（引用索引）、
-│                  settings.py（mod.txt 渲染器）
+│                  settings.py（mod.txt 与 mod_setting.toml 的双向转换器）
 ├── docs/          规范：编辑器做什么、如何构建；英文文件 + `*.zh-CN.md` 中文对照（本文件所在）
 ├── tests/         测试套件（无需安装游戏、无需联网）
 ├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、
@@ -263,8 +263,9 @@ python -m core.cli Mod export --out dist/ --format mod-zip
   严格镜像游戏目录。
 * `.editor/` 随工程迁移，不进任何包，存放缓存（`refs.toml`、`index.toml`，两者都由 `index` 写出）、事件日志与
   基线快照。
-* `mod_setting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式，由 `settings` 渲染（docs/cli.zh-CN.md §4.7）。渲染器
-  是源字节的函数：它复现读到的文件中的每个元素，原版 `mod.txt` 仍是它所承载字段的事实源。
+* `mod_setting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式，由 `settings` 双向转换（docs/cli.zh-CN.md §4.7）。
+  两个方向都是各自源字节的函数：`render` 复现读到的 `mod.txt` 的每个元素，`emit` 复现读到的
+  `mod_setting.toml` 的原版形态。
 * 两个启动器都以 `python -m core.cli` 运行命令行，该形式从当前目录解析 `core` 包，因此代码位于下一层 `core/`
   时两种布局都可用。
 

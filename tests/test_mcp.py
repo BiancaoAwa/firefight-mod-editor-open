@@ -76,6 +76,10 @@ EXPECTED_WRITE_TOOLS = {
         "scope": False, "selector": False, "to": True, "overwrite": False, "dryRun": False,
         "root": False, "workspace": False,
     },
+    "ff_settings": {
+        "scope": False, "op": False, "overwrite": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
     "ff_undo": {
         "scope": False, "count": False, "dryRun": False, "root": False, "workspace": False,
     },

@@ -750,26 +750,40 @@ def plan_remove(path: Path, relative: str, *, entity: str) -> DocumentPlan:
         digest_before=journal.digest_of(data),
         digest_after="",
         bytes_before=len(data),
+        before_data=data,
     )
 
 
-def plan_render(path: Path, relative: str, text: str, *, entity: str) -> DocumentPlan:
+def plan_render(
+    path: Path,
+    relative: str,
+    text: str,
+    *,
+    entity: str,
+    newline: str = "\r\n",
+    encoding: str = "utf-8",
+) -> DocumentPlan:
     """Stage a whole-document rewrite, such as rendering a project file from stock.
 
     Unlike ``plan_create`` an existing document is replaced; the bytes it had are kept in
-    the baseline, so ``undo`` puts them back.
+    the baseline, so ``undo`` puts them back.  ``newline`` and ``encoding`` are the
+    target's own, so a stock ``mod.txt`` keeps the style the game reads
+    (core/settings.py, ``emit``).
     """
-    before = path.read_bytes() if path.is_file() else b""
-    data = textio.encode_export(text, file=relative, encoding="utf-8", newline="\r\n")
+    present = path.is_file()
+    before = path.read_bytes() if present else b""
+    data = textio.encode_export(text, file=relative, encoding=encoding, newline=newline)
     return DocumentPlan(
         result="set",
         path=path,
         relative=relative,
         entity=entity,
         data=data,
-        before=f"{len(before)} byte(s)" if before else "",
+        # An empty digest means "was not there", so an empty existing file keeps the digest of
+        # the empty byte string instead of the sentinel (docs/project-layout.md section 8).
+        before=f"{len(before)} byte(s)" if present else "",
         after=f"{len(data)} byte(s)",
-        digest_before=journal.digest_of(before) if before else "",
+        digest_before=journal.digest_of(before) if present else "",
         digest_after=journal.digest_of(data),
         bytes_before=len(before),
         before_data=before,
@@ -813,7 +827,7 @@ def apply_document(
         "path": relative,
         "entity": plan.entity,
         "result": plan.result,
-        "existed_before": plan.bytes_before > 0,
+        "existed_before": bool(plan.digest_before),
         "bytes_before": plan.bytes_before,
         "bytes_after": len(plan.data),
         "digest_before": plan.digest_before,
@@ -825,13 +839,12 @@ def apply_document(
     with journal.hold_lock(project_root, tool=f"core.cli {plan.result}"):
         edit_guard = _check_document
         edit_guard(plan)
-        if plan.before_data:
+        if plan.digest_before:
             journal.store_blob(project_root, plan.before_data)
         if plan.data:
             journal.store_blob(project_root, plan.data)
             journal.write_atomic(plan.path, plan.data)
         else:
-            journal.store_blob(project_root, plan.path.read_bytes())
             plan.path.unlink()
         event = journal.append(
             project_root,
