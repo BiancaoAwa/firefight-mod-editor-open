@@ -137,8 +137,14 @@ OVERWRITE = Parameter(
 STRICT = Parameter(
     "strict",
     "boolean",
-    "pack: refuse to build the archive while the project has dangling references.",
+    "pack: refuse to write the archive while the project has load errors or dangling references. Without it both are reported and the archive is still written.",
     target="strict",
+)
+ASSETS = Parameter(
+    "assets",
+    "boolean",
+    "convert: also copy the scope's Images/ and Sounds/ trees into the project, byte for byte. Off by default, because a stock scope carries the game's own artwork.",
+    target="assets",
 )
 SELECTOR = Parameter("selector", "string", "Optional folder or path prefix, for example Weapons or Data/Weapons.", target="selector")
 
@@ -377,6 +383,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             Parameter("selector", "string", "Optional entity or folder to convert instead of the whole scope.", target="selector"),
             Parameter("to", "string", "Destination project directory, passed as to=<directory>; the editor appends Mod/.", target="to", required=True),
             OVERWRITE,
+            ASSETS,
             DRY_RUN,
             ROOT,
             WORKSPACE,

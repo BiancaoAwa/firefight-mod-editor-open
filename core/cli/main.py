@@ -62,10 +62,12 @@ Options
                    settings: render (default, stock mod.txt to TOML) or emit (TOML to mod.txt)
   from=<n>         set op=append: copy this array entry instead of an empty one
   overwrite=1      convert: replace a working file that is already there
+  assets=1         convert: also copy the scope's Images/ and Sounds/ trees as they are
   overwrite=0      export: leave a file that is already there untouched
   overwrite=1      settings: replace an existing mod_setting.toml, or an existing Mod/mod.txt
   overwrite=0      pack: leave an archive that is already there untouched
-  strict=1         pack: refuse while the project has dangling references
+  strict=1         pack: refuse to write while the project has load errors or dangling
+                   references; without it both are reported and the pack goes ahead
   document=<text>  log: keep records whose document contains this text
   actor=cli|mcp    log: keep records written by this actor
   result=<name>    log: keep set, undo or redo records

@@ -53,6 +53,9 @@ def build_fixtures() -> dict[str, bytes]:
         "stock/Data/equipment_german.txt": b"WEAPON_A\nWEAPON_B\n",
         "broken/Data/Weapons/WEAPON_C.txt": WEAPON_XML.replace("\n", "\r\n").encode("cp1252"),
         "broken/Data/Weapons/PLAIN.txt": b"this file is not XML at all\n",
+        # Beside Data/, the way a mod carries its own artwork and sound.
+        "stock/Images/units/rifleman.png": b"\x89PNG\r\n\x1a\nfixture\n",
+        "stock/Sounds/rifle.ogg": b"OggS-fixture\n",
     }
 
 
@@ -213,6 +216,44 @@ class ConvertCommandTest(unittest.TestCase):
         self.assertEqual(len(payload["errors"]), 1)
         self.assertEqual(payload["errors"][0]["path"], "Data/Weapons/PLAIN.txt")
         self.assertTrue((OUT / "Mod" / "Data" / "Weapons" / "WEAPON_C.toml").is_file())
+
+    # --- assets --------------------------------------------------------------
+
+    def test_c6_the_assets_stay_behind_without_assets_1(self) -> None:
+        code, payload, err = self.convert()
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["assets"], 0)
+        self.assertFalse((OUT / "Mod" / "Images").exists())
+        self.assertFalse((OUT / "Mod" / "Sounds").exists())
+
+    def test_c6_assets_1_copies_the_images_and_sounds_trees(self) -> None:
+        code, payload, err = self.convert("assets=1")
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(
+            sorted(item["path"] for item in payload["asset_files"]),
+            ["Images/units/rifleman.png", "Sounds/rifle.ogg"],
+        )
+        self.assertEqual((OUT / "Mod/Images/units/rifleman.png").read_bytes(), b"\x89PNG\r\n\x1a\nfixture\n")
+        self.assertEqual((OUT / "Mod/Sounds/rifle.ogg").read_bytes(), b"OggS-fixture\n")
+
+    def test_c6_an_asset_that_is_already_there_is_skipped_unless_overwritten(self) -> None:
+        self.convert("assets=1")
+        target = OUT / "Mod" / "Images" / "units" / "rifleman.png"
+        target.write_bytes(b"edited by hand\n")
+        code, payload, err = self.convert("assets=1")
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["assets"], 0)
+        self.assertEqual(target.read_bytes(), b"edited by hand\n")
+        code, payload, err = self.convert("assets=1", "overwrite=1")
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["assets"], 2)
+        self.assertEqual(target.read_bytes(), b"\x89PNG\r\n\x1a\nfixture\n")
+
+    def test_c6_a_dry_run_copies_no_asset(self) -> None:
+        code, payload, err = self.convert("assets=1", "--dry-run")
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["assets"], 2)
+        self.assertFalse(OUT.exists(), "the dry run created the destination")
 
 
 if __name__ == "__main__":

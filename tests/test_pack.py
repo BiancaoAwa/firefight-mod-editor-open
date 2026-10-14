@@ -150,12 +150,23 @@ class PackTestCase(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("no [mod] name", err)
 
-    def test_pack_refuses_when_a_document_cannot_be_rendered(self) -> None:
+    def test_a_document_that_cannot_be_rendered_is_reported_and_left_out(self) -> None:
         self.ready()
         write(PROJECT / "Mod/Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
-        code, payload, _ = self.build()
-        self.assertEqual(code, 1)
-        self.assertEqual(len(payload["errors"]), 1)
+        code, payload, err = self.build()
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            [item["path"] for item in payload["errors"]], ["Mod/Data/Weapons/WEAPON_BROKEN.toml"]
+        )
+        self.assertFalse([name for name in members(ARCHIVE) if "WEAPON_BROKEN" in name])
+        self.assertEqual(payload["check"], {"errors": 1, "dangling": 0})
+
+    def test_strict_refuses_a_document_that_cannot_be_rendered(self) -> None:
+        self.ready()
+        write(PROJECT / "Mod/Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
+        code, _, err = self.build("strict=1")
+        self.assertEqual(code, 2)
+        self.assertIn("strict=1", err)
         self.assertFalse(ARCHIVE.exists())
 
     # --- what goes in -----------------------------------------------------------

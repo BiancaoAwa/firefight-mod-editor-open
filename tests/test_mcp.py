@@ -74,8 +74,8 @@ EXPECTED_WRITE_TOOLS = {
         "scope": False, "selector": False, "dryRun": False, "root": False, "workspace": False,
     },
     "ff_convert": {
-        "scope": False, "selector": False, "to": True, "overwrite": False, "dryRun": False,
-        "root": False, "workspace": False,
+        "scope": False, "selector": False, "to": True, "overwrite": False, "assets": False,
+        "dryRun": False, "root": False, "workspace": False,
     },
     "ff_settings": {
         "scope": False, "op": False, "overwrite": False, "dryRun": False,

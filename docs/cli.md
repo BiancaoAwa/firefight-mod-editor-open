@@ -84,8 +84,9 @@ writes into, or the directory `pack` leaves the archive in — §4.8), `as=`, `f
 `type=`, `kind=`, `path=`, `name=` (the mod name `init` writes, §4.9), `op=`, `from=` (an
 index for `set op=append`, a document path for `add`), `limit=` (default 200 rows; `0` prints
 every row), `document=`, `actor=`, `result=`, `since=`, `until=` (`log` filters, §4.2),
-`lang=zh|en` (the web UI language, §4.4), `strict=1` (`pack` refuses when a reference does not
-resolve, §4.8), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
+`lang=zh|en` (the web UI language, §4.4), `strict=1` (`pack` refuses to write while the
+project has load errors or dangling references, §4.8), `assets=1` (`convert` also copies the
+scope's `Images/` and `Sounds/` trees, §4.3), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
 `0` leaves it; `export` and `pack` replace by default, `convert` and `settings` skip by
 default), `--json`. `init`, `set`, `add`, `remove`, `index`, `settings`, `convert`, `pack`,
 `undo` and `redo` also take the bare flags `--write` (write the change) and `--dry-run`
@@ -183,7 +184,7 @@ python -m core.cli Mod redo [count] --write [--dry-run] [--json]
 ### 4.3 Turning stock files into project working files
 
 ```
-python -m core.cli Firefight convert to=<project> --write [--dry-run] [type=<category>] [--json]
+python -m core.cli Firefight convert to=<project> --write [--dry-run] [assets=1] [type=<category>] [--json]
 ```
 
 * The selection is read from the scope and written under `<project>/Mod/<relative path>` with
@@ -198,6 +199,11 @@ python -m core.cli Firefight convert to=<project> --write [--dry-run] [type=<cat
   reproduction is what `export` is for, not `convert`.
 * Without `--write` the command is a usage error (code 2). `--dry-run` reports the same plan
   and writes nothing, not even the destination directory.
+* `assets=1` also copies the scope's `Images/` and `Sounds/` trees into `<project>/Mod/`,
+  byte for byte, under the same skip rule (`overwrite=1` replaces). Off by default, because
+  the stock scope's two trees are the game's own artwork and sound: a mod that ships
+  replacements should name the scope that holds them (a project scope) or pass `assets=1`
+  deliberately. The pack of §4.8 then carries them like any other unmanaged file.
 * The exit code is 1 when at least one file failed to convert, 0 otherwise.
 * `convert` writes documents that have no recorded version yet, so it appends no event-log
   record and takes no `.editor/lock`; `.editor/` is not created either. Two gaps follow: the
@@ -312,10 +318,13 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
   is rendered from `mod_setting.toml` when that file is there. Everything else, including
   `Images/` and `Sounds/`, is copied byte for byte: a file placed by hand arrives unchanged,
   and a document with only a TOML twin is emitted in canonical form (tabs, CRLF, UTF-8).
-* `strict=1` refuses the pack when a reference does not resolve, so a package cannot ship a
-  dangling reference by accident. Without it, the references are reported and the archive is
-  still written. The reference graph is built over the project alone; the stock corpus is not
-  consulted (see §9).
+* Every pack runs the check of §4.3 first and the payload carries its counts
+  (`check.errors`, `check.dangling`). A document that cannot be rendered is named in
+  `errors`, left out of the archive, and the pack goes ahead.
+* `strict=1` turns both into refusals: the pack writes nothing while the project has a load
+  error or a reference that does not resolve, so a package cannot ship either by accident.
+  The reference graph is built over the project alone; the stock corpus is not consulted
+  (see §9).
 * Members are written with a fixed timestamp, so packing an unchanged project twice produces
   the same bytes.
 * `pack` changes no document and takes no lock, but a pack that writes appends one `pack`
@@ -439,9 +448,9 @@ and prints the address it bound.
   (tab indent, CRLF, schema order), and an edit invalidates the layout of the element it
   touches for as long as it is applied in memory.
 * `pack` writes the `Data/` documents and the project's `README.md`/`LICENSE`. `Images/` and
-  `Sounds/` are copied only when they are already in the project directory, because the
-  editor does not import them yet; a mod that ships its own artwork therefore needs those
-  files placed by hand, and the pack summary says nothing about what is missing.
+  `Sounds/` are copied when they are already in the project directory; `convert assets=1`
+  (§4.3) is what brings them in, and a file that was never imported simply is not in the
+  archive. The pack summary does not say what is missing.
 * `init` writes `mod.toml` and an empty `Mod/Data` only. It does not import stock data (`convert`
   does that, §4.3), does not write `mod_setting.toml` (`settings op=render`, §4.7), and does not
   read a template from anywhere else.

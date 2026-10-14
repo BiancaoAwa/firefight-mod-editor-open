@@ -81,7 +81,7 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 工程是含 `mod.toml`、`mod_setting.toml` 与 `Mod/`（模组自己的 `Data/`、`Images/`、`Sounds/`）的目录，另有
 `.editor/` 存日志与基线；模组是部分覆写，未携带的内容从原版作用域读取。编辑器在工程作用域下读 `.toml`、
 在原版作用域下读 `.txt`。`convert` 逐个文件把原版数据转为工程文档（`to=<工程目录> --write`，已存在的目标
-默认跳过；`Images/` 与 `Sounds/` 只留占位）。`export` 把选定内容写回原版 XML（`to=<目录>`），并保留来自磁盘的
+默认跳过；`assets=1` 另把作用域的 `Images/` 与 `Sounds/` 两棵树一并复制）。`export` 把选定内容写回原版 XML（`to=<目录>`），并保留来自磁盘的
 文件的原始排版。任何作用域都不会被写入：游戏安装目录永不被修改。
 
 ## 许可
