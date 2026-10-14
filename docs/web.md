@@ -25,6 +25,7 @@ python -m core.cli <scope> web [key=value ...]
 | `port=` | first free from `8765` | TCP port on `127.0.0.1`; naming one takes it or fails, it never falls to another |
 | `token=<text>` | empty | require `?t=<text>` on every URL |
 | `pagesize=` | `200` | rows per page |
+| `lang=` | `zh` | interface language, `zh` or `en` (see below) |
 | `browser=1` | off | open the default browser after binding |
 | `--json` | off | print `{scope, root, url}` when the server stops (the startup banner carries the same URL) |
 
@@ -46,6 +47,18 @@ Example:
 ```
 python -m core.cli Firefight web "root=<game directory>"
 ```
+
+### The interface language
+
+Chinese is the authoring language of the pages and the default. `lang=en` renders the same
+pages in English, and any page can be asked for in the other language with `?lang=`; every
+link on that page then carries the language on, so the choice survives navigation. The
+navigation bar has the same link, named `English` or `中文`. The startup banner follows
+`lang=` as well. A page whose `lang=` names no language the server knows is a `400`.
+
+Every string the server prints goes through one table (`core/web/i18n.py`), and a test
+asserts that the table covers each of them, so a page added without wording fails the suite
+rather than quietly showing Chinese in English mode.
 
 To serve it without tying up the prompt, use the local launcher that wraps the CLI
 (`tools/launcher/ff-tool.ps1`, shipped as `launcher/` in the editor folder):

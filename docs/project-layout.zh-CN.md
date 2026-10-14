@@ -214,11 +214,12 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 ```
 <仓库>/
 ├── core/          代码
-│   ├── cli/       命令行：作用域解析、命令、main、工具表
+│   ├── cli/       命令行：作用域解析、命令、main、specs.py（唯一一张工具表）
 │   ├── mcp/       在这些命令之上的 stdio MCP 服务（docs/mcp.md）
-│   ├── web/       本地 Web 界面：服务、页面、运行实例记录
+│   ├── web/       本地 Web 界面：服务、页面、运行实例记录、i18n.py（语言表）
 │   └── *.py       schema、解析器（XML/TOML）、模型、转换、引用图、
-│                  编辑（edit、journal、history）
+│                  编辑（edit、journal、history）、index.py（引用索引）、
+│                  settings.py（mod.txt 渲染器）
 ├── docs/          规范：编辑器做什么、如何构建；英文文件 + `*.zh-CN.md` 中文对照（本文件所在）
 ├── tests/         测试套件（无需安装游戏、无需联网）
 ├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、
@@ -260,9 +261,10 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 * `Mods/` 是 `<名称>` 作用域的工作区根，`mod.toml` 标记一个模组工程。
 * 模组工程是**部分覆盖**：它只能替换游戏本来就会读取的文件，因此 `Mod/Data`、`Mod/Images` 与 `Mod/Sounds`
   严格镜像游戏目录。
-* `.editor/` 随工程迁移，不进任何包，存放缓存（`refs.toml`、`index.toml`）、事件日志与基线快照。
-* `mod_setting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式；其渲染器尚未实现，因此测试用工程可以带一份刻意不完整的
-  文件，并在文件内标注。
+* `.editor/` 随工程迁移，不进任何包，存放缓存（`refs.toml`、`index.toml`，两者都由 `index` 写出）、事件日志与
+  基线快照。
+* `mod_setting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式，由 `settings` 渲染（docs/cli.zh-CN.md §4.7）。渲染器
+  是源字节的函数：它复现读到的文件中的每个元素，原版 `mod.txt` 仍是它所承载字段的事实源。
 * 两个启动器都以 `python -m core.cli` 运行命令行，该形式从当前目录解析 `core` 包，因此代码位于下一层 `core/`
   时两种布局都可用。
 

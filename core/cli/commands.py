@@ -1,24 +1,23 @@
 """Commands over one scope: read-only queries, the writing commands and ``export``.
 
 Each command returns a JSON payload and its text rendering; ``set`` changes one field of one
-project document, ``log``, ``undo`` and ``redo`` read and revert the event log, and ``export``
-writes XML under ``to=`` (docs/cli.md).
+project document, ``log``, ``undo`` and ``redo`` read and revert the event log, ``index``
+builds the cross-reference tables under ``.editor/``, and ``export`` writes XML under ``to=``
+(docs/cli.md).
 """
 
 import platform
 from dataclasses import dataclass
 from pathlib import Path
 
-from core import refs as refs_core
-from core import textio, toml, xml
+from core import __version__ as core_version
+from core import convert, index as index_core, refs as refs_core, textio, toml, xml
 from core.errors import FfError, SchemaError, XmlStructureError
-from core.toml import TomlTable
-from core.xml import XmlElement
-
-from core.cli.scope import MOD_FOLDER, Scope, UsageError, entity_files
-from core import convert, textio, toml, xml
 from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
+from core.xml import XmlElement
+
+from core.cli.scope import DATA_FOLDER, MOD_FOLDER, Scope, UsageError, entity_files
 
 
 SUFFIX_TOML = ".toml"
@@ -194,10 +193,11 @@ def element_value(element: XmlElement) -> str | None:
     return element.value if not element.children else None
 
 
-VERSION = "0.1.0"
+VERSION = core_version
 CATEGORIES = ("infantry", "vehicle", "weapon", "at_gun", "aircraft", "equipment", "surnames", "other")
 DEFAULT_LIMIT = 200
 LOG_ROWS = 20
+CHECK_SAMPLES = 20
 
 
 @dataclass
@@ -234,6 +234,31 @@ def run_command(name: str, ctx: Context) -> Result:
     return handler(ctx)
 
 
+def row_limit(ctx: Context, default: int = DEFAULT_LIMIT) -> int | None:
+    """How many rows a command prints, from ``limit=``; ``None`` means every row.
+
+    Every command that enumerates rows honours the option and keeps its own
+    default, so the text of a small query is not padded and the text of a large
+    one stays short; ``limit=0`` asks for all rows (docs/cli.md section 4).
+    Commands that print aggregates rather than rows ignore it.
+    """
+    raw = ctx.options.get("limit")
+    if raw is None or raw.strip() == "":
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        raise UsageError(f"limit= needs a whole number, not {raw!r}") from None
+    if value < 0:
+        raise UsageError(f"limit= cannot be negative: {raw!r}")
+    return None if value == 0 else value
+
+
+def tally(shown: int, total: int) -> str:
+    """``7 of 200`` when rows were capped, else ``200``."""
+    return f"{shown} of {total}" if shown != total else str(total)
+
+
 # --- shared helpers ---------------------------------------------------------
 
 
@@ -261,11 +286,13 @@ def filter_category(files: list[Path], ctx: Context, scope: Scope) -> list[Path]
 
 
 def relative_of(scope: Scope, path: Path) -> str:
-    """Scope-relative POSIX path of a file."""
-    try:
-        return path.relative_to(scope.root).as_posix()
-    except ValueError:
-        return path.as_posix()
+    """Scope-relative POSIX path of a file; project files are relative to the project."""
+    for base in (scope.root, scope.project):
+        try:
+            return path.relative_to(base).as_posix()
+        except ValueError:
+            continue
+    return path.as_posix()
 
 
 def is_entity(relative: str) -> bool:
@@ -279,6 +306,29 @@ def single_document(ctx: Context) -> tuple[Path, str]:
     if len(files) != 1:
         raise UsageError(f"expected one file, got {len(files)}; name the file explicitly")
     return files[0], relative_of(ctx.scope, files[0])
+
+
+def new_document(ctx: Context) -> Path:
+    """The file an ``add`` creates; nothing is read or written here."""
+    scope = ctx.scope
+    raw = ctx.selector if ctx.selector not in ("", "all") else "/".join(ctx.doc_path)
+    raw = raw.strip().strip("/")
+    if not raw:
+        raise UsageError("add needs a document path, for example Data/Weapons/WEAPON_NEW.toml")
+    candidate = Path(raw)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise UsageError(f"{raw}: the path must stay inside the project")
+    if candidate.suffix != SUFFIX_TOML:
+        raise UsageError(f"{raw}: a working document is a {SUFFIX_TOML} file")
+    relative = raw if raw.startswith(f"{DATA_FOLDER}/") else f"{DATA_FOLDER}/{raw}"
+    return scope.root / relative
+
+
+def root_tag_for(relative: str) -> str | None:
+    """The root element a new document in this folder carries, from its category."""
+    from core.edit import ROOT_BY_CATEGORY
+
+    return ROOT_BY_CATEGORY.get(category_of_path(relative))
 
 
 def table_of(headers: list[str], rows: list[list[object]], summary: str = "") -> str:
@@ -306,6 +356,183 @@ def document_path(scope: Scope, relative: str) -> str:
     return f"{scope.name}/{relative}"
 
 
+def scope_items(scope: Scope) -> list[tuple[str, Path]]:
+    """Every file of a scope with its relative name, for a fingerprint."""
+    return [(relative_of(scope, path), path) for path in entity_files(scope)]
+
+
+def stored_index(ctx: Context, scope: Scope):
+    """The stored cross-reference tables, when they describe exactly these files.
+
+    A project that has no tables, or whose tables were built from a different
+    set of files, returns None and the caller walks the documents instead
+    (docs/cli.md section 4.6).
+    """
+    from core import edit
+
+    if scope.name == "Firefight":
+        return None
+    try:
+        project_root = edit.project_root_of(scope.root)
+    except FfError:
+        return None
+    loaded = index_core.load(project_root)
+    if loaded is None:
+        return None
+    index_tables, refs_tables = loaded
+    built = index_tables.get("built")
+    if not isinstance(built, dict):
+        return None
+    if built.get("fingerprint") != index_core.fingerprint(scope_items(scope)):
+        return None
+    if not isinstance(index_tables.get("documents"), dict):
+        return None
+    if not isinstance(refs_tables.get("by_source"), dict):
+        return None
+    return index_tables, refs_tables
+
+
+def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[dict], list[dict], str]:
+    """The references of the selected files, from the stored tables or a fresh walk."""
+    stored = stored_index(ctx, scope)
+    if stored is not None:
+        _, refs_tables = stored
+        by_source = refs_tables["by_source"]
+        collected: list[dict] = []
+        for path in files:
+            relative = relative_of(scope, path)
+            if not is_entity(relative):
+                continue
+            lines = by_source.get(relative)
+            if not isinstance(lines, list):
+                continue
+            for line in lines:
+                decoded = index_core.decode(str(line))
+                if decoded is None:
+                    continue
+                kind, document_path_text, value = decoded
+                collected.append(
+                    {
+                        "source": document_path(scope, relative),
+                        "kind": kind,
+                        "value": value,
+                        "document_path": document_path_text,
+                    }
+                )
+        return collected, [], "index"
+    collected = []
+    errors: list[dict] = []
+    for path in files:
+        relative = relative_of(scope, path)
+        if not is_entity(relative):
+            continue
+        try:
+            document = load_document(path, relative)
+        except XmlStructureError:
+            # A .txt without an XML root is a plain-text data file, as elsewhere in the format.
+            continue
+        except FfError as error:
+            errors.append({"path": relative, "error": str(error)})
+            continue
+        for reference in refs_core.references_in(document.root, document_path(scope, relative)):
+            collected.append(
+                {
+                    "source": reference.source,
+                    "kind": reference.kind,
+                    "value": reference.value,
+                    "document_path": "/".join(reference.path),
+                }
+            )
+    return collected, errors, "scan"
+
+
+def cmd_index(ctx: Context) -> Result:
+    """Build the cross-reference tables; needs --write.
+
+    The tables cover the whole scope whatever the selector says, because they are
+    a cache of the scope rather than of one query (docs/cli.md section 4.6).
+    """
+    from core import edit, journal
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; index refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("index needs --write; add --dry-run to inspect the result without writing")
+    project_root = edit.project_root_of(scope.root)
+    items = scope_items(scope)
+    documents: dict[str, str] = {}
+    by_source: dict[str, list[str]] = {}
+    errors: list[dict] = []
+    references = 0
+    skipped = 0
+    for relative, path in items:
+        if not is_entity(relative):
+            skipped += 1
+            continue
+        try:
+            document = load_document(path, relative)
+        except XmlStructureError:
+            # A .txt without an XML root is a plain-text data file, as elsewhere in the format.
+            skipped += 1
+            continue
+        except FfError as error:
+            errors.append({"path": relative, "error": str(error)})
+            continue
+        documents[relative] = document.root.tag
+        lines = [
+            index_core.signature(reference.kind, "/".join(reference.path), reference.value)
+            for reference in refs_core.references_in(document.root, document_path(scope, relative))
+        ]
+        if lines:
+            by_source[relative] = lines
+        references += len(lines)
+    dry_run = ctx.options.get("dry-run") == "1"
+    built = {
+        "at": index_core.stamp(),
+        "scope": scope.name,
+        "fingerprint": index_core.fingerprint(items),
+        "documents": len(documents),
+        "references": references,
+    }
+    written: list[str] = []
+    if not dry_run:
+        with journal.hold_lock(project_root, tool="core.cli index"):
+            written = [str(path) for path in index_core.write(project_root, built, documents, by_source)]
+    where = f"{journal.EDITOR_DIR}/{index_core.INDEX_NAME} and {journal.EDITOR_DIR}/{index_core.REFS_NAME}"
+    summary = (
+        f"{len(documents)} document(s), {references} reference(s) in {len(by_source)} file(s), "
+        f"{skipped} file(s) skipped (lists and plain text), {len(errors)} unreadable; "
+        f"{'would write' if dry_run else 'written to'} {where}"
+    )
+    text = table_of(
+        ["document", "references"],
+        [[name, len(by_source[name])] for name in sorted(by_source)][: row_limit(ctx)],
+        summary,
+    )
+    return Result(
+        {
+            "scope": scope.name,
+            "root": str(project_root),
+            "documents": len(documents),
+            "references": references,
+            "sources": len(by_source),
+            "skipped": skipped,
+            "errors": errors,
+            "dry_run": dry_run,
+            "written": written,
+            "fingerprint": built["fingerprint"],
+        },
+        text,
+        _index_code(errors),
+    )
+
+
+def _index_code(errors: list[dict]) -> int:
+    """One unreadable document still leaves a usable table; report it as a failure."""
+    return 1 if errors else 0
+
+
 # --- commands ---------------------------------------------------------------
 
 
@@ -324,9 +551,20 @@ def cmd_list(ctx: Context) -> Result:
                 "bytes": path.stat().st_size,
             }
         )
-    rows = [[item["path"], item["category"], item["format"], item["bytes"]] for item in entities]
-    text = table_of(["path", "category", "format", "bytes"], rows, f"{len(entities)} entity file(s) in {scope.describe()}")
-    return Result({"scope": scope.name, "root": str(scope.root), "count": len(entities), "entities": entities}, text)
+    rows_entities = entities[: row_limit(ctx)]
+    rows = [[item["path"], item["category"], item["format"], item["bytes"]] for item in rows_entities]
+    summary = f"{tally(len(rows_entities), len(entities))} entity file(s) in {scope.describe()}"
+    text = table_of(["path", "category", "format", "bytes"], rows, summary)
+    return Result(
+        {
+            "scope": scope.name,
+            "root": str(scope.root),
+            "count": len(entities),
+            "shown": len(rows_entities),
+            "entities": rows_entities,
+        },
+        text,
+    )
 
 
 def cmd_show(ctx: Context) -> Result:
@@ -407,16 +645,21 @@ def _subtree_xml(element: XmlElement, depth: int) -> str:
 
 
 def cmd_get(ctx: Context) -> Result:
-    """Read the value of one field, named by a field= key path or a document path."""
+    """Read a field, a subtree, or every field of one document.
+
+    ``field=<a.b.c>`` or a document path selects a part of the document; with
+    neither, the document's own fields are listed under the names ``set`` takes
+    (docs/cli.md section 4).
+    """
     path, relative = single_document(ctx)
     document = load_document(path, relative)
     field = ctx.options.get("field")
     if field:
-        keys = tuple(part for part in field.split(".") if part)
+        keys = tuple(part for part in field.replace("/", ".").split(".") if part)
     elif ctx.doc_path:
         keys = ctx.doc_path
     else:
-        raise UsageError("nothing to read; pass a document path or field=<a.b.c>")
+        return _get_all(ctx, document, relative)
     rows = []
     for path_tuple, element in select(document.root, keys):
         for leaf_path, leaf in _leaves(path_tuple[:-1], element):
@@ -427,25 +670,80 @@ def cmd_get(ctx: Context) -> Result:
                     "value": leaf.value,
                 }
             )
+    if not rows and document.format == "toml":
+        rows = toml_rows(document, keys)
     if not rows:
         raise UsageError(f"{document_path(ctx.scope, relative)}: no field {'/'.join(keys)}")
-    text = table_of(["path", "line", "value"], [[row["path"], row["line"], row["value"]] for row in rows])
-    return Result({"path": relative, "field": "/".join(keys), "count": len(rows), "values": rows}, text)
+    shown = rows[: row_limit(ctx)]
+    text = table_of(
+        ["path", "line", "value"],
+        [[row["path"], row["line"], row["value"]] for row in shown],
+        f"{tally(len(shown), len(rows))} value(s)",
+    )
+    return Result(
+        {"path": relative, "field": "/".join(keys), "count": len(rows), "shown": len(shown), "values": shown},
+        text,
+    )
+
+
+def toml_rows(document, keys: tuple[str, ...]) -> list[dict]:
+    """Fields a key path selects in a working document, index segments included.
+
+    The element walk names tags, so it cannot reach ``ammo.type.1.name``; the key
+    path is the same one ``set`` takes (docs/cli.md section 4).
+    """
+    from core.edit import root_table
+
+    wanted = tuple(keys)
+    rows = []
+    for key_path, value in flatten(root_table(document.table, document.root_tag)):
+        if key_path[: len(wanted)] != wanted:
+            continue
+        rows.append({"path": ".".join(key_path), "line": value.line, "value": value.raw})
+    return rows
+
+
+def _get_all(ctx: Context, document, relative: str) -> Result:
+    """Every field of one document, named the way ``set`` names fields."""
+    from core.edit import root_table
+
+    found = flatten(root_table(document.table, document.root_tag))
+    if not found:
+        raise UsageError(f"{document_path(ctx.scope, relative)}: the document declares no fields")
+    rows = [
+        {"path": ".".join(key_path), "line": value.line, "value": value.raw}
+        for key_path, value in found
+    ]
+    shown = rows[: row_limit(ctx)]
+    text = table_of(
+        ["field", "value"],
+        [[row["path"], row["value"]] for row in shown],
+        f"{tally(len(shown), len(rows))} field(s)",
+    )
+    return Result(
+        {"path": relative, "field": "", "count": len(rows), "shown": len(shown), "values": shown},
+        text,
+    )
 
 
 def cmd_find(ctx: Context) -> Result:
-    """Search tags, document paths and values across a scope."""
+    """Search tags, document paths and values across a scope.
+
+    The whole scope is searched whatever ``limit=`` says, so ``count`` is the
+    number of matches and not merely the number of rows printed (docs/cli.md
+    section 4).
+    """
     tag = ctx.options.get("tag")
     value = ctx.options.get("value")
     prefix = ctx.options.get("path")
     ignore_case = ctx.options.get("ignore_case", "0") not in ("0", "false", "no")
-    limit = int(ctx.options.get("limit", DEFAULT_LIMIT))
+    limit = row_limit(ctx)
     if tag is None and value is None and prefix is None:
         raise UsageError("nothing to search for; pass tag=<name>, value=<text> or path=<a/b>")
     needle = value.casefold() if (value and ignore_case) else value
     files = filter_category(targets(ctx), ctx, ctx.scope)
     matches: list[dict] = []
-    truncated = False
+    total = 0
     for path in files:
         relative = relative_of(ctx.scope, path)
         if not is_entity(relative):
@@ -454,6 +752,7 @@ def cmd_find(ctx: Context) -> Result:
             document = load_document(path, relative)
         except FfError as error:
             matches.append({"path": relative, "error": str(error)})
+            total += 1
             continue
         for element_path, element in walk(document.root):
             joined = "/".join(element_path)
@@ -465,25 +764,31 @@ def cmd_find(ctx: Context) -> Result:
                 haystack = element.value.casefold() if ignore_case else element.value
                 if needle not in haystack:
                     continue
-            if len(matches) >= limit:
-                truncated = True
-                break
-            matches.append(
-                {
-                    "path": relative,
-                    "line": element.line,
-                    "tag": element.tag,
-                    "document_path": joined,
-                    "value": element.value,
-                }
-            )
-        if truncated:
-            break
+            total += 1
+            if limit is None or len(matches) < limit:
+                matches.append(
+                    {
+                        "path": relative,
+                        "line": element.line,
+                        "tag": element.tag,
+                        "document_path": joined,
+                        "value": element.value,
+                    }
+                )
     rows = [[item["path"], item.get("line", ""), item.get("tag", ""), item.get("value", "")] for item in matches]
-    summary = f"{len(matches)} match(es)" + (" (limit reached)" if truncated else "")
+    summary = f"{tally(len(matches), total)} match(es)"
     text = table_of(["path", "line", "tag", "value"], rows, summary)
     query = {"tag": tag, "value": value, "path": prefix, "ignore_case": ignore_case}
-    return Result({"query": query, "count": len(matches), "truncated": truncated, "matches": matches}, text)
+    return Result(
+        {
+            "query": query,
+            "count": total,
+            "shown": len(matches),
+            "truncated": len(matches) < total,
+            "matches": matches,
+        },
+        text,
+    )
 
 
 def cmd_stats(ctx: Context) -> Result:
@@ -552,35 +857,30 @@ def cmd_refs(ctx: Context) -> Result:
     kind = ctx.options.get("kind")
     scope = ctx.scope
     files = filter_category(targets(ctx), ctx, scope)
-    collected: list[dict] = []
-    errors: list[dict] = []
-    for path in files:
-        relative = relative_of(scope, path)
-        if not is_entity(relative):
-            continue
-        try:
-            document = load_document(path, relative)
-        except FfError as error:
-            errors.append({"path": relative, "error": str(error)})
-            continue
-        for reference in refs_core.references_in(document.root, document_path(scope, relative)):
-            if kind is not None and reference.kind != kind:
-                continue
-            collected.append(
-                {
-                    "source": reference.source,
-                    "kind": reference.kind,
-                    "value": reference.value,
-                    "document_path": "/".join(reference.path),
-                }
-            )
+    collected, errors, origin = reference_rows(ctx, scope, files)
+    if kind is not None:
+        collected = [item for item in collected if item["kind"] == kind]
     counts: dict[str, int] = {}
     for item in collected:
         counts[item["kind"]] = counts.get(item["kind"], 0) + 1
-    rows = [[item["source"], item["kind"], item["value"], item["document_path"]] for item in collected[:DEFAULT_LIMIT]]
-    summary = f"{len(collected)} reference(s) " + ", ".join(f"{name}={count}" for name, count in sorted(counts.items()))
+    shown = collected[: row_limit(ctx)]
+    rows = [[item["source"], item["kind"], item["value"], item["document_path"]] for item in shown]
+    summary = f"{tally(len(shown), len(collected))} reference(s) " + ", ".join(
+        f"{name}={count}" for name, count in sorted(counts.items())
+    )
     text = table_of(["source", "kind", "value", "document_path"], rows, summary)
-    return Result({"scope": scope.name, "count": len(collected), "by_kind": counts, "references": collected, "errors": errors}, text)
+    return Result(
+        {
+            "scope": scope.name,
+            "origin": origin,
+            "count": len(collected),
+            "shown": len(shown),
+            "by_kind": counts,
+            "references": shown,
+            "errors": errors,
+        },
+        text,
+    )
 
 
 def cmd_deps(ctx: Context) -> Result:
@@ -590,37 +890,33 @@ def cmd_deps(ctx: Context) -> Result:
     kind = ctx.options.get("kind")
     if not value:
         raise UsageError("name what to look for: value=<token>")
-    graph = refs_core.RefGraph()
-    errors: list[dict] = []
-    for path in entity_files(scope):
-        relative = relative_of(scope, path)
-        if not is_entity(relative):
-            continue
-        try:
-            document = load_document(path, relative)
-        except FfError as error:
-            errors.append({"path": relative, "error": str(error)})
-            continue
-        graph.add(document_path(scope, relative), document.root)
+    files = [path for path in entity_files(scope) if is_entity(relative_of(scope, path))]
+    collected, errors, origin = reference_rows(ctx, scope, files)
     incoming = [
-        reference
-        for reference in graph.references()
-        if reference.value == value and (kind is None or reference.kind == kind)
+        item
+        for item in collected
+        if item["value"] == value and (kind is None or item["kind"] == kind)
     ]
     index = refs_core.TargetIndex(scope.root)
     resolved: list[str] = []
-    for reference in incoming:
-        for target in index.find(reference.kind, reference.value):
+    for item in incoming:
+        for target in index.find(item["kind"], item["value"]):
             resolved.append(relative_of(scope, target))
-    rows = [[item.source, item.kind, "/".join(item.path)] for item in incoming]
-    summary = f"{len(incoming)} incoming reference(s); resolved: {', '.join(sorted(set(resolved))) or 'none'}"
+    shown = incoming[: row_limit(ctx)]
+    rows = [[item["source"], item["kind"], item["document_path"]] for item in shown]
+    summary = f"{tally(len(shown), len(incoming))} incoming reference(s); resolved: {', '.join(sorted(set(resolved))) or 'none'}"
     text = table_of(["source", "kind", "document_path"], rows, summary)
     return Result(
         {
             "scope": scope.name,
+            "origin": origin,
             "value": value,
             "count": len(incoming),
-            "references": [{"source": item.source, "kind": item.kind, "document_path": "/".join(item.path)} for item in incoming],
+            "shown": len(shown),
+            "references": [
+                {"source": item["source"], "kind": item["kind"], "document_path": item["document_path"]}
+                for item in shown
+            ],
             "resolved": sorted(set(resolved)),
             "unresolved": not resolved,
             "errors": errors,
@@ -658,16 +954,16 @@ def cmd_check(ctx: Context) -> Result:
         if document.warnings:
             warnings_total += len(document.warnings)
             warning_files += 1
-            if len(warned) < 20:
-                warned.append({"path": relative, "warnings": list(document.warnings)})
+            warned.append({"path": relative, "warnings": list(document.warnings)})
         graph.add(document_path(scope, relative), document.root)
+    limit = row_limit(ctx, default=CHECK_SAMPLES)
     index = refs_core.TargetIndex(scope.root)
     dangling = [
         {"source": item.source, "kind": item.kind, "value": item.value, "document_path": "/".join(item.path)}
         for item in refs_core.unresolved(graph, index)
     ]
     rows = [[item["path"], item["error"]] for item in errors]
-    rows += [[item["source"], f"unresolved {item['kind']}={item['value']}"] for item in dangling[:20]]
+    rows += [[item["source"], f"unresolved {item['kind']}={item['value']}"] for item in dangling[:limit]]
     summary = (
         f"{loaded}/{len(files)} loaded, {skipped} list file(s) skipped, {len(errors)} error(s), "
         f"{warnings_total} warning(s) in {warning_files} file(s), {len(dangling)} dangling reference(s)"
@@ -683,8 +979,9 @@ def cmd_check(ctx: Context) -> Result:
             "errors": errors,
             "warnings_total": warnings_total,
             "warning_files": warning_files,
-            "warning_samples": warned,
-            "dangling": dangling,
+            "warning_samples": warned[:limit],
+            "dangling": dangling[:limit],
+            "dangling_total": len(dangling),
             "ok": code == 0,
         },
         text,
@@ -692,11 +989,90 @@ def cmd_check(ctx: Context) -> Result:
     )
 
 
+def cmd_add(ctx: Context) -> Result:
+    """Create one entity document; needs --write and never writes the stock scope.
+
+    Without ``from=`` the body is the schema skeleton for the folder's root
+    element; with it the body is a copy of that document (docs/cli.md section 4.5).
+    """
+    from core import edit
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; add refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("add needs --write; add --dry-run to inspect the result without writing")
+    path = new_document(ctx)
+    relative = relative_of(scope, path)
+    project_root = edit.project_root_of(scope.root)
+    source = ctx.options.get("from")
+    if source:
+        files = entity_files(scope, source)
+        if len(files) != 1:
+            raise UsageError(f"from= names {len(files)} file(s); name the source document")
+        origin_relative = relative_of(scope, files[0])
+        origin = load_document(files[0], origin_relative)
+        root_tag = origin.root_tag
+        entity = edit.entity_of(origin, origin_relative)
+        text = origin.text if origin.format == "toml" else origin.toml_text()
+    else:
+        root_tag = root_tag_for(relative)
+        if root_tag is None:
+            raise UsageError(
+                f"{relative}: cannot tell which root element a document in this folder carries; "
+                "add from=<an existing document> instead"
+            )
+        entity = Path(relative).stem
+        text = edit.skeleton(root_tag)
+    try:
+        plan = edit.plan_create(path, relative, text, entity=entity)
+        payload = edit.apply_document(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    payload["scope"] = scope.name
+    payload["root"] = root_tag
+    return Result(payload, _document_text(payload, "added"))
+
+
+def cmd_remove(ctx: Context) -> Result:
+    """Delete one entity document; needs --write and never writes the stock scope.
+
+    The bytes leave the project; ``undo`` puts them back from the baseline
+    (docs/cli.md section 4.5).
+    """
+    from core import edit
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; remove refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("remove needs --write; add --dry-run to inspect the result without writing")
+    path, relative = single_document(ctx)
+    document = load_document(path, relative)
+    project_root = edit.project_root_of(scope.root)
+    try:
+        plan = edit.plan_remove(path, relative, entity=edit.entity_of(document, relative))
+        payload = edit.apply_document(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    payload["scope"] = scope.name
+    return Result(payload, _document_text(payload, "removed"))
+
+
+def _document_text(payload: dict, verb: str) -> str:
+    """The one-line report of an add or a remove."""
+    where = f"would be {verb}" if payload.get("dry_run") else verb
+    event = payload.get("id")
+    tail = f" [{event}]" if event else ""
+    return f"{payload['path']}: {payload['entity']} {where}{tail}"
+
+
 def cmd_set(ctx: Context) -> Result:
     """Change one field of one document; needs --write and never writes the stock scope.
 
     The change is validated and rendered before anything is touched; ``--dry-run``
-    reports it without writing (docs/cli.md section 4).
+    reports it without writing.  ``op=append`` and ``op=delete`` add or remove one
+    array-of-tables entry instead of a value (docs/cli.md section 4.1).
     """
     from core import edit, enums as enums_core
 
@@ -708,24 +1084,44 @@ def cmd_set(ctx: Context) -> Result:
     field = ctx.options.get("field", "")
     if not field:
         raise UsageError("set needs field=<a.b.c>")
-    if "value" not in ctx.options:
+    op = ctx.options.get("op", "set")
+    if op not in ("set", "append", "delete"):
+        raise UsageError(f"op= is set, append or delete, not {op!r}")
+    if op == "set" and "value" not in ctx.options:
         raise UsageError("set needs value=<text>")
     path, relative = single_document(ctx)
     project_root = edit.project_root_of(scope.root)
     document = load_document(path, relative)
     try:
-        plan = edit.plan_set(
-            document,
-            field,
-            ctx.options["value"],
-            enums=enums_core.load_enums(project_root),
-            declared=lambda: declared_enum_values(scope),
-        )
+        if op == "set":
+            plan = edit.plan_set(
+                document,
+                field,
+                ctx.options["value"],
+                enums=enums_core.load_enums(project_root),
+                declared=lambda: declared_enum_values(scope),
+            )
+        else:
+            plan = edit.plan_entry(document, field, op, copy_from=entry_index(ctx))
         report = edit.apply_plan(plan, project_root, dry_run=ctx.options.get("dry-run") == "1")
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     report["scope"] = scope.name
     return Result(report, _set_text(report))
+
+
+def entry_index(ctx: Context) -> int | None:
+    """The entry an append copies, from ``from=``; None means the schema skeleton."""
+    raw = ctx.options.get("from")
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        raise UsageError(f"from= needs an entry index, not {raw!r}") from None
+    if value < 0:
+        raise UsageError(f"from= cannot be negative: {raw!r}")
+    return value
 
 
 def declared_enum_values(scope: Scope) -> dict[str, set[str]]:
@@ -774,17 +1170,48 @@ def _set_text(report: dict) -> str:
 
 
 def cmd_log(ctx: Context) -> Result:
-    """List the log segments of this project and the newest records inside them."""
+    """List the log segments of this project and the newest records inside them.
+
+    ``document=``, ``field=``, ``actor=``, ``result=``, ``since=`` and ``until=``
+    narrow which records are selected; ``limit=`` caps how many of the newest
+    selected records are printed (docs/cli.md section 4.2).  ``since=`` and
+    ``until=`` compare against the timestamp as written, so they share the
+    offset of the machine that wrote the log.
+    """
     from core import edit, journal
 
     project_root = edit.project_root_of(ctx.scope.root)
-    limit = _count(ctx, default=LOG_ROWS, name="log")
+    limit = row_limit(ctx, default=LOG_ROWS)
+    count = _count(ctx, default=0, name="log")
+    if count:
+        limit = count if limit is None else min(limit, count)
+    filters = {
+        "document": ctx.options.get("document"),
+        "field": ctx.options.get("field"),
+        "actor": ctx.options.get("actor"),
+        "result": ctx.options.get("result"),
+        "since": ctx.options.get("since"),
+        "until": ctx.options.get("until"),
+    }
+    actor = filters["actor"]
+    outcome = filters["result"]
+    if actor is not None and actor not in ("cli", "mcp"):
+        raise UsageError(f"actor= is cli or mcp, not {actor!r}")
+    if outcome is not None and outcome not in ("set", "undo", "redo"):
+        raise UsageError(f"result= is set, undo or redo, not {outcome!r}")
     events = journal.read_events(project_root)
     found: dict[str, list[dict]] = {}
     for event in events:
         found.setdefault(str(event.get("segment", "")), []).append(event)
+    selected = [event for event in events if _log_keeps(event, filters)]
+    shown = selected if limit is None else selected[-limit:]
     segment_rows = [
-        [name, len(items), items[0].get("timestamp", ""), items[-1].get("timestamp", "")]
+        [
+            name,
+            sum(1 for event in items if _log_keeps(event, filters)),
+            items[0].get("timestamp", ""),
+            items[-1].get("timestamp", ""),
+        ]
         for name, items in found.items()
     ]
     record_rows = [
@@ -796,10 +1223,11 @@ def cmd_log(ctx: Context) -> Result:
             f"{event.get('before', '')} -> {event.get('after', '')}",
             event.get("id", ""),
         ]
-        for event in events[-limit:]
+        for event in shown
     ]
     summary = (
-        f"{len(events)} record(s) in {len(found)} segment(s) under {journal.EDITOR_DIR}/{journal.LOG_DIR}"
+        f"{tally(len(shown), len(selected))} of {len(events)} record(s) in {len(found)} segment(s) "
+        f"under {journal.EDITOR_DIR}/{journal.LOG_DIR}"
     )
     text = "\n\n".join(
         [
@@ -811,15 +1239,36 @@ def cmd_log(ctx: Context) -> Result:
         {
             "scope": ctx.scope.name,
             "root": str(project_root),
+            "filters": {name: value for name, value in filters.items() if value is not None},
             "segments": [
-                {"segment": name, "records": len(items)} for name, items in found.items()
+                {"segment": name, "records": sum(1 for event in items if _log_keeps(event, filters))}
+                for name, items in found.items()
             ],
-            "events": events[-limit:],
-            "shown": len(events[-limit:]),
+            "events": shown,
+            "shown": len(shown),
+            "selected": len(selected),
             "total": len(events),
         },
         text,
     )
+
+
+def _log_keeps(event: dict, filters: dict[str, str | None]) -> bool:
+    """Whether one log record passes every filter that was given."""
+    if filters["actor"] is not None and event.get("actor") != filters["actor"]:
+        return False
+    if filters["result"] is not None and event.get("result") != filters["result"]:
+        return False
+    if filters["document"] is not None and filters["document"] not in str(event.get("document", "")):
+        return False
+    if filters["field"] is not None and filters["field"] not in str(event.get("field", "")):
+        return False
+    stamp = str(event.get("timestamp", ""))
+    if filters["since"] is not None and stamp < filters["since"]:
+        return False
+    if filters["until"] is not None and stamp > filters["until"]:
+        return False
+    return True
 
 
 def cmd_undo(ctx: Context) -> Result:
@@ -839,12 +1288,12 @@ def _restore(ctx: Context, result: str) -> Result:
     if ctx.scope.name == "Firefight":
         raise UsageError(f"the stock scope is read-only; {result} refuses to write under Firefight")
     if ctx.options.get("write") != "1":
-        raise UsageError(f"{result} needs --write")
+        raise UsageError(f"{result} needs --write; add --dry-run to inspect what would change")
     count = _count(ctx, default=1, name=result)
     project_root = edit.project_root_of(ctx.scope.root)
     try:
         restores = history.plan_undo(project_root, count) if result == "undo" else history.plan_redo(project_root, count)
-        payload = history.apply(project_root, restores)
+        payload = history.apply(project_root, restores, dry_run=ctx.options.get("dry-run") == "1")
     except edit.EditRefused as error:
         raise UsageError(str(error)) from None
     payload["scope"] = ctx.scope.name
@@ -859,6 +1308,8 @@ def _restore_text(payload: dict) -> str:
     ]
     done = "undone" if payload["result"] == "undo" else "redone"
     summary = f"{payload['count']} document(s) {done}"
+    if payload.get("dry_run"):
+        summary += "; not written (dry run)"
     return table_of(["document", "field", "before", "after", "event", "target"], rows, summary)
 
 
@@ -930,6 +1381,55 @@ def cmd_convert(ctx: Context) -> Result:
     return Result(payload, _convert_text(payload), 1 if errors else 0)
 
 
+def cmd_settings(ctx: Context) -> Result:
+    """Render ``mod_setting.toml`` from the stock ``Mod/mod.txt`` of this project.
+
+    The stock file stays the source of truth; an existing ``mod_setting.toml`` is skipped
+    unless ``overwrite=1``, and nothing is written without ``--write`` (docs/cli.md section 4.7).
+    """
+    from core import edit, settings
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; settings refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("settings needs --write; add --dry-run to inspect the result without writing")
+    project = scope.project
+    source = settings.source_path(project)
+    if not source.is_file():
+        raise UsageError(f"no {settings.MOD_TXT} under {project / MOD_FOLDER}; nothing to render from")
+    target = project / "mod_setting.toml"
+    overwrite = ctx.options.get("overwrite") == "1"
+    dry_run = ctx.options.get("dry-run") == "1"
+    payload = {
+        "scope": scope.name,
+        "from": str(source),
+        "to": str(target),
+        "skipped": False,
+        "dry_run": dry_run,
+    }
+    if target.is_file() and not overwrite:
+        return Result(payload | {"skipped": True}, _settings_text(payload | {"skipped": True}), 0)
+    try:
+        source_text = textio.read_source(source)
+        table, warnings = settings.render(source_text.text, str(source))
+        plan = edit.plan_render(target, "mod_setting.toml", toml.render(table), entity="mod_setting")
+        result = edit.apply_document(plan, edit.project_root_of(scope.root), dry_run=dry_run)
+    except FfError as error:
+        raise UsageError(str(error)) from None
+    payload = payload | result | {"warnings": len(warnings), "sample_warnings": warnings[:CHECK_SAMPLES]}
+    return Result(payload, _settings_text(payload), 0)
+
+
+def _settings_text(payload: dict) -> str:
+    """One line for one settings render."""
+    if payload.get("skipped"):
+        return f"{payload['to']}: already there; pass overwrite=1 to replace it"
+    state = "would be written" if payload.get("dry_run") else "written"
+    tail = f" [{payload['id']}]" if payload.get("id") else ""
+    return f"{payload['to']}: {payload['bytes_after']} byte(s) {state} from {payload['from']}{tail}"
+
+
 def _convert_text(payload: dict) -> str:
     """Rows of one convert invocation."""
     rows = [[item["path"], item["bytes"]] for item in payload["files"][:DEFAULT_LIMIT]]
@@ -944,33 +1444,61 @@ def _convert_text(payload: dict) -> str:
 
 
 def cmd_export(ctx: Context) -> Result:
-    """Render the selected entities as stock XML under the directory in to=."""
+    """Render the selected entities as stock XML under the directory in to=.
+
+    The destination is a rendered copy, so a file that is already there is
+    replaced; ``overwrite=0`` leaves it alone instead and counts it as skipped.
+    ``--dry-run`` renders every selected document and writes nothing
+    (docs/cli.md section 4).
+    """
     scope = ctx.scope
     target = ctx.options.get("to")
     if not target:
         raise UsageError("export needs a destination: to=<directory>")
     destination = Path(target)
+    dry_run = ctx.options.get("dry-run") == "1"
+    overwrite = ctx.options.get("overwrite", "1") == "1"
+    limit = row_limit(ctx)
     files = filter_category(targets(ctx), ctx, scope)
     written: list[dict] = []
+    skipped: list[dict] = []
     errors: list[dict] = []
     for path in files:
         relative = relative_of(scope, path)
         out = destination / relative
-        out.parent.mkdir(parents=True, exist_ok=True)
         try:
             text, encoding, warnings, newline = _export_text(path, relative)
-            out.write_bytes(textio.encode_export(text, file=str(out), encoding=encoding, newline=newline))
         except FfError as error:
             errors.append({"path": relative, "error": str(error)})
             continue
+        if out.exists() and not overwrite:
+            skipped.append({"path": relative, "out": str(out), "reason": "already there"})
+            continue
+        data = textio.encode_export(text, file=str(out), encoding=encoding, newline=newline)
+        if not dry_run:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_bytes(data)
         written.append(
-            {"path": relative, "out": str(out), "bytes": out.stat().st_size, "warnings": warnings}
+            {"path": relative, "out": str(out), "bytes": len(data), "warnings": warnings}
         )
-    summary = f"{len(written)} file(s) written to {destination}, {len(errors)} error(s)"
-    rows = [[item["path"], item["bytes"]] for item in written[:DEFAULT_LIMIT]]
+    state = "planned for" if dry_run else "written to"
+    summary = (
+        f"{len(written)} file(s) {state} {destination}, {len(skipped)} skipped, {len(errors)} error(s)"
+    )
+    shown = written if limit is None else written[:limit]
+    rows = [[item["path"], item["bytes"]] for item in shown]
     text = table_of(["path", "bytes"], rows, summary)
     return Result(
-        {"scope": scope.name, "to": str(destination), "count": len(written), "files": written, "errors": errors},
+        {
+            "scope": scope.name,
+            "to": str(destination),
+            "dry_run": dry_run,
+            "count": len(written),
+            "shown": len(shown),
+            "files": shown,
+            "skipped": skipped,
+            "errors": errors,
+        },
         text,
         1 if errors else 0,
     )
@@ -1026,8 +1554,12 @@ COMMANDS = {
     "refs": cmd_refs,
     "deps": cmd_deps,
     "check": cmd_check,
+    "index": cmd_index,
+    "add": cmd_add,
+    "remove": cmd_remove,
     "set": cmd_set,
     "convert": cmd_convert,
+    "settings": cmd_settings,
     "log": cmd_log,
     "undo": cmd_undo,
     "redo": cmd_redo,
@@ -1041,8 +1573,9 @@ ALIASES = {
     "cat": "show",
     "grep": "find",
     "graph": "refs",
-    "deps": "deps",
     "lint": "check",
     "emit": "export",
     "serve": "web",
+    "new": "add",
+    "rm": "remove",
 }

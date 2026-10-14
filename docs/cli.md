@@ -64,9 +64,13 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `refs` | `graph` | outgoing references of the selection, grouped by kind |
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
-| `set` | | change one field of one document; needs `--write` (§4.1) |
+| `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
+| `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
+| `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
+| `index` | | write `.editor/index.toml` and `.editor/refs.toml`; needs `--write` (§4.6) |
+| `settings` | | render `mod_setting.toml` from the project's stock `mod.txt`; needs `--write` (§4.7) |
 | `convert` | | turn the selection into project working files under `to=<dir>`; needs `--write` (§4.3) |
-| `log` | | the log segments and the newest records inside them; read-only (§4.2) |
+| `log` | | the log segments and the records inside them, with filters; read-only (§4.2) |
 | `undo` | | put back what the last writes replaced; needs `--write` (§4.2) |
 | `redo` | | re-apply what the last undo reverted; needs `--write` (§4.2) |
 | `export` | `emit` | write the selection as stock XML under `to=<dir>`, source bytes for files read from disk |
@@ -74,28 +78,36 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `version` | | editor version, interpreter, resolved scopes |
 
 Options: `root=`, `workspace=`, `to=` (the `export` destination, or the project `convert`
-writes into), `as=`, `field=`, `type=`, `kind=`, `path=`, `limit=` (default 200 rows),
-`ignore_case=1`, `overwrite=1` (`convert`: replace a working file that is already there),
-`--json`. `set` and `convert` also take the bare flags `--write` (write the change) and
-`--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take
-`--write` and an optional count (§4.2).
+writes into), `as=`, `field=`, `type=`, `kind=`, `path=`, `op=`, `from=` (an index for
+`set op=append`, a document path for `add`), `limit=` (default 200 rows; `0` prints every
+row), `document=`, `actor=`, `result=`, `since=`, `until=` (`log` filters, §4.2),
+`lang=zh|en` (the web UI language, §4.4), `ignore_case=1`, `overwrite=1` (`1` replaces a
+file that is already there, `0` leaves it; `export` replaces by default, `convert` skips
+by default), `--json`. `set`, `add`, `remove`, `index`, `settings`, `convert`, `undo` and
+`redo` also take the bare flags `--write` (write the change) and `--dry-run` (report it
+without writing anything, §4.1, §4.3); `undo` and `redo` take an optional count as well
+(§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
-`web` adds four options of its own: `port=` (an explicit port; without it a recorded instance
+`web` adds five options of its own: `port=` (an explicit port; without it a recorded instance
 is reused or the first free port at or above 8765 is taken, §4.4), `token=<text>` (required
-in every URL as `?t=<text>` when set), `pagesize=` (default 200 rows per page) and
-`browser=1` (open the default browser instead of only printing the address).
+in every URL as `?t=<text>` when set), `pagesize=` (default 200 rows per page),
+`lang=zh|en` (the language every page starts in; a page follows `?lang=` from then on,
+§4.4) and `browser=1` (open the default browser instead of only printing the address).
 
 ### 4.1 Writing one field
 
 ```
 python -m core.cli Mod set <document> field=<a.b.c> value=<text> --write [--dry-run]
+python -m core.cli Mod set <document> field=<array> op=append [from=<n>] --write [--dry-run]
+python -m core.cli Mod set <document> field=<array>.<n> op=delete --write [--dry-run]
 ```
 
 * `field=` is a dotted path inside the document, relative to its root element. A repeated
   element or array needs an index segment, for example `ammo.type.0.flavour`; without it an
-  ambiguous path is refused rather than guessed.
+  ambiguous path is refused rather than guessed. `get` reads the same paths, so
+  `field=ammo.type.1.name` returns the name of the second entry.
 * The field must be declared by the schema of the document root, and the value must fit it: a
   boolean accepts `yes`/`no` (written in the document's own spelling), a number is written in
   the style the field already uses, and a string is written verbatim.
@@ -120,28 +132,39 @@ python -m core.cli Mod set <document> field=<a.b.c> value=<text> --write [--dry-
   cannot hold exits with code 1.
 * `--dry-run` computes and reports the whole result without writing anything, not even
   `.editor/` itself.
+* `op=append` adds one entry to an array of tables named by `field=`; `from=<n>` copies the
+  leaves of the existing entry `n` into the new one instead of writing empty values.
+  `op=delete` removes the entry named by the index segment. Both work on the source lines, so
+  every other line, comment, blank line and the file's newline style keeps its bytes.
 
 ### 4.2 The event log, undo and redo
 
 ```
-python -m core.cli Mod log [count] [--json]
-python -m core.cli Mod undo [count] --write [--json]
-python -m core.cli Mod redo [count] --write [--json]
+python -m core.cli Mod log [count] [document=<text>] [field=<text>] [actor=cli|mcp]
+                       [result=set|add|remove|undo|redo] [since=<stamp>] [until=<stamp>] [--json]
+python -m core.cli Mod undo [count] --write [--dry-run] [--json]
+python -m core.cli Mod redo [count] --write [--dry-run] [--json]
 ```
 
-* Every written `set` appends one record to `.editor/log/<segment start local time>.jsonl` and
-  stores the bytes it replaced and the bytes it left under `.editor/baseline/<sha256>`. The
-  record names the change (`id`, `segment`, `timestamp`, `actor`, `result`, `target`,
-  `document`, `entity`, `field`, `before`, `after`, `digest_before`, `digest_after`,
-  `bytes_before`, `bytes_after`, `dry_run`); the field list and the byte layout are in
-  docs/project-layout.md §8.
+* Every write appends one record to `.editor/log/<segment start local time>.jsonl` and stores
+  the bytes it replaced and the bytes it left under `.editor/baseline/<sha256>`. The record
+  names the change (`id`, `segment`, `timestamp`, `actor`, `result`, `target`, `document`,
+  `entity`, `field`, `before`, `after`, `digest_before`, `digest_after`, `bytes_before`,
+  `bytes_after`, `dry_run`); `result` is `set`, `add`, `remove`, `undo` or `redo`, and the field
+  list and the byte layout are in docs/project-layout.md §8.
 * A segment is sealed after five idle minutes and the next record opens a new one, so segment
   files read in filename order are in chronological order. `log` lists the segments and the
-  newest `count` records (default 20); it is read-only and creates nothing.
+  newest `count` records (default 20), and it is read-only: it creates nothing.
+* `log` also filters. `document=` and `field=` keep a record whose value contains the text,
+  `actor=` and `result=` keep the ones that are exactly equal, and `since=`/`until=` keep the
+  records whose timestamp falls in the interval. The timestamps are compared as written, so a
+  `since=` shares the offset of the machine that wrote the log. The payload names the filters it
+  applied, and the counts say how many records passed out of how many were read.
 * `undo [count]` restores the recorded bytes of the last `count` applied changes (default 1),
   newest first, and appends one record per revert naming the change it reverted. `redo [count]`
   re-applies the most recently reverted changes. A revert of a revert is what `undo` after
-  `redo` is, so `undo` → `redo` → `undo` returns byte-identical content.
+  `redo` is, so `undo` → `redo` → `undo` returns byte-identical content. Undoing an `add`
+  deletes the document again, and redoing it writes the recorded bytes back.
 * The whole invocation is planned before anything is written: a missing baseline, a document
   that changed on disk after the recorded change, a document that is gone, a count larger than
   the log and a log with nothing to revert are all refused with code 2, and no part of the
@@ -149,7 +172,8 @@ python -m core.cli Mod redo [count] --write [--json]
   hard failure with code 1.
 * `undo` and `redo` need `--write`, hold the same `.editor/lock` as `set`, refuse the
   `Firefight` scope, and are confined to the project directory. A refusal is final and nothing
-  is retried.
+  is retried. `--dry-run` reports the restores without holding the lock, without touching
+  `.editor/` and without writing a document.
 * A new `set` discards what could be redone, as a fresh edit does in an editor.
 
 ### 4.3 Turning stock files into project working files
@@ -194,6 +218,72 @@ python -m core.cli Mod web [port=<n>] [token=<text>] [pagesize=<n>] [browser=1]
   passes `write=1` on for the commands that take it, and a refusal reads exactly as it does on
   the command line. `web` is refused inside a request, because it would try to bind a second
   port (docs/web.md §3).
+* Every page is Chinese unless `lang=en` is given or the URL carries `?lang=en`; the switch in
+  the navigation bar keeps the current route and rewrites only the language. A page in one
+  language links to the same page in the other (`core/web/i18n.py`).
+
+### 4.5 Creating and deleting a document
+
+```
+python -m core.cli Mod add <document> [from=<path>] --write [--dry-run]
+python -m core.cli Mod remove <document> --write [--dry-run]
+```
+
+* `add` writes one new entity document. Without `from=` the body comes from the schema
+  skeleton of the root element the folder carries (`Data/Weapons` is `weapon`; `Data/Infantry`,
+  `Data/Vehicles` and `Data/AT Guns` are all `squad`; `Data/Aircraft` is `aircraft`); a folder
+  the editor cannot map is refused, and `from=<path>` is then the way to say what the document
+  is. With `from=` the named document's bytes are re-rendered into the new file, so a `.txt`
+  source becomes a `.toml` one.
+* `remove` deletes one entity document.
+* Both write UTF-8 without a BOM and CRLF, take the project lock, and append one event
+  (`result` is `add` or `remove`); `undo` brings a deleted document back byte for byte and a
+  reverted `add` deletes the file again. Neither writes anything outside the project.
+* `add` refuses a path that is already there, `remove` refuses one that is not, and both refuse
+  the `Firefight` scope.
+
+### 4.6 The reference index
+
+```
+python -m core.cli Mod index [selector] --write [--dry-run]
+```
+
+* `index` walks the selection once and writes `.editor/index.toml` (a `[documents]` table
+  mapping each relative document path to its root element) and `.editor/refs.toml` (a
+  `[by_source]` table mapping each document to the tokens it points at). A `[built]` table in
+  both files records when the index was written, the scope, the counts, and one fingerprint of
+  the scope.
+* The fingerprint is the SHA-256 of the relative name, size and write time of every file that
+  was read; it is one digest for the whole scope, not one per document. A document that gains,
+  loses or changes a byte produces a different fingerprint, and `refs` and `deps` then ignore
+  both tables and walk the documents again. The payload says which of the two produced the rows
+  (`origin` is `index` or `scan`), and the tables are a cache of one query, not a second source
+  of truth.
+* The lists (`equipment_*`), plain text files with no root element and unreadable files are
+  counted as skipped; they are not errors.
+
+### 4.7 Rendering `mod_setting.toml`
+
+```
+python -m core.cli Mod settings --write [--dry-run]
+```
+
+* The editor renders the TOML form of the project's stock `Mod/mod.txt` (docs/project-layout.md
+  §4) into `<project>/mod_setting.toml`: every element becomes its table or key, `<nationality>`
+  blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements
+  become one array per nation, the bare `<ranks>` numbers become quoted keys, and the nation
+  names keep the exact spelling of the source (the shipped WW3 file spells them
+  `Taiwan, China(In Production)` and `Japan(In Production)`, without a space before the
+  bracket).
+* The renderer is a pure function of the source bytes: the same `mod.txt` always renders the
+  same `mod_setting.toml`.
+* An existing `mod_setting.toml` is skipped unless `overwrite=1`; the stock file stays the
+  source of truth for the fields it carries, and edits made to the TOML file are lost when the
+  renderer runs again with `overwrite=1`. The shipped WW3 project proves the scale: its
+  hand-written `mod_setting.toml` holds 79 lines and one nation, while the renderer produces
+  333 lines and all twelve from the same `mod.txt`, with no warnings.
+* A project with no `Mod/mod.txt` is refused (`no mod.txt under <project>/Mod; nothing to
+  render from`), and the `Firefight` scope is refused.
 
 ## 5. Exit codes
 
@@ -258,12 +348,22 @@ and prints the address it bound.
 
 ## 9. Limits of this slice
 
-* No `add`/`remove`, no batch edit, no packaging. Writes are one leaf of one document at a
-  time, or a whole selection in the case of `convert`; the log and the baseline are per
-  project, and `Firefight` is never written. The project metadata commands are still missing:
-  `mod.toml` and `mod_setting.toml` are read but not written, and `.editor/refs.toml` and
-  `.editor/index.toml` remain empty placeholders, so `refs` and `deps` answer from the graph
-  built on each run rather than from an index.
+* A write is one field, one array entry, one document (`add`, `remove`) or one whole selection
+  (`convert`, `settings`, `index`). There is no batch edit that applies several changes to
+  several documents in one invocation, and no packaging. The log and the baseline are per
+  project, and `Firefight` is never written.
+* `add` writes the schema skeleton of the document root, which leaves arrays out (their empty
+  form would not be readable back); a document that needs array entries is created with
+  `from=<an existing document>` or with `convert`, and its arrays are filled in with
+  `set op=append` afterwards.
+* Only the roots the editor declares a schema for can be created and edited: `weapon`, `squad`,
+  `aircraft`, `mod` and `mod_setting`. The `vehicle` and `at_gun` folders carry a `squad` root,
+  which is covered too.
+* `.editor/index.toml` and `.editor/refs.toml` are now written by `index`; they are a cache
+  with a whole-scope fingerprint, so one changed byte sends `refs` and `deps` back to the scan.
+* `settings` renders `mod_setting.toml` from the project's stock `mod.txt`. A project without
+  that file cannot be rendered, and a source element the renderer does not know is kept as a
+  plain value rather than interpreted.
 * `export` keeps the source layout: sibling order, blank lines, indentation, `//` comments
   and the file's own newline style all come from the source text (toml-mapping §4). Files
   without source text — a `.toml` project document — use the canonical writer instead

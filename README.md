@@ -6,14 +6,17 @@ An open-source third-party mod editor compatible with *Firefight* by Sean O'Conn
 coverage and stricter round-trip fidelity than the tooling that ships with the game.
 
 Status: data core, XML/TOML round-trip, reference graph, the command line, the local web UI,
-the MVP editing loop — `set` changes one field of one project document and leaves the rest of
-the file byte-identical, and `log`, `undo` and `redo` record and revert it from the bytes kept
-under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2) — one-command import of the stock data as
-project documents (`convert`), the MCP server `python -m core.mcp`, which offers the reading
-commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI that runs the
-same commands, writing ones included. `export` reproduces a stock file byte for byte, layout
-included — 1840 of 1840 files on the installed game (`tools/export_fidelity.py`). No
-`add`/`remove`, no batch edit, no packaging yet.
+the editing loop — `set` changes one field of one project document, adds and deletes array
+entries, and leaves the rest of the file byte-identical; `add` and `remove` create and delete
+whole documents; `log`, `undo` and `redo` record every write and revert it from the bytes kept
+under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2, §4.5) — one-command import of the stock
+data as project documents (`convert`), the reference index (`.editor/index.toml` and
+`.editor/refs.toml`, [cli.md](docs/cli.md) §4.6), the renderer that turns the stock `mod.txt`
+into `mod_setting.toml` ([cli.md](docs/cli.md) §4.7), the MCP server `python -m core.mcp`,
+which offers the commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI
+that runs the same commands, writing ones included, in Chinese or English. `export` reproduces
+a stock file byte for byte, layout included — 1840 of 1840 files on the installed game
+(`tools/export_fidelity.py`). No batch edit and no packaging yet.
 
 ## Quick start
 

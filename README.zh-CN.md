@@ -4,12 +4,14 @@
 
 面向 Sean O'Connor 的 *Firefight* 的第三方开源模组编辑器：覆盖面比游戏自带工具更广，往返保真更严格。
 
-当前状态：数据内核、XML/TOML 往返、引用图、命令行、本地 Web 界面、MVP 编辑闭环——`set` 修改一个工程文档的
-一个字段，文件其余部分逐字节不变；`log`、`undo` 与 `redo` 记录改动，并依据 `.editor/` 下保存的字节回退与重做
-（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2）——一键把原版数据导入为工程文档（`convert`）、MCP 服务
-`python -m core.mcp`（它把读取类命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批
-命令（含写入类）的 Web 界面。`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
-（见 `tools/export_fidelity.py`）。尚无 `add`/`remove`、批量编辑与打包。
+当前状态：数据内核、XML/TOML 往返、引用图、命令行、本地 Web 界面、编辑闭环——`set` 修改一个工程文档的一个
+字段、增删数组项，文件其余部分逐字节不变；`add` 与 `remove` 新建与删除整个文档；`log`、`undo` 与 `redo` 记录每一
+次写入，并依据 `.editor/` 下保存的字节回退与重做（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2、§4.5）——一键把原版数据
+导入为工程文档（`convert`）、引用索引（`.editor/index.toml` 与 `.editor/refs.toml`，[cli.md](docs/cli.zh-CN.md) §4.6）、
+把原版 `mod.txt` 渲染成 `mod_setting.toml` 的渲染器（[cli.md](docs/cli.zh-CN.md) §4.7）、MCP 服务
+`python -m core.mcp`（它把命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批命令
+（含写入类）的中英双语 Web 界面。`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
+（见 `tools/export_fidelity.py`）。尚无批量编辑与打包。
 
 ## 快速开始
 

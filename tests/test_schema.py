@@ -133,8 +133,9 @@ class LookupTest(unittest.TestCase):
         self.assertEqual(schema.children(("squad", "nope")), ())
         self.assertEqual(len(schema.children(("squad", "description"))), 9)
 
-    def test_mod_is_not_covered_in_m1(self):
-        self.assertIsNone(schema_for("mod"))
+    def test_the_project_files_are_covered_by_their_own_schemas(self):
+        self.assertIsNotNone(schema_for("mod"))
+        self.assertIsNotNone(schema_for("mod_setting"))
         self.assertIsNone(schema_for("Mod"))
         self.assertIsNone(schema_for(""))
 

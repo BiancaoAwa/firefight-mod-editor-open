@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 Shape = Literal["leaf", "table", "array"]
-ValueType = Literal["int", "float", "bool", "str", "auto"]
+ValueType = Literal["int", "float", "bool", "str", "list", "auto"]
 
 LEAF: Shape = "leaf"
 TABLE: Shape = "table"
@@ -412,13 +412,90 @@ AIRCRAFT = Node("aircraft", TABLE, children=(
 ))
 
 
+MOD = Node("mod", TABLE, children=(
+    Node("authors", LEAF, type="list"),
+    Node("game_version", LEAF, type="str"),
+    Node("license", LEAF, type="str"),
+    Node("name", LEAF, type="str"),
+    Node("update_code", LEAF, type="int"),
+    Node("version_code", LEAF, type="int"),
+    Node("version_name", LEAF, type="str"),
+))
+
+# The TOML form of the stock ``Mod\mod.txt`` (docs/project-layout.md section 4).  The file
+# is rendered from mod.txt by ``core/settings.py``; this schema is what makes it editable.
+_NATIONALITY = Node("nationality", ARRAY, children=(
+    Node("equipment", LEAF, type="list"),
+    Node("filename", LEAF, type="str"),
+    Node("name", LEAF, type="str"),
+    Node("surnames", LEAF, type="str"),
+    Node("units", LEAF, type="str"),
+    Node("voice", LEAF, type="str"),
+    Node("default_images", TABLE, children=(
+        Node("infantry", LEAF, type="str"),
+        Node("infantry_profile", LEAF, type="str"),
+        Node("ranks", LEAF, type="str"),
+        Node("tank_crew", LEAF, type="str"),
+        Node("tank_crew_profile", LEAF, type="str"),
+    )),
+    Node("flags", TABLE, children=(
+        Node("animated", LEAF, type="str"),
+        Node("static", LEAF, type="str"),
+    )),
+    Node("ranks", TABLE, children=tuple(
+        Node(str(rank), LEAF, type="str") for rank in range(1, 8)
+    )),
+))
+
+MOD_SETTING = Node("mod_setting", TABLE, children=(
+    Node("allow_artillery", LEAF, type="bool"),
+    Node("allow_at_guns", LEAF, type="bool"),
+    Node("allow_infantry", LEAF, type="bool"),
+    Node("allow_vehicles", LEAF, type="bool"),
+    Node("author", LEAF, type="str"),
+    Node("choose_unique_rifle_squad", LEAF, type="bool"),
+    Node("minimum_commonness", LEAF, type="int"),
+    Node("minimum_commonness_to_upgrade", LEAF, type="int"),
+    Node("name", LEAF, type="str"),
+    Node("show_scenarios", LEAF, type="bool"),
+    Node("credits", TABLE, children=tuple(
+        Node(f"{kind}{index}", LEAF, type="int")
+        for kind in ("attack", "defend")
+        for index in range(1, 5)
+    )),
+    Node("text_colours", TABLE, children=(
+        Node("custom_heading", LEAF, type="str"),
+        Node("custom_option", LEAF, type="str"),
+        Node("custom_unit_description", LEAF, type="str"),
+        Node("enemy", LEAF, type="str"),
+        Node("friend", LEAF, type="str"),
+        Node("game", LEAF, type="str"),
+        Node("map_description", LEAF, type="str"),
+    )),
+    Node("years", TABLE, children=(
+        Node("end", LEAF, type="int"),
+        Node("increment", LEAF, type="int"),
+        Node("start", LEAF, type="int"),
+    )),
+    _NATIONALITY,
+))
+
+
 SCHEMAS: dict[str, Schema] = {
     "squad": Schema(SQUAD),
     "weapon": Schema(WEAPON),
     "aircraft": Schema(AIRCRAFT),
 }
 
+# Roots that are not corpus documents: the two project files of an editor folder
+# (docs/project-layout.md sections 3 and 4).  They are kept apart from ``SCHEMAS`` because
+# that mapping is the corpus coverage contract checked against the path inventory.
+PROJECT_SCHEMAS: dict[str, Schema] = {
+    "mod": Schema(MOD),
+    "mod_setting": Schema(MOD_SETTING),
+}
+
 
 def schema_for(root_tag: str) -> Schema | None:
     """Return the schema for a root tag, or None when the root is not covered."""
-    return SCHEMAS.get(root_tag)
+    return SCHEMAS.get(root_tag) or PROJECT_SCHEMAS.get(root_tag)

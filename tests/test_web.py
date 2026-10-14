@@ -4,6 +4,7 @@ The server runs on an ephemeral port and every page is fetched over a real socke
 routing, escaping, filtering and the token check are exercised as a browser would hit them.
 """
 
+import ast
 import contextlib
 import io
 import json
@@ -19,7 +20,7 @@ from urllib.parse import urlencode
 
 from core.cli.main import main
 from core.errors import FfError
-from core.web import server
+from core.web import i18n, server
 from core.web.server import App, make_server
 
 SCRATCH = Path(__file__).resolve().parent / "_scratch_web"
@@ -702,6 +703,71 @@ class WebTestCase(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=5)
+
+
+    # --- the interface language ---------------------------------------------
+
+    # a language is named in its own language, so these stay as they are in either mode
+    LANGUAGE_NAMES = {"中文", "English"}
+
+    @staticmethod
+    def templates() -> set[str]:
+        """Every template the server hands to tr() as a literal."""
+        source = Path(server.__file__).read_text(encoding="utf-8")
+        found = set()
+        for node in ast.walk(ast.parse(source)):
+            if not isinstance(node, ast.Call):
+                continue
+            if not isinstance(node.func, ast.Name) or node.func.id != "tr":
+                continue
+            if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                found.add(node.args[0].value)
+        return found
+
+    def test_every_template_has_an_english_entry(self) -> None:
+        missing = sorted(text for text in self.templates() if text not in i18n.ENGLISH)
+        self.assertEqual(missing, [], "no English wording for these templates")
+
+    def test_an_unused_entry_is_reported_as_well(self) -> None:
+        known = self.templates()
+        unused = sorted(text for text in i18n.ENGLISH if text not in known)
+        self.assertEqual(unused, [], "these entries match no template in the server")
+
+    def test_the_pages_are_chinese_by_default(self) -> None:
+        status, body = self.fetch("/help")
+        self.assertEqual(status, 200)
+        self.assertIn("页面与等价命令", body)
+        self.assertIn('lang="zh-CN"', body)
+
+    def test_a_page_can_be_asked_for_in_english(self) -> None:
+        status, body = self.fetch("/help", lang="en")
+        self.assertEqual(status, 200)
+        self.assertIn("Pages and their equivalent commands", body)
+        self.assertIn('lang="en"', body)
+        self.assertNotIn("页面与等价命令", body)
+
+    def test_a_second_page_follows_the_same_language(self) -> None:
+        status, body = self.fetch("/list", lang="en")
+        self.assertEqual(status, 200)
+        self.assertIn("entity file(s)", body)
+
+    def test_links_keep_the_language(self) -> None:
+        status, body = self.fetch("/help", lang="en")
+        self.assertEqual(status, 200)
+        self.assertIn("lang=en", body)
+
+    def test_a_language_the_server_does_not_know_is_refused(self) -> None:
+        status, body = self.fetch("/help", lang="de")
+        self.assertEqual(status, 400)
+        self.assertIn("lang=", body)
+
+    def test_the_english_wording_never_keeps_chinese(self) -> None:
+        for route in ("", "/list", "/find", "/stats", "/check", "/help", "/cmd", "/quit"):
+            status, body = self.fetch(route, lang="en")
+            self.assertEqual(status, 200, route)
+            found = sorted(set(re.findall(r"[\u4e00-\u9fff]+", body)) - self.LANGUAGE_NAMES)
+            # the fixture data carries no Chinese, so any of it left is an untranslated string
+            self.assertEqual(found, [], f"{route} still shows Chinese in English mode")
 
 
 if __name__ == "__main__":

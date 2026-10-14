@@ -54,7 +54,34 @@ EXPECTED_READ_TOOLS = {
 }
 
 EXPECTED_WRITE_TOOLS = {
-    "ff_export": {"scope": False, "selector": False, "to": True, "root": False, "workspace": False},
+    "ff_export": {
+        "scope": False, "selector": False, "to": True, "overwrite": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
+    "ff_set": {
+        "scope": False, "selector": True, "field": True, "value": False, "op": False,
+        "from": False, "dryRun": False, "root": False, "workspace": False,
+    },
+    "ff_add": {
+        "scope": False, "selector": True, "type": False, "from": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
+    "ff_remove": {
+        "scope": False, "selector": True, "dryRun": False, "root": False, "workspace": False,
+    },
+    "ff_index": {
+        "scope": False, "selector": False, "dryRun": False, "root": False, "workspace": False,
+    },
+    "ff_convert": {
+        "scope": False, "selector": False, "to": True, "overwrite": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
+    "ff_undo": {
+        "scope": False, "count": False, "dryRun": False, "root": False, "workspace": False,
+    },
+    "ff_redo": {
+        "scope": False, "count": False, "dryRun": False, "root": False, "workspace": False,
+    },
 }
 
 PLUGIN_CANDIDATES = (
@@ -293,7 +320,7 @@ class TranscriptTest(unittest.TestCase):
                     )
                 )
                 + "\n",
-                json.dumps(call(4, "tools/call", {"name": "ff_set", "arguments": {"scope": "Mod", "selector": "x", "field": "name", "value": "y"}})) + "\n",
+                json.dumps(call(4, "tools/call", {"name": "ff_nothing", "arguments": {"scope": "Mod"}})) + "\n",
             ],
             write=True,
         )
@@ -307,7 +334,7 @@ class TranscriptTest(unittest.TestCase):
         self.assertFalse(answers[2]["result"]["isError"])
         self.assertEqual(answers[2]["result"]["structuredContent"]["count"], 1)
         self.assertTrue((OUT / "Data" / "Weapons" / "WEAPON_DEMO.txt").is_file())
-        self.assertEqual(answers[3]["error"]["code"], -32601, "ff_set is not exposed yet")
+        self.assertEqual(answers[3]["error"]["code"], -32601, "a tool that is not in the table is unknown")
 
 
 class ServerTest(unittest.TestCase):
@@ -355,11 +382,13 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(answer["error"]["code"], -32602)
 
     def test_an_unregistered_tool_is_unknown(self) -> None:
-        for name in ("ff_nope", "ff_set", "ff_undo"):
+        for name in ("ff_nope", "ff_add_thing"):
             answer = self.writing.handle(call(1, "tools/call", {"name": name, "arguments": {}}))
             self.assertEqual(answer["error"]["code"], -32601, name)
         answer = self.server.handle(call(1, "tools/call", {"name": "ff_export", "arguments": {"to": OUT}}))
         self.assertEqual(answer["error"]["code"], -32601)
+        answer = self.server.handle(call(1, "tools/call", {"name": "ff_set", "arguments": {}}))
+        self.assertEqual(answer["error"]["code"], -32601, "a read-only server does not expose the writing tools")
 
     def test_resources_and_prompts(self) -> None:
         templates = self.server.handle(call(1, "resources/templates/list"))["result"]["resourceTemplates"]

@@ -177,10 +177,10 @@ class EdgeCaseTest(unittest.TestCase):
         self.assertTrue(any("table repeats 2 times" in warning for warning in document.warnings))
 
     def test_unknown_root_has_no_schema(self) -> None:
-        document = xml_parse("<mod><name>x</name></mod>", "unit")
+        document = xml_parse("<widget><name>x</name></widget>", "unit")
         self.assertIsNone(schema_for(document.root.tag))
         table = xml_to_toml(document)
-        self.assertIsInstance(table_of(table, "mod"), TomlTable)
+        self.assertIsInstance(table_of(table, "widget"), TomlTable)
 
     def test_schema_children_and_lookup(self) -> None:
         schema = schema_for("squad")
