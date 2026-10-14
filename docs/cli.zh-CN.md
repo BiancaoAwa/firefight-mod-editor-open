@@ -57,10 +57,12 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `deps` | | `value=<令牌>` 的入向引用（谁指向它） |
 | `check` | `lint` | 全量加载；报告加载错误、警告与悬空引用 |
 | `set` | | 修改一个字段，或增删数组项；需要 `--write`（§4.1） |
+| `init` | | 新建工程：`mod.toml` 与空的 `Mod/Data`；需要 `--write`（§4.9） |
 | `add` | `new` | 新建一个实体文档，内容取自 schema 骨架或 `from=<路径>`；需要 `--write`（§4.5） |
 | `remove` | `rm` | 删除一个实体文档；需要 `--write`（§4.5） |
 | `index` | | 写出 `.editor/index.toml` 与 `.editor/refs.toml`；需要 `--write`（§4.6） |
 | `settings` | | 在工程的原版 `Mod/mod.txt` 与 `mod_setting.toml` 之间转换；需要 `--write`（§4.7） |
+| `pack` | | 由工程生成 `<名称>-<版本>.zip`；需要 `--write`（§4.8） |
 | `convert` | | 把选择范围转成工程工作文件，写入 `to=<目录>`；需要 `--write`（§4.3） |
 | `log` | | 列出日志分段与其中的记录，可过滤；只读（§4.2） |
 | `undo` | | 回退最后若干次写入所替换的内容；需要 `--write`（§4.2） |
@@ -69,12 +71,14 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `web` | `serve` | 在 `127.0.0.1` 上发布页面，直到 Ctrl-C（§4.4，见 docs/web.md） |
 | `version` | | 编辑器版本、解释器、已解析的作用域 |
 
-选项：`root=`、`workspace=`、`to=`（`export` 的目标目录，或 `convert` 写入的工程目录）、`as=`、`field=`、`type=`、
-`kind=`、`path=`、`op=`、`from=`（`set op=append` 用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、
-`document=`、`actor=`、`result=`、`since=`、`until=`（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、
-`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 默认覆盖，`convert` 默认跳过）、
-`--json`；`set`、`add`、`remove`、`index`、`settings`、`convert`、`undo` 与 `redo` 另有两个裸标志
-`--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个可选计数（§4.2）。
+选项：`root=`、`workspace=`、`to=`（`export` 的目标目录、`convert` 写入的工程目录，或 `pack` 放置压缩包的目录，§4.8）、
+`as=`、`field=`、`type=`、`kind=`、`path=`、`name=`（`init` 写入的模组名，§4.9）、`op=`、`from=`（`set op=append`
+用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、`document=`、`actor=`、`result=`、`since=`、`until=`
+（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、`strict=1`（`pack` 在引用解析不到时拒绝打包，§4.8）、
+`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
+默认跳过）、`--json`；`init`、`set`、`add`、`remove`、`index`、`settings`、`convert`、`pack`、`undo` 与 `redo`
+另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个
+可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
 
 `web` 另有五个选项：`port=`（显式指定端口；不给时复用已在运行的实例，否则取 8765 及以上的第一个空闲端口，§4.4）、
@@ -221,13 +225,49 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
 * `Firefight` 原版作用域被拒绝，因为两个目标都在工程内。`op` 必须是 `render` 或 `emit`；源文件不存在时被拒绝
   （`nothing to <op> from: <path> is not there`）。
 
+### 4.8 生成模组 zip
+
+```
+python -m core.cli Mod pack --write [--dry-run] [to=<目录>] [strict=1] [overwrite=1]
+```
+
+* 压缩包采用游戏安装时的布局（docs/project-layout.md §5）：`Mod/`、`README.md` 与 `LICENSE`，都取自工程目录。
+  默认目标是工程目录下的 `<名称>-<版本>.zip`；`to=<目录>` 指定别的目录。
+* `Mod/` 内，以 TOML 存在的文档回写为原版 XML；该文件存在时，`Mod/mod.txt` 由 `mod_setting.toml` 渲染。
+  其余文件（含 `Images/`、`Sounds/`）逐字节复制：手工放入的文件原样进入压缩包，而只有 TOML 孪生文件的文档
+  以规范形式写出（制表符、CRLF、UTF-8）。
+* `strict=1` 在有引用解析不到时拒绝打包，避免把悬空引用带进包里。不给该选项时仍会报告引用情况并写出压缩包。
+  引用图只在工程内建立，不查原版语料（见 §9）。
+* 成员使用固定时间戳，因此同一工程两次打包得到相同字节。
+* `pack` 不改变任何文档、不加锁，但真正写出压缩包时会向工程日志追加一条 `pack` 记录，说明打了什么包。
+  该记录不指向任何文档，也不在可撤销或可重做的栈上，因此不会被回滚（见 docs/project-layout.md §8）。
+  `--dry-run`、被拒绝的打包、以及跳过已存在压缩包的情况都不留记录。
+* 磁盘上的 `Mod/mod.txt` 与 `mod_setting.toml` 不一致时会被拒绝——否则替换该文件会丢掉较短那份没有承载的内容。
+  当 TOML 一侧更新时，先运行 `Mod settings op=render overwrite=1 --write`。
+* `Firefight` 原版作用域被拒绝。`overwrite=1` 覆盖已存在的压缩包；不给则跳过。
+
+### 4.9 新建工程
+
+```
+python -m core.cli Mod init --write [--dry-run] [name=<文本>]
+```
+
+* `init` 是唯一允许作用域尚不存在的命令：`root=` 或 `workspace=` 指定建工程的目录，都不给则用当前目录；
+  目录不存在时会创建。其余命令都要求作用域已经存在。
+* 它按 schema 骨架写出 `mod.toml`（docs/project-layout.md §3）与空的 `Mod/Data/`。`name=` 填入模组名，
+  不给则用目录名。原版作用域 `Firefight` 被拒绝：该安装目录不是一个工程。
+* 目录中已存在 `mod.toml` 时拒绝，已初始化的工程不会被覆盖。删除工程就是删除目录，`init` 没有对应命令。
+* 新建的 `mod.toml` 与其他新文档一样记录进日志，因此 `Mod undo --write` 会把该文件移除。空的 `Mod/Data`
+  是目录而非文档，没有记录可以回滚它。
+* 列表型叶（如 `authors`）写成 `key = []`，读取器接受该写法。
+
 ## 5. 退出码
 
 | 码 | 含义 |
 |---|---|
 | 0 | 命令执行完成，没有需要报告的内容 |
 | 1 | `check` 发现加载错误、悬空引用或警告；**或**解析/IO 错误导致命令中止（消息会指出文件，已知时给出行号）；**或**已记录的文档版本无法读取（§4.2）；**或**至少一个文件转换失败（§4.3） |
-| 2 | 用法错误：未知作用域或命令、缺少或未知选项、路径无法解析，以及所有被拒绝的写入（§4.1、§4.2、§4.3） |
+| 2 | 用法错误：未知作用域或命令、缺少或未知选项、路径无法解析，以及所有被拒绝的写入（§4.1、§4.2、§4.3、§4.9） |
 | 130 | 被中断（Ctrl-C） |
 
 ## 6. 警告
@@ -277,8 +317,11 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 
 ## 9. 本部分的限制
 
-* 一次写入是「一个字段、一个数组项、一个文档（`add`、`remove`）或一整个选择范围（`convert`、`settings`、`index`）」。
-  没有一次调用里对多个文档施加多处改动的批量编辑，也没有打包。日志与基线属于单个工程，`Firefight` 永不被写入。
+* 一次写入是「一个字段、一个数组项、一个文档（`add`、`remove`）或一整个选择范围（`convert`、`settings`、`index`、`pack`）」。
+  没有一次调用里对多个文档施加多处改动的批量编辑。日志与基线属于单个工程，`Firefight` 永不被写入。
+* `pack` 生成模组 zip。docs/project-layout.md §5 的 stock 基线比对与 APK 打包未实现；也没有创建工程的命令，
+  `mod.toml` 需手写。压缩包里的 `Mod/mod.txt` 在该文件存在时来自 `mod_setting.toml`；不存在时按原样复制现有的
+  `Mod/mod.txt`。
 * `add` 写的是文档根元素的 schema 骨架，数组被略去（它们的空形态无法被读回）；需要数组项的文档用
   `from=<已有文档>` 或 `convert` 建立，随后用 `set op=append` 填。
 * 只有编辑器声明了 schema 的根才能被新建与编辑：`weapon`、`squad`、`aircraft`、`mod` 与 `mod_setting`。`vehicle` 与
@@ -291,6 +334,10 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 * `export` 保留源排版：兄弟节点顺序、空行、缩进、`//` 注释与文件自身的换行风格全部来自源文本
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。
+* `pack` 写出 `Data/` 下的文档以及工程里的 `README.md`/`LICENSE`。`Images/` 与 `Sounds/` 只在工程目录中已经存在时
+  才被复制，因为本编辑器尚未导入资源；因此自带贴图音效的模组需要手工放入这些文件，打包摘要也不会说明缺了什么。
+* `init` 只写出 `mod.toml` 与空的 `Mod/Data`。它不导入原版数据（那是 `convert`，§4.3）、不写 `mod_setting.toml`
+  （那是 `settings op=render`，§4.7）、也不从别处读取模板。
 * 重新输出的文件是否被引擎接受，要在游戏内加载验证，本工具不做这件事。
 * `Maps/`、`Surnames/` 与 `equipment_*` 不在范围内。
 * 模组尚未通过 `mod.txt` 加载；模组就是含 `Data/` 的目录。

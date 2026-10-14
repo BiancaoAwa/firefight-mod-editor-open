@@ -241,10 +241,11 @@ is parsed as a `key=value` option; `set`, `undo` and `redo` need `--write` and r
   * Segment files have no size limit; the 5-minute rule is the **only** split condition (not process start/stop, not calendar day).
 * **A record** is one JSON object per line, in this order: `id` (`<segment stem>:<line number>`),
   `segment`, `timestamp` (local ISO 8601 with offset), `actor` (`cli` or `mcp`), `result` (`set`,
-  `undo` or `redo`), `target` (the `id` an undo or redo reverts, else `null`), `document`
-  (project-relative POSIX path), `entity`, `field`, `before`, `after`, `digest_before`,
-  `digest_after`, `bytes_before`, `bytes_after` (all sha256, hex) and `dry_run` (always `false`:
-  a dry run is not an event).
+  `add`, `remove`, `pack`, `undo` or `redo`), `target` (the `id` an undo or redo reverts, else
+  `null`), `document` (project-relative POSIX path), `entity`, `field`, `before`, `after`,
+  `digest_before`, `digest_after`, `bytes_before`, `bytes_after` (all sha256, hex) and `dry_run`
+  (always `false`: a dry run is not an event). A `pack` record names no document and carries no
+  digests: it notes that an archive was built, and no stack holds it.
 * **Byte-level rollback**: every write stores the document before and after it under
   `.editor/baseline/<sha256>`, content-addressed and deduplicated across changes, so `undo` and
   `redo` write recorded bytes rather than a re-serialisation. A digest whose bytes are gone, or

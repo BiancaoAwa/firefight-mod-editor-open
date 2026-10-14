@@ -131,8 +131,14 @@ DRY_RUN = Parameter(
 OVERWRITE = Parameter(
     "overwrite",
     "boolean",
-    "Replace a file that is already there. The default belongs to the command: export replaces, convert and settings keep what is there.",
+    "Replace a file that is already there. The default belongs to the command: export and pack replace, convert and settings keep what is there.",
     target="overwrite",
+)
+STRICT = Parameter(
+    "strict",
+    "boolean",
+    "pack: refuse to build the archive while the project has dangling references.",
+    target="strict",
 )
 SELECTOR = Parameter("selector", "string", "Optional folder or path prefix, for example Weapons or Data/Weapons.", target="selector")
 
@@ -425,6 +431,45 @@ TOOLS: tuple[ToolSpec, ...] = (
         parameters=(
             SCOPE,
             Parameter("count", "integer", "How many undone changes to replay; defaults to 1.", target="selector"),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_init",
+        command="init",
+        description=(
+            "Create a project in a directory that need not be one yet: mod.toml from the schema "
+            "skeleton and an empty Mod/Data. This writes; a directory that already carries a "
+            "mod.toml is refused."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("name", "string", "The mod name the new mod.toml carries; the directory name otherwise.", target="name"),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_pack",
+        command="pack",
+        description=(
+            "Build the installable mod-zip of a project: every document back as stock XML under "
+            "the Mod/ prefix, mod_setting.toml written out as Mod/mod.txt, the project README and "
+            "LICENSE at the archive root, .editor/ left out. This writes; an archive that is "
+            "already there is replaced unless overwrite is false."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("to", "string", "Directory the archive goes into, passed as to=<directory>; the project directory by default.", target="to"),
+            OVERWRITE,
+            STRICT,
             DRY_RUN,
             ROOT,
             WORKSPACE,

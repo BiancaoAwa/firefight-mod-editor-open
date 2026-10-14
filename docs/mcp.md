@@ -68,20 +68,26 @@ the table below lists the names this server answers to.
 | `mcp_ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `mcp_ff_convert` | `scope`, `selector`, `to`, `type`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_convert` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_settings` | `scope`, `op`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_init` | `scope`, `name`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_pack` | `scope`, `to`, `overwrite`, `strict`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
 Every tool whose command writes files is registered only with `--write`, `mcp_ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server
 that reports itself read-only must not expose a tool that writes. `mcp_ff_set`, `mcp_ff_add`,
-`mcp_ff_remove`, `mcp_ff_index`, `mcp_ff_convert`, `mcp_ff_settings`, `mcp_ff_undo` and `mcp_ff_redo` take a `dryRun`
-parameter that maps to the CLI's `--dry-run`, so a write can be inspected before it happens.
+`mcp_ff_remove`, `mcp_ff_index`, `mcp_ff_convert`, `mcp_ff_settings`, `mcp_ff_undo`,
+`mcp_ff_redo`, `mcp_ff_init` and `mcp_ff_pack` take a `dryRun` parameter that maps to the CLI's
+`--dry-run`, so a write can be inspected before it happens.
 
 `mcp_ff_settings` carries the two directions of the project's stock settings file: `op=render`
 reads `<project>/Mod/mod.txt` and writes `mod_setting.toml`, `op=emit` writes the stock file
 back (docs/cli.md §4.7).
+
+`mcp_ff_init` creates a project in a directory that need not be one yet, and `mcp_ff_pack`
+builds the installable mod-zip (docs/cli.md §4.9, §4.8).
 
 **One specification.** The tool table is one Python specification table, `core/cli/specs.py`,
 which the MCP server renders `tools/list` from and turns a call into a CLI invocation; the
@@ -185,7 +191,7 @@ problem".
    was accepted and the exact startup configuration. The result is appended to this section once that
    session runs; until then the accepted revision is unverified.
 
-Verified in the editor repository: 17 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
+Verified in the editor repository: 18 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
 the exact tool surface, `--write` registration, the stock-scope refusal, the tool-level failure shape
 with the CLI exit code, resources, prompts, the command line and the plugin snapshot (the cross-repository
 half runs against `ffplugin/lib/specs.js` when that checkout is reachable).

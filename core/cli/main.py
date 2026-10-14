@@ -11,7 +11,7 @@ from pathlib import Path
 from core.errors import FfError
 
 from core.cli.commands import VERSION, Context, Result, command_names, run_command
-from core.cli.scope import UsageError, resolve_all, resolve_scope, split_spec
+from core.cli.scope import UsageError, init_scope, resolve_all, resolve_scope, split_spec
 
 USAGE = """python -m core.cli <scope> <command> [selector] [key=value ...] [--json]
 
@@ -30,6 +30,7 @@ Commands
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
   index            build the cross-reference tables under .editor/ (needs --write)
+  init             create a project: mod.toml and an empty Mod/Data (needs --write)
   add              create one entity document (needs --write)
   remove  (rm)     delete one entity document (needs --write)
   settings         translate between the stock Mod/mod.txt and mod_setting.toml (needs --write)
@@ -39,18 +40,21 @@ Commands
   undo             put back what the last writes replaced (needs --write)
   redo             re-apply what the last undo reverted (needs --write)
   export (emit)    render stock XML under to=<directory>
+  pack             build the installable mod-zip (needs --write)
   version          editor, interpreter and resolvable scopes
   web    (serve)   serve the web UI on 127.0.0.1 (blocks until Ctrl-C)
 
 Options
   root=<dir>       scope root override
   workspace=<dir>  directory holding Mods/ (default: current directory)
-  to=<dir>         export destination, or the project convert writes into
+  to=<dir>         export destination, the project convert writes into, or where pack
+                   leaves the archive (default: the project directory)
   as=raw|toml|xml  how show renders a document
   field=<a.b.c>    field path for get; without it get lists every field
   type=<category>  filter by editor category
   kind=<name>      filter by reference kind
   path=<a/b>       document path prefix for find
+  name=<text>      init: the mod name the new mod.toml carries (default: the directory name)
   limit=<n>        cap the rows printed (default 200; 0 prints every row)
   ignore_case=1    case-insensitive find
   from=<path>      add: copy this document instead of writing the schema skeleton
@@ -60,6 +64,8 @@ Options
   overwrite=1      convert: replace a working file that is already there
   overwrite=0      export: leave a file that is already there untouched
   overwrite=1      settings: replace an existing mod_setting.toml, or an existing Mod/mod.txt
+  overwrite=0      pack: leave an archive that is already there untouched
+  strict=1         pack: refuse while the project has dangling references
   document=<text>  log: keep records whose document contains this text
   actor=cli|mcp    log: keep records written by this actor
   result=<name>    log: keep set, undo or redo records
@@ -71,8 +77,8 @@ Options
   pagesize=<n>     web UI rows per page (default 200)
   lang=zh|en       web UI language (default zh); a page can override it with ?lang=
   browser=1        web UI: open the default browser on start
-  --write          set, add, remove, convert, index, settings, undo and redo: write the change into the document
-  --dry-run        set, add, remove, convert, export, index, settings, undo and redo: report the change
+  --write          set, add, remove, convert, index, settings, pack, undo and redo: write the change
+  --dry-run        set, add, remove, convert, export, index, settings, pack, undo and redo: report it
   --json           print the machine payload instead of the text table
 """
 
@@ -137,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         selector = " ".join(positionals[2:])
         spec = scope_name if not selector else f"{scope_name}/{selector}"
         _, relative, doc_path = split_spec(spec)
-        scope = resolve_scope(scope_name, invocation.options, cwd)
+        scope = init_scope(scope_name, cwd, invocation.options) if command == "init" else resolve_scope(scope_name, invocation.options, cwd)
         context = Context(scope=scope, selector=relative, doc_path=doc_path, options=invocation.options, cwd=cwd)
         result = run_command(command, context)
         _emit(_render(result, invocation.json))

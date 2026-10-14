@@ -487,6 +487,9 @@ SCHEMAS: dict[str, Schema] = {
     "aircraft": Schema(AIRCRAFT),
 }
 
+# TODO(m5): vehicle and at_gun documents share the squad root but have no schema of their
+# own, so `set` cannot name a field in one of them and `add` falls back to a bare root.
+
 # Roots that are not corpus documents: the two project files of an editor folder
 # (docs/project-layout.md sections 3 and 4).  They are kept apart from ``SCHEMAS`` because
 # that mapping is the corpus coverage contract checked against the path inventory.

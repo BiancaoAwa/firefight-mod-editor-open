@@ -76,6 +76,23 @@ def resolve_scope(name: str, options: dict[str, str], cwd: Path) -> Scope:
     return _named_scope(name, options, config, cwd)
 
 
+def init_scope(name: str, cwd: Path, options: dict[str, str]) -> Scope:
+    """The scope ``init`` starts from: a directory that need not be a project yet.
+
+    Every other command resolves a scope that already exists; ``init`` is the command that
+    makes one, so it accepts a bare directory.  ``root=`` or ``workspace=`` names the
+    directory to create the project in, the working directory otherwise.  The returned
+    ``Scope.root`` is the **project directory**, not a data root, because for this one
+    command the project directory is the thing being created (docs/cli.md section 4.9).
+    Only ``Mod`` names it: the stock installation is not a project.
+    """
+    if name != "Mod":
+        raise UsageError(f"init creates a project under Mod, not under {name}")
+    explicit = options.get("root") or options.get("workspace")
+    project = Path(explicit) if explicit else cwd
+    return Scope("Mod", project, f"init target {project}")
+
+
 def resolve_all(options: dict[str, str], cwd: Path) -> dict[str, Scope]:
     """Every scope the invocation can name; missing ones stay absent."""
     found: dict[str, Scope] = {}
