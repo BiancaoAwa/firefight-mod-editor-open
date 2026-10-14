@@ -25,7 +25,7 @@ BASELINE_DIR = "baseline"
 SEGMENT_SUFFIX = ".jsonl"
 SEGMENT_IDLE_SECONDS = 300
 LOCK_STALE_SECONDS = 1800
-RESULTS = ("set", "undo", "redo")
+RESULTS = ("set", "add", "remove", "undo", "redo")
 
 CLOCK: Callable[[], float] = time.time
 
@@ -64,6 +64,7 @@ def confine(path: Path, project_root: Path) -> str:
 
 def write_atomic(path: Path, data: bytes) -> None:
     """Write a sibling temporary file and replace the target with it."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     handle, name = tempfile.mkstemp(prefix=".ff-edit-", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(handle, "wb") as stream:
@@ -195,9 +196,10 @@ def append(project_root: Path, record: dict, *, now: float | None = None) -> dic
 def stacks(events: list[dict]) -> tuple[list[dict], list[dict]]:
     """Split the log into the changes currently applied and those last reverted.
 
-    A ``set`` applies a change, an ``undo`` takes the change it names off the applied stack
-    and leaves it on the reverted one, a ``redo`` moves it back.  A new ``set`` clears the
-    reverted stack, as a fresh edit discards what could be redone.
+    A ``set``, an ``add`` or a ``remove`` applies a change, an ``undo`` takes the change it
+    names off the applied stack and leaves it on the reverted one, a ``redo`` moves it back.
+    A new change of any of those three kinds clears the reverted stack, as a fresh edit
+    discards what could be redone.
     """
     by_id = {event["id"]: event for event in events if event.get("id")}
     applied: list[str] = []
@@ -215,7 +217,7 @@ def stacks(events: list[dict]) -> tuple[list[dict], list[dict]]:
                 undone.remove(target)
             if target in by_id:
                 applied.append(target)
-        elif result == "set":
+        elif result in ("set", "add", "remove"):
             applied.append(event["id"])
             undone.clear()
     return [by_id[item] for item in applied], [by_id[item] for item in undone]

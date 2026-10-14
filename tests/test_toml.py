@@ -93,8 +93,8 @@ class RejectionTest(unittest.TestCase):
     def test_inline_table(self) -> None:
         self.assert_rejected("a = { b = 1 }\n", "inline tables")
 
-    def test_array(self) -> None:
-        self.assert_rejected("a = [1, 2]\n", "arrays are unsupported")
+    def test_a_nested_array_is_rejected(self) -> None:
+        self.assert_rejected("a = [[1]]\n", "nested arrays")
 
     def test_date(self) -> None:
         self.assert_rejected("a = 1979-05-27\n", "dates")

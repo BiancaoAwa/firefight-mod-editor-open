@@ -56,9 +56,13 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `refs` | `graph` | 选择范围的出向引用，按类别分组 |
 | `deps` | | `value=<令牌>` 的入向引用（谁指向它） |
 | `check` | `lint` | 全量加载；报告加载错误、警告与悬空引用 |
-| `set` | | 修改一个文档的一个字段；需要 `--write`（§4.1） |
+| `set` | | 修改一个字段，或增删数组项；需要 `--write`（§4.1） |
+| `add` | `new` | 新建一个实体文档，内容取自 schema 骨架或 `from=<路径>`；需要 `--write`（§4.5） |
+| `remove` | `rm` | 删除一个实体文档；需要 `--write`（§4.5） |
+| `index` | | 写出 `.editor/index.toml` 与 `.editor/refs.toml`；需要 `--write`（§4.6） |
+| `settings` | | 由工程的原版 `mod.txt` 渲染 `mod_setting.toml`；需要 `--write`（§4.7） |
 | `convert` | | 把选择范围转成工程工作文件，写入 `to=<目录>`；需要 `--write`（§4.3） |
-| `log` | | 列出日志分段与其中的最新记录；只读（§4.2） |
+| `log` | | 列出日志分段与其中的记录，可过滤；只读（§4.2） |
 | `undo` | | 回退最后若干次写入所替换的内容；需要 `--write`（§4.2） |
 | `redo` | | 重做最后一次撤销所回退的内容；需要 `--write`（§4.2） |
 | `export` | `emit` | 把选择范围写成原版 XML（`to=<目录>`）；来自磁盘的文件按源字节写入 |
@@ -66,23 +70,28 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `version` | | 编辑器版本、解释器、已解析的作用域 |
 
 选项：`root=`、`workspace=`、`to=`（`export` 的目标目录，或 `convert` 写入的工程目录）、`as=`、`field=`、`type=`、
-`kind=`、`path=`、`limit=`（默认 200 行）、`ignore_case=1`、`overwrite=1`（`convert`：覆盖已存在的工作文件）、
-`--json`；`set` 与 `convert` 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；
-`undo` 与 `redo` 接受 `--write` 与一个可选计数（§4.2）。
+`kind=`、`path=`、`op=`、`from=`（`set op=append` 用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、
+`document=`、`actor=`、`result=`、`since=`、`until=`（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、
+`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 默认覆盖，`convert` 默认跳过）、
+`--json`；`set`、`add`、`remove`、`index`、`settings`、`convert`、`undo` 与 `redo` 另有两个裸标志
+`--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
 
-`web` 另有四个选项：`port=`（显式指定端口；不给时复用已在运行的实例，否则取 8765 及以上的第一个空闲端口，§4.4）、
-`token=<文本>`（设置后每个 URL 都必须带 `?t=<文本>`）、`pagesize=`（默认每页 200 行）、`browser=1`（打开默认浏览器，
+`web` 另有五个选项：`port=`（显式指定端口；不给时复用已在运行的实例，否则取 8765 及以上的第一个空闲端口，§4.4）、
+`token=<文本>`（设置后每个 URL 都必须带 `?t=<文本>`）、`pagesize=`（默认每页 200 行）、
+`lang=zh|en`（每个页面起始所用的语言，之后页面跟随 `?lang=`，§4.4）、`browser=1`（打开默认浏览器，
 而不只是打印地址）。
 
 ### 4.1 写一个字段
 
 ```
 python -m core.cli Mod set <文档> field=<a.b.c> value=<文本> --write [--dry-run]
+python -m core.cli Mod set <文档> field=<数组> op=append [from=<n>] --write [--dry-run]
+python -m core.cli Mod set <文档> field=<数组>.<n> op=delete --write [--dry-run]
 ```
 
 * `field=` 是文档内的点分路径，相对于根元素。重复元素或数组需要索引段，例如 `ammo.type.0.flavour`；缺少索引的
-  歧义路径会被拒绝，而不是猜一个。
+  歧义路径会被拒绝，而不是猜一个。`get` 读的是同一套路径，因此 `field=ammo.type.1.name` 返回第二项的 `name`。
 * 字段必须由文档根元素的 schema 声明，且值要符合它：布尔接受 `yes`/`no`（按文档自身拼写写出），数值按该字段已有
   的写法写出，字符串原样写出。
 * 枚举值来自随编辑器发行的表（`tools/FirefightModPackager/enums_ext.txt`）或同一工程中文档已声明的值；任何表与任何
@@ -96,28 +105,34 @@ python -m core.cli Mod set <文档> field=<a.b.c> value=<文本> --write [--dry-
 * 拒绝即终态——不重试，文件、锁与 `.editor/` 保持原样。缺少 `--write` 的 `set`、指向 `Firefight` 作用域的写入、
   未知字段、类型不符的值与被持有的锁都以退出码 2 结束；文档编码无法表示的值以退出码 1 结束。
 * `--dry-run` 计算并报告完整结果而不写任何东西，连 `.editor/` 本身也不创建。
+* `op=append` 向 `field=` 指名的数组表追加一项；`from=<n>` 把已有第 `n` 项的叶子值复制进新项，而不是写空值。
+  `op=delete` 删除索引段指的那一项。两者都只在源行上操作，因此其余行、注释、空行与文件自身的换行风格都保持原样。
 
 ### 4.2 事件日志、撤销与重做
 
 ```
-python -m core.cli Mod log [计数] [--json]
-python -m core.cli Mod undo [计数] --write [--json]
-python -m core.cli Mod redo [计数] --write [--json]
+python -m core.cli Mod log [计数] [document=<文本>] [field=<文本>] [actor=cli|mcp]
+                       [result=set|add|remove|undo|redo] [since=<时间戳>] [until=<时间戳>] [--json]
+python -m core.cli Mod undo [计数] --write [--dry-run] [--json]
+python -m core.cli Mod redo [计数] --write [--dry-run] [--json]
 ```
 
-* 每次实际写入的 `set` 向 `.editor/log/<分段开始本地时间>.jsonl` 追加一条记录，并把被替换的字节与写入后的字节存入
+* 每次实际写入都向 `.editor/log/<分段开始本地时间>.jsonl` 追加一条记录，并把被替换的字节与写入后的字节存入
   `.editor/baseline/<sha256>`。记录字段为 `id`、`segment`、`timestamp`、`actor`、`result`、`target`、`document`、
   `entity`、`field`、`before`、`after`、`digest_before`、`digest_after`、`bytes_before`、`bytes_after`、`dry_run`；
-  字段清单与字节布局见 docs/project-layout.md §8。
+  `result` 为 `set`、`add`、`remove`、`undo` 或 `redo`；字段清单与字节布局见 docs/project-layout.md §8。
 * 分段在空闲五分钟之后封存，下一条记录开启新分段，因此按文件名排序读取即按时间排序。`log` 列出分段与最新的 `计数` 条
   记录（默认 20）；它只读，不创建任何文件。
+* `log` 也可以过滤。`document=` 与 `field=` 保留取值中包含该文本的记录，`actor=` 与 `result=` 保留完全相等的记录，
+  `since=`/`until=` 保留时间戳落在区间内的记录。时间戳按写出的字面值比较，因此 `since=` 与写日志那台机器的时区偏移
+  一致。载荷会写明所用过滤项，计数写明在读到多少条中筛出多少条。
 * `undo [计数]` 按时间倒序恢复最后 `计数` 次已生效改动所替换的字节（默认 1），每恢复一次追加一条记录，标注它所回退的
   记录。`redo [计数]` 重做最近被回退的改动。`redo` 之后再 `undo` 就是对回退的回退，因此 `undo` → `redo` → `undo`
-  得到逐字节相同的内容。
+  得到逐字节相同的内容。撤销一次 `add` 会再次删掉该文档，重做它则按记录的字节写回。
 * 整次调用先规划再写入：缺失的基线、记录之后在磁盘上被改动的文档、已消失的文档、大于日志的计数、无内容可回退的日志
   都以退出码 2 拒绝，且该次调用不写入任何部分。已记录字节丢失或与其摘要不符属于硬失败，退出码 1。
 * `undo` 与 `redo` 需要 `--write`，与 `set` 一样持有 `.editor/lock`，拒绝 `Firefight` 作用域，并限制在工程目录内。
-  拒绝即终态，不重试。
+  拒绝即终态，不重试。`--dry-run` 只报告将要恢复的内容，不持锁、不碰 `.editor/`、不写文档。
 * 新的 `set` 会丢弃可重做的内容，与编辑器中的新改动一致。
 
 ### 4.3 把原版文件转成工程工作文件
@@ -140,7 +155,7 @@ python -m core.cli Firefight convert to=<工程> --write [--dry-run] [type=<类�
 ### 4.4 Web 界面与运行实例记录
 
 ```
-python -m core.cli Mod web [port=<n>] [token=<文本>] [pagesize=<n>] [browser=1]
+python -m core.cli Mod web [port=<n>] [token=<文本>] [pagesize=<n>] [lang=zh|en] [browser=1]
 ```
 
 * 显式给出 `port=` 时总在该端口启动服务。不给端口时，若已记录的实例仍然应答就复用：打印它的地址，调用方要求打开
@@ -150,6 +165,55 @@ python -m core.cli Mod web [port=<n>] [token=<文本>] [pagesize=<n>] [browser=1
   的探测结果决定，因此崩溃过的界面不会阻塞下一次启动——启动器（`tools/launcher/ff-tool.ps1`）采用同一规则。
 * 页面可以运行写入类命令，而命令自身的门始终是最终裁决：页面为接受 `write=1` 的命令传递它，被拒绝时的读法与命令行
   完全一致。`web` 本身在请求内被拒绝，因为它会试图绑定第二个端口（docs/web.md §3）。
+* 页面默认中文；给出 `lang=en` 或 URL 上带 `?lang=en` 时用英文。导航栏的语言开关只改语言，保留当前路由；一种语言的
+  页面会链到同页面的另一种语言（`core/web/i18n.py`）。
+
+### 4.5 新建与删除文档
+
+```
+python -m core.cli Mod add <文档> [from=<路径>] --write [--dry-run]
+python -m core.cli Mod remove <文档> --write [--dry-run]
+```
+
+* `add` 新建一个实体文档。不给 `from=` 时正文来自该文件夹所承载根元素的 schema 骨架（`Data/Weapons` 是 `weapon`；
+  `Data/Infantry`、`Data/Vehicles` 与 `Data/AT Guns` 都是 `squad`；`Data/Aircraft` 是 `aircraft`）；编辑器无法映射的
+  文件夹会被拒绝，此时用 `from=<路径>` 说明这是什么文档。给出 `from=` 时，被指名文档的字节会重新渲染进新文件，因此
+  `.txt` 源会变成 `.toml`。
+* `remove` 删除一个实体文档。
+* 两者都写 UTF-8 无 BOM 与 CRLF，持工程锁，并追加一条事件（`result` 为 `add` 或 `remove`）；`undo` 会把被删文档逐字节
+  恢复，撤销一次 `add` 则会再次删掉该文件。两者都不写工程目录之外的东西。
+* `add` 拒绝已存在的路径，`remove` 拒绝不存在的路径，两者都拒绝 `Firefight` 作用域。
+
+### 4.6 引用索引
+
+```
+python -m core.cli Mod index [选择器] --write [--dry-run]
+```
+
+* `index` 遍历一次选择范围，写出 `.editor/index.toml`（`[documents]` 表，把每个文档相对路径映射到它的根元素）与
+  `.editor/refs.toml`（`[by_source]` 表，把每个文档映射到它指向的令牌）。两个文件的 `[built]` 表记录写入时间、作用域、
+  计数，以及整个作用域的一份指纹。
+* 该指纹是读到过的每个文件的相对名、大小与写入时间的 SHA-256，是整个作用域一份，而不是每个文档一份。只要有文档增删或
+  改动一个字节，指纹就不同，`refs` 与 `deps` 随即忽略两张表、重新遍历文档。载荷会写明这批行来自哪一侧
+  （`origin` 为 `index` 或 `scan`），两张表只是某一次查询的缓存，不是第二个事实源。
+* 清单文件（`equipment_*`）、没有根元素的纯文本文件与读不了的文件都计入跳过，不算错误。
+
+### 4.7 渲染 `mod_setting.toml`
+
+```
+python -m core.cli Mod settings --write [--dry-run]
+```
+
+* 编辑器把工程自带原版 `Mod/mod.txt` 的 TOML 形态（docs/project-layout.md §4）渲染成 `<工程>/mod_setting.toml`：
+  每个元素成为它的表或键，`<nationality>` 块成为 `[[mod_setting.nationality]]` 项，重复的 `<equipment>` 元素成为
+  每个国籍一个数组，裸的 `<ranks>` 数字成为带引号的键，国籍名保持来源的确切拼写（随附的 WW3 文件里写作
+  `Taiwan, China(In Production)` 与 `Japan(In Production)`，括号前无空格）。
+* 渲染器是源字节的纯函数：同一份 `mod.txt` 总是渲染出同一份 `mod_setting.toml`。
+* 已存在的 `mod_setting.toml` 会被跳过，除非给出 `overwrite=1`；原版文件仍是它所承载字段的事实源，再次以
+  `overwrite=1` 渲染时，对 TOML 文件的改动会丢失。随附的 WW3 工程可以说明规模：手写的 `mod_setting.toml` 是 79 行、
+  一个国籍，而渲染器从同一份 `mod.txt` 产出 333 行、全部十二个国籍，无警告。
+* 工程没有 `Mod/mod.txt` 时被拒绝（`no mod.txt under <工程>/Mod; nothing to render from`），`Firefight` 作用域同样
+  被拒绝。
 
 ## 5. 退出码
 
@@ -207,10 +271,16 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 
 ## 9. 本部分的限制
 
-* 没有 `add`/`remove`、没有批量编辑、没有打包。写入一次改一个文档的一个叶子，`convert` 则一次写一整个选择范围；
-  日志与基线属于单个工程，`Firefight` 永不被写入。工程元数据类命令仍然缺失：`mod.toml` 与 `mod_setting.toml` 只被
-  读取而不被写入，`.editor/refs.toml` 与 `.editor/index.toml` 仍是空占位，因此 `refs` 与 `deps` 每次现算引用图，
-  而不是读索引。
+* 一次写入是「一个字段、一个数组项、一个文档（`add`、`remove`）或一整个选择范围（`convert`、`settings`、`index`）」。
+  没有一次调用里对多个文档施加多处改动的批量编辑，也没有打包。日志与基线属于单个工程，`Firefight` 永不被写入。
+* `add` 写的是文档根元素的 schema 骨架，数组被略去（它们的空形态无法被读回）；需要数组项的文档用
+  `from=<已有文档>` 或 `convert` 建立，随后用 `set op=append` 填。
+* 只有编辑器声明了 schema 的根才能被新建与编辑：`weapon`、`squad`、`aircraft`、`mod` 与 `mod_setting`。`vehicle` 与
+  `at_gun` 文件夹承载的是 `squad` 根，同样在覆盖范围内。
+* `.editor/index.toml` 与 `.editor/refs.toml` 现在由 `index` 写出；它们是带整作用域指纹的缓存，因此改动一个字节就会让
+  `refs` 与 `deps` 退回现算。
+* `settings` 从工程自带原版 `mod.txt` 渲染 `mod_setting.toml`。没有该文件的工程无法渲染；源文件里渲染器不认识的元素
+  按普通值保留，而不作解释。
 * `export` 保留源排版：兄弟节点顺序、空行、缩进、`//` 注释与文件自身的换行风格全部来自源文本
   （toml-mapping §4）。没有源文本的文件——`.toml` 工程文档——改用规范写入器（制表符缩进、CRLF、schema 顺序）；
   一次编辑会在内存中让它触及的元素的排版失效。

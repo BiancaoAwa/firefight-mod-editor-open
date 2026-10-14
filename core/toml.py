@@ -241,7 +241,10 @@ def _parse_value(text: str, origin: str, line: int, column: int) -> TomlValue:
     if text.startswith("{"):
         _fail(origin, line, column, "inline tables are unsupported")
     if text.startswith("["):
-        _fail(origin, line, column, "arrays are unsupported")
+        raw, values = parse_array(text, origin, line, column)
+        if text[len(raw):].strip():
+            _fail(origin, line, column + len(raw), "trailing text after the value")
+        return TomlValue(raw=raw, value=values, line=line)
     if text in ("true", "false"):
         return TomlValue(raw=text, value=text == "true", line=line)
     if INTEGER_RE.fullmatch(text):
@@ -254,10 +257,59 @@ def _parse_value(text: str, origin: str, line: int, column: int) -> TomlValue:
     raise AssertionError
 
 
+def parse_array(text: str, origin: str = "<value>", line: int = 1, column: int = 1) -> tuple[str, list[object]]:
+    """Read one inline array of scalars; returns the text as written and the values.
+
+    The literal is kept verbatim so a document that holds one still round trips byte for byte.
+    """
+    values: list[object] = []
+    index = 1
+    while True:
+        while index < len(text) and text[index] in " \t":
+            index += 1
+        if index >= len(text):
+            _fail(origin, line, column + index, "unterminated array")
+        if text[index] == "]":
+            return text[: index + 1], values
+        if text[index] == "[":
+            _fail(origin, line, column + index, "nested arrays are unsupported")
+        item = _parse_value(_item_text(text, index, origin, line, column), origin, line, column + index)
+        values.append(item.value)
+        index += len(item.raw)
+        while index < len(text) and text[index] in " \t":
+            index += 1
+        if index < len(text) and text[index] == ",":
+            index += 1
+            continue
+        if index < len(text) and text[index] == "]":
+            return text[: index + 1], values
+        _fail(origin, line, column + index, "expected ',' or ']' in an array")
+
+
+def _item_text(text: str, index: int, origin: str, line: int, column: int) -> str:
+    """One array item as written, without the separator that follows it."""
+    if text[index] in "\"'":
+        _, end = _read_quoted(text, index, origin, line, column + index)
+        return text[index:end]
+    end = index
+    while end < len(text) and text[end] not in ",]":
+        end += 1
+    return text[index:end].strip()
+
+
 def entries_of(entry: TomlEntry) -> TomlTable:
     """Narrow an entry to a table, for callers that already know the shape."""
     assert isinstance(entry, TomlTable)
     return entry
+
+
+def entry_text(path: list[str], leaves: list[tuple[str, str]]) -> list[str]:
+    """The lines of one array-of-tables entry: its header and its assignments.
+
+    ``leaves`` are ``(key, raw value)`` pairs written exactly as given, so the
+    result can be spliced into a document without touching its other lines.
+    """
+    return [_header(path, True), *[f"{_key(name)} = {raw}" for name, raw in leaves]]
 
 
 def render(table: TomlTable) -> str:

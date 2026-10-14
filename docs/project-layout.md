@@ -83,7 +83,7 @@ license = "CC BY-SA 4.0"
 
 ## 4. `mod_setting.toml` (= the stock `mod.txt`)
 
-The structure of `mod.txt` is measured on the installed 13.2.0.0 sample: 10170 bytes, 428 lines, 12 nations. A mapping example:
+The structure of `mod.txt` is measured on the installed 13.2.0.0 sample: 10170 bytes, 428 lines, 12 nations. `settings` renders the file from that source (docs/cli.md §4.7): `<nationality>` blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements one array per nation, the bare `<ranks>` numbers quoted keys, and the `<units>` / `<filename>` elements pass through unchanged. A mapping example:
 
 ```toml
 [mod_setting]
@@ -273,11 +273,12 @@ the editor ships as loose code or as a packed executable.
 ```
 <repo>/
 ├── core/          the code
-│   ├── cli/       command line: scope resolution, commands, main, the tool table
+│   ├── cli/       command line: scope resolution, commands, main, specs.py (the one tool table)
 │   ├── mcp/       the stdio MCP server over those commands (docs/mcp.md)
-│   ├── web/       the local web UI: server, pages, running-instance record
+│   ├── web/       the local web UI: server, pages, running-instance record, i18n.py (the language table)
 │   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph,
-│                  editing (edit, journal, history)
+│                  editing (edit, journal, history), index.py (the reference index),
+│                  settings.py (the mod.txt renderer)
 ├── docs/          specification: what the editor does and how it is built, English plus *.zh-CN.md mirror (this file lives here)
 ├── tests/         the suite (no game install, no network)
 ├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
@@ -322,10 +323,12 @@ Rules that follow from this layout:
 * A mod project is a **partial overlay**: it may only replace files the game already reads,
   so `Mod/Data`, `Mod/Images` and `Mod/Sounds` mirror the game folders exactly.
 * `.editor/` travels with a project, is excluded from any package, and holds the
-  caches (`refs.toml`, `index.toml`), the event log and the baseline snapshots.
-* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`; its renderer is not
-  implemented yet, so a fixture project may carry a deliberately partial file, marked as
-  such inside the file.
+  caches (`refs.toml`, `index.toml`, both written by `index`), the event log and the baseline
+  snapshots.
+* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`, and `settings` renders it
+  (docs/cli.md §4.7). The renderer is a function of the source bytes: it reproduces every
+  element of the file it reads, and the stock `mod.txt` stays the source of truth for the
+  fields it carries.
 * Both launchers run the CLI as `python -m core.cli`, which resolves the `core` package from
   the current directory, so the entry works in both layouts while the code sits one level
   down in `core/`.

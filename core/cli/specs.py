@@ -116,9 +116,20 @@ KIND = Parameter("kind", "string", "Reference kind filter, for example weapon or
 LIMIT = Parameter(
     "limit",
     "integer",
-    "Row cap for the CLI text output (CLI default 200). Only ff_find honours it; the other "
-    "commands ignore it.",
+    "Row cap for the CLI text output (default 200; 0 prints every row).",
     target="limit",
+)
+DRY_RUN = Parameter(
+    "dryRun",
+    "boolean",
+    "Report what would happen without writing anything, not even .editor/.",
+    target="dry-run",
+)
+OVERWRITE = Parameter(
+    "overwrite",
+    "boolean",
+    "Replace a file that is already there. Defaults to true, so pass false to keep it.",
+    target="overwrite",
 )
 SELECTOR = Parameter("selector", "string", "Optional folder or path prefix, for example Weapons or Data/Weapons.", target="selector")
 
@@ -266,6 +277,8 @@ TOOLS: tuple[ToolSpec, ...] = (
             SCOPE,
             Parameter("selector", "string", "Optional entity or folder to export instead of the whole scope.", target="selector"),
             Parameter("to", "string", "Destination directory, passed as to=<directory>. The editor resolves relative paths against its working directory.", target="to", required=True),
+            OVERWRITE,
+            DRY_RUN,
             ROOT,
             WORKSPACE,
         ),
@@ -275,19 +288,92 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="ff_set",
         command="set",
-        description="Change one field of one project document. This writes; a document that changed on disk is refused rather than overwritten.",
+        description=(
+            "Change one field of one project document, or add and remove one entry of an array "
+            "of tables. This writes; a document that changed on disk is refused rather than "
+            "overwritten."
+        ),
         parameters=(
             SCOPE,
             Parameter("selector", "string", "Entity path of the document to change, for example Data/Weapons/WEAPON_PISTOL_P38.txt.", target="selector", required=True),
-            Parameter("field", "string", "Dot-separated field path relative to the document root element, for example description.quality.", target="field", required=True),
-            Parameter("value", "string", "Value to write, spelled the way the document spells it.", target="value", required=True, allow_empty=True),
-            Parameter("dryRun", "boolean", "Report the change without writing anything, not even .editor/.", target="dry-run"),
+            Parameter("field", "string", "Dot-separated field path relative to the document root element, for example description.quality; an array entry is named by its index, for example ammo.type.0.", target="field", required=True),
+            Parameter("value", "string", "Value to write, spelled the way the document spells it. Omit it when op is append or delete.", target="value", allow_empty=True),
+            Parameter("op", "string", "append adds one entry to the array of tables field names, delete removes the entry the index in field names. Without it the value replaces the field.", target="op", enum=("append", "delete")),
+            Parameter("from", "integer", "append only: copy the entry at this index instead of writing an empty one.", target="from"),
+            DRY_RUN,
             ROOT,
             WORKSPACE,
         ),
         writes=True,
         concurrency_safe=False,
-        available=False,  # TODO(S4): expose ff_set with the write-refusal codes of docs/mcp.md section 6
+    ),
+    ToolSpec(
+        name="ff_add",
+        command="add",
+        description="Create one project document, either empty for its root element or as the entry the index names. This writes; an existing document is refused.",
+        parameters=(
+            SCOPE,
+            Parameter("selector", "string", "Path of the document to create, for example Data/Weapons/WEAPON_DEMO.toml.", target="selector", required=True),
+            Parameter("type", "string", "Root tag of the new document, for example weapon. Defaults to the fixture a known stock path implies.", target="type"),
+            Parameter("from", "integer", "Copy the entry at this index of the array of tables instead of writing an empty one.", target="from"),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_remove",
+        command="remove",
+        description="Delete one project document and record its bytes so undo can put it back. This writes; a missing document is refused.",
+        parameters=(
+            SCOPE,
+            Parameter("selector", "string", "Path of the document to delete, for example Data/Weapons/WEAPON_DEMO.toml.", target="selector", required=True),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_index",
+        command="index",
+        description=(
+            "Build the cross-reference tables of a project, .editor/index.toml and "
+            ".editor/refs.toml, and report what ``check`` would find. This writes; without it "
+            "ff_refs and ff_deps answer from a graph built on each run."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("selector", "string", "Optional entity or folder to index instead of the whole project.", target="selector"),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_convert",
+        command="convert",
+        description=(
+            "Turn the stock files of a scope into project working files under to=, one .toml per "
+            "entity. This writes; a working file that is already there is skipped unless "
+            "overwrite is true."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("selector", "string", "Optional entity or folder to convert instead of the whole scope.", target="selector"),
+            Parameter("to", "string", "Destination project directory, passed as to=<directory>; the editor appends Mod/.", target="to", required=True),
+            OVERWRITE,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
     ),
     ToolSpec(
         name="ff_undo",
@@ -296,12 +382,26 @@ TOOLS: tuple[ToolSpec, ...] = (
         parameters=(
             SCOPE,
             Parameter("count", "integer", "How many applied changes to revert; defaults to 1.", target="selector"),
+            DRY_RUN,
             ROOT,
             WORKSPACE,
         ),
         writes=True,
         concurrency_safe=False,
-        available=False,  # TODO(S4): expose ff_undo with the write-refusal codes of docs/mcp.md section 6
+    ),
+    ToolSpec(
+        name="ff_redo",
+        command="redo",
+        description="Replay the changes the last undos put back, oldest first. This writes; a redo past the log is refused.",
+        parameters=(
+            SCOPE,
+            Parameter("count", "integer", "How many undone changes to replay; defaults to 1.", target="selector"),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
     ),
 )
 

@@ -61,17 +61,24 @@ between surfaces without renaming anything.
 | `ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
 | `ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
 | `ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
-| `ff_export` | `scope`, `selector`, `to`, `root`, `workspace` | yes | only with `--write` |
-| `ff_set` | `scope`, `selector`, `field`, `value`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
-| `ff_undo` | `scope`, `count`, `root`, `workspace` | yes | only with `--write` |
+| `ff_export` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_set` | `scope`, `selector`, `field`, `value`, `op`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_remove` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_index` | `scope`, `selector`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_convert` | `scope`, `selector`, `to`, `type`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_undo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
 Every tool whose command writes files is registered only with `--write`, `ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server
-that reports itself read-only must not expose a tool that writes. `ff_set` and `ff_undo`
-arrive with the writing stage, so their row describes the intended shape; until then a call
-to either is answered as an unknown tool.
+that reports itself read-only must not expose a tool that writes. `ff_set`, `ff_add`,
+`ff_remove`, `ff_index`, `ff_convert`, `ff_undo` and `ff_redo` take a `dryRun` parameter that
+maps to the CLI's `--dry-run`, so a write can be inspected before it happens.
 
-Later work adds `ff_add` and `ff_remove` with the same rule.
+`settings` has no MCP tool: it renders `mod_setting.toml` from the project's own stock
+`mod.txt`, which is a project bootstrap step rather than a read or an edit of the corpus.
+Run it from the CLI (docs/cli.md §4.7).
 
 **One specification.** The tool table is one Python specification table, `core/cli/specs.py`,
 which the MCP server renders `tools/list` from and turns a call into a CLI invocation; the
@@ -167,15 +174,18 @@ problem".
 3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused as an
    unknown tool.
 4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched. The
-   case is verified for `ff_export` today, which leaves the stock scope and its destination untouched; the
-   lock and event-log cases arrive with the writing tools.
+   case is verified for `ff_export` today, which leaves the stock scope and its destination untouched. The
+   lock and the event log are exercised through the CLI suite, where `tests/test_set.py`,
+   `tests/test_undo.py`, `tests/test_documents.py` and `tests/test_entries.py` drive the same guards the
+   write tools reach; no MCP case asserts them directly yet.
 5. **Live client check.** One manual session against a real MCP client, recording which protocol revision
    was accepted and the exact startup configuration. The result is appended to this section once that
    session runs; until then the accepted revision is unverified.
 
-Verified in the editor repository: 15 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
-the exact read-only surface, `--write` registration, the stock-scope refusal, the tool-level failure shape
-with the CLI exit code, resources, prompts, the command line and the plugin snapshot.
+Verified in the editor repository: 17 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
+the exact tool surface, `--write` registration, the stock-scope refusal, the tool-level failure shape
+with the CLI exit code, resources, prompts, the command line and the plugin snapshot (the cross-repository
+half runs against `ffplugin/lib/specs.js` when that checkout is reachable).
 
 ## 9. Non-goals
 

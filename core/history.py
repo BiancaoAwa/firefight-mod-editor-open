@@ -16,7 +16,11 @@ from core.errors import EditRefused
 
 @dataclass(frozen=True)
 class Restore:
-    """One document to put back, with the bytes and the state it must be in."""
+    """One document to put back, with the bytes and the state it must be in.
+
+    ``absent`` means the change being reverted created the document, so putting it
+    back means deleting it; ``data`` is empty in that case.
+    """
 
     result: str
     target: str
@@ -29,11 +33,12 @@ class Restore:
     before: str
     after: str
     bytes_before: int
+    absent: bool = False
 
     @property
     def digest(self) -> str:
-        """Digest of the bytes this restore writes."""
-        return journal.digest_of(self.data)
+        """Digest of the bytes this restore writes; empty when it deletes the document."""
+        return journal.digest_of(self.data) if self.data else ""
 
 
 def plan_undo(project_root: Path, count: int = 1) -> list[Restore]:
@@ -48,26 +53,57 @@ def plan_redo(project_root: Path, count: int = 1) -> list[Restore]:
     return _plan(project_root, undone, count, result="redo", label="redo")
 
 
-def apply(project_root: Path, restores: list[Restore], *, actor: str = "cli", now: float | None = None) -> dict:
-    """Write every planned restore under the project lock and record one event each."""
+def apply(
+    project_root: Path,
+    restores: list[Restore],
+    *,
+    actor: str = "cli",
+    now: float | None = None,
+    dry_run: bool = False,
+) -> dict:
+    """Write every planned restore under the project lock and record one event each.
+
+    A dry run reports the same selection and leaves everything alone: no lock,
+    no blob, no rewritten document and no event (docs/cli.md section 4.2).
+    """
     if not restores:
         raise EditRefused("nothing was restored")
+    if dry_run:
+        return {
+            "result": restores[0].result,
+            "count": len(restores),
+            "targets": [item.target for item in restores],
+            "events": [],
+            "dry_run": True,
+            "documents": [
+                {
+                    "document": item.document,
+                    "entity": item.entity,
+                    "field": item.field,
+                    "before": item.before,
+                    "after": item.after,
+                    "bytes_before": item.bytes_before,
+                    "bytes_after": len(item.data),
+                    "event": "",
+                    "target": item.target,
+                }
+                for item in restores
+            ],
+        }
     with journal.hold_lock(project_root, tool=f"core.cli {restores[0].result}"):
         current = []
         for item in restores:
-            if not item.path.is_file():
-                raise EditRefused(f"{item.document}: the document is gone; nothing was written")
-            data = item.path.read_bytes()
-            if hashlib.sha256(data).hexdigest() != item.expect:
-                raise EditRefused(
-                    f"{item.document}: the document changed after that change; nothing was written"
-                )
-            current.append((item, data))
+            current.append((item, _state(item.path, item.expect, item.document)))
         events = []
         for item, data in current:
-            journal.store_blob(project_root, data)
-            journal.store_blob(project_root, item.data)
-            journal.write_atomic(item.path, item.data)
+            if data:
+                journal.store_blob(project_root, data)
+            if item.data:
+                journal.store_blob(project_root, item.data)
+            if item.absent:
+                item.path.unlink()
+            else:
+                journal.write_atomic(item.path, item.data)
             events.append(
                 journal.append(
                     project_root,
@@ -94,6 +130,7 @@ def apply(project_root: Path, restores: list[Restore], *, actor: str = "cli", no
         "count": len(restores),
         "targets": [item.target for item in restores],
         "events": [event["id"] for event in events],
+        "dry_run": False,
         "documents": [
             {
                 "document": item.document,
@@ -123,6 +160,20 @@ def _plan(project_root: Path, stack: list[dict], count: int, *, result: str, lab
     return [_restore(project_root, event, result=result) for event in reversed(stack[-count:])]
 
 
+def _state(path: Path, digest: str, document: str) -> bytes:
+    """The bytes of a document that must be in one recorded state; empty means absent."""
+    if not digest:
+        if path.exists():
+            raise EditRefused(f"{document}: the document is there again; nothing was written")
+        return b""
+    if not path.is_file():
+        raise EditRefused(f"{document}: the document is gone; nothing was written")
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != digest:
+        raise EditRefused(f"{document}: the document changed after that change; nothing was written")
+    return data
+
+
 def _restore(project_root: Path, event: dict, *, result: str) -> Restore:
     """Verify one recorded change and describe the write that reverts it."""
     document = event.get("document")
@@ -130,8 +181,6 @@ def _restore(project_root: Path, event: dict, *, result: str) -> Restore:
         raise EditRefused(f"{event.get('id', 'a record')}: the record names no document")
     path = project_root / document
     journal.confine(path, project_root)
-    if not path.is_file():
-        raise EditRefused(f"{document}: the document is gone; nothing was written")
     if result == "undo":
         expect, want = event.get("digest_after"), event.get("digest_before")
         before, after = event.get("after"), event.get("before")
@@ -140,9 +189,7 @@ def _restore(project_root: Path, event: dict, *, result: str) -> Restore:
         before, after = event.get("before"), event.get("after")
     if not isinstance(expect, str) or not isinstance(want, str):
         raise EditRefused(f"{document}: the record of this change is incomplete; nothing was written")
-    current = path.read_bytes()
-    if hashlib.sha256(current).hexdigest() != expect:
-        raise EditRefused(f"{document}: the document changed after that change; nothing was written")
+    current = _state(path, expect, document)
     return Restore(
         result=result,
         target=event["id"],
@@ -150,9 +197,10 @@ def _restore(project_root: Path, event: dict, *, result: str) -> Restore:
         entity=event.get("entity") or Path(document).stem,
         field=event.get("field") or "",
         path=path,
-        data=journal.load_blob(project_root, want),
+        data=journal.load_blob(project_root, want) if want else b"",
         expect=expect,
         before=str(before) if before is not None else "",
         after=str(after) if after is not None else "",
         bytes_before=len(current),
+        absent=not want,
     )
