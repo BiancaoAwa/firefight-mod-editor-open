@@ -149,7 +149,7 @@ python -m core.cli Firefight convert to=<工程> --write [--dry-run] [assets=1] 
 * 从作用域读出选择范围，写到 `<工程>/Mod/<相对路径>`，后缀换成 `.toml`。目标目录自身最后一段已经是 `Mod` 时按原样
   使用。缺少的目录会被创建，因此 `convert` 是唯一能从游戏数据建立工程目录的命令；它不写 `mod.toml`，因为工程元数据
   由作者填（docs/project-layout.md §3）。
-* 已存在的目标文件被跳过并计入统计；`overwrite=1` 覆盖它。非实体文件同样跳过并计入统计——例如 `mod.txt` 这类清单文件。
+* 已存在的目标文件被跳过并计入统计；`overwrite=1` 覆盖它。非实体文件同样跳过并计入统计——例如 `mod.txt` 这类清单文件，以及任何没有根元素的 `.txt`（格式用它存放纯文本表格，`Mod/Data/news_main.txt` 即是一例）。
 * 输出为 UTF-8 无 BOM、CRLF 换行，即 TOML 写入器的规范排版，因此结果与来源的原版 `Data/*.txt` 并不逐字节相同。逐字节
   复现是 `export` 的职责，不是 `convert` 的。
 * 不带 `--write` 属于用法错误（退出码 2）。`--dry-run` 报告同一份计划且什么都不写，连目标目录也不建。
