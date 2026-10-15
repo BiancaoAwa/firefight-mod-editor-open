@@ -193,9 +193,12 @@ python -m core.cli Firefight convert to=<project> --write [--dry-run] [assets=1]
   establishes a project directory out of the game data; no `mod.toml` is written, because the
   metadata of a project is the author's to fill in (docs/project-layout.md §3).
 * A file that is already there is skipped and counted; `overwrite=1` replaces it. Files that
-  are not entities are skipped and counted too — the list files such as `mod.txt`, and any
-  `.txt` that carries no root element, which is how the format stores a plain-text table
-  (`Mod/Data/news_main.txt` is one).
+  are not entities are skipped and counted too. The plain-text tables are the ones the
+  project's settings name: `<equipment>` and `<surnames>` in `Mod/mod.txt`, or the same keys
+  in `mod_setting.toml` when that file is the one the project carries. A name declared there
+  is a table whatever the file holds (`Mod/Data/news_main.txt` is one). A scope that declares
+  nothing — the stock scope has no `mod.txt` — falls back to the name conventions
+  (`equipment_*`, `surnames_*`), and a `.txt` with no root element is a table by its content.
 * Output is UTF-8 without BOM with CRLF line endings, the canonical layout of the TOML writer,
   so the result is not byte-identical to the stock `Data/*.txt` it came from. Byte-for-byte
   reproduction is what `export` is for, not `convert`.
@@ -271,8 +274,9 @@ python -m core.cli Mod index [selector] --write [--dry-run]
   both tables and walk the documents again. The payload says which of the two produced the rows
   (`origin` is `index` or `scan`), and the tables are a cache of one query, not a second source
   of truth.
-* The lists (`equipment_*`), plain text files with no root element and unreadable files are
-  counted as skipped; they are not errors.
+* The plain-text tables — the names the project declares under `<equipment>` and `<surnames>`,
+  and the `equipment_*` / `surnames_*` conventions — plus `.txt` files with no root element and
+  unreadable files are counted as skipped; they are not errors.
 
 ### 4.7 Translating between `Mod/mod.txt` and `mod_setting.toml`
 

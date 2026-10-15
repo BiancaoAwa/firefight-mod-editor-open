@@ -96,6 +96,7 @@ license = "CC BY-SA 4.0"
 * `<1>`..`<7>` 变成带引号的 TOML 键，因为 TOML 裸键不能以数字开头。`mod.txt` 不是合法 XML，因此其解析器
   单独实现。
 * 重复出现的 `<equipment>` 合并为一个数组，导出时按数组元素逐个渲染回 `<equipment>`。
+* `<equipment>`、`<surnames>` 下的名字就是编辑器认定的纯文本表格，因此模组自己命名的表格也会被识别为表格（docs/cli.zh-CN.md §4.3）。
 * `<nationality>` 内的 `<units>` / `<filename>`（WW3 中各出现一次）：**原样保留并透传**，原值存入 TOML。项目方
   将其判定为**原版编辑器自身的特性**，作为 TODO 推迟，v1 不解释其语义。
 

@@ -153,6 +153,8 @@ Key points
 
 * `<1>`..`<7>` become quoted TOML keys, because a TOML bare key may not start with a digit. `mod.txt` is not well-formed XML, so its parser is implemented separately.
 * A repeated `<equipment>` is merged into one array, rendered back as one `<equipment>` per array element on export.
+* The names under `<equipment>` and `<surnames>` are what the editor reads as the project's
+  plain-text tables, so a table a mod names itself is recognised as one (docs/cli.md §4.3).
 * `<units>` / `<filename>` inside `<nationality>` (one occurrence each in WW3): **preserved and passed through unchanged**, with the original value stored in TOML. The project owner classifies them as **a feature of the stock editor itself** and does not interpret their semantics in v1.
   * TODO: reverse-engineer the real semantics of `<units>` / `<filename>` under `<nationality>` (in WW3 they are `NATIONALITY_TAIWANESE` and `Taiwanese-`, apparently a unit-file prefix filter for that nationality) and expose them as editable fields in the UI.
 

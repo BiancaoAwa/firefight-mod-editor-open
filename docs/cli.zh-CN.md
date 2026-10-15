@@ -149,7 +149,7 @@ python -m core.cli Firefight convert to=<工程> --write [--dry-run] [assets=1] 
 * 从作用域读出选择范围，写到 `<工程>/Mod/<相对路径>`，后缀换成 `.toml`。目标目录自身最后一段已经是 `Mod` 时按原样
   使用。缺少的目录会被创建，因此 `convert` 是唯一能从游戏数据建立工程目录的命令；它不写 `mod.toml`，因为工程元数据
   由作者填（docs/project-layout.md §3）。
-* 已存在的目标文件被跳过并计入统计；`overwrite=1` 覆盖它。非实体文件同样跳过并计入统计——例如 `mod.txt` 这类清单文件，以及任何没有根元素的 `.txt`（格式用它存放纯文本表格，`Mod/Data/news_main.txt` 即是一例）。
+* 已存在的目标文件被跳过并计入统计；`overwrite=1` 覆盖它。非实体文件同样跳过并计入统计。纯文本表格由工程设置点名：`Mod/mod.txt` 里的 `<equipment>` 与 `<surnames>`，工程只带 `mod_setting.toml` 时则是该文件的同名键。被点名的文件无论内容如何都算表格（`Mod/Data/news_main.txt` 即是一例）。什么都不点名的作用域——原版作用域没有 `mod.txt`——退回命名约定（`equipment_*`、`surnames_*`），此外没有根元素的 `.txt` 按内容算表格。
 * 输出为 UTF-8 无 BOM、CRLF 换行，即 TOML 写入器的规范排版，因此结果与来源的原版 `Data/*.txt` 并不逐字节相同。逐字节
   复现是 `export` 的职责，不是 `convert` 的。
 * 不带 `--write` 属于用法错误（退出码 2）。`--dry-run` 报告同一份计划且什么都不写，连目标目录也不建。
@@ -204,7 +204,7 @@ python -m core.cli Mod index [选择器] --write [--dry-run]
 * 该指纹是读到过的每个文件的相对名、大小与写入时间的 SHA-256，是整个作用域一份，而不是每个文档一份。只要有文档增删或
   改动一个字节，指纹就不同，`refs` 与 `deps` 随即忽略两张表、重新遍历文档。载荷会写明这批行来自哪一侧
   （`origin` 为 `index` 或 `scan`），两张表只是某一次查询的缓存，不是第二个事实源。
-* 清单文件（`equipment_*`）、没有根元素的纯文本文件与读不了的文件都计入跳过，不算错误。
+* 纯文本表格——工程在 `<equipment>`、`<surnames>` 下点名的名字，以及 `equipment_*`、`surnames_*` 命名约定——与没有根元素的 `.txt`、读不了的文件都计入跳过，不算错误。
 
 ### 4.7 在原版 `Mod/mod.txt` 与 `mod_setting.toml` 之间转换
 
