@@ -15,6 +15,7 @@ dist/
 *.tmp
 _out/
 .ff-editor.local.toml
+tests/_scratch_*/
 
 # Launcher runtime output (logs, state and downloads stay out of the repository)
 tools/launcher/logs/

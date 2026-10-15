@@ -134,6 +134,7 @@ class DeclaredTableCommandTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
+        shutil.rmtree(SCRATCH, ignore_errors=True)
         for name, value in cls._env.items():
             if value is not None:
                 os.environ[name] = value
