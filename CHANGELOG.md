@@ -48,6 +48,11 @@ semantic and is written down in one place, `core/__init__.py`.
 * `export` replaces a file that is already there unless `overwrite=0` is
   given; `convert` and `settings` skip an existing destination unless
   `overwrite=1` is given.
+* The plain-text tables of a project are the names its settings declare under
+  `<equipment>` and `<surnames>`, so a table a mod names itself is recognised
+  as one whatever it holds. A scope without a settings file still falls back to
+  the `equipment_*` / `surnames_*` conventions and to a `.txt` with no root
+  element (docs/cli.md section 4.3).
 
 ### Known limitations
 

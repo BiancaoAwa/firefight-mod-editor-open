@@ -34,6 +34,8 @@
 * 用户可见文本统一为英文。Web 界面对 187 条模板提供中文译文，并提供 `lang=zh|en` 切换。
 * `export` 默认替换已存在的文件，`overwrite=0` 才跳过；`convert` 与 `settings` 默认跳过已存在的目标，
   `overwrite=1` 才替换。
+* 工程的纯文本表格以设置为准：设置里 `<equipment>`、`<surnames>` 点名的文件无论内容如何都算表格。
+  没有设置文件的作用域仍退回 `equipment_*`／`surnames_*` 命名约定与无根元素的 `.txt`（docs/cli.zh-CN.md §4.3）。
 
 ### 已知限制
 

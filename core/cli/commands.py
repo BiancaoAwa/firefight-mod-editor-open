@@ -315,9 +315,9 @@ def is_plain_text(path: Path) -> bool:
     """Whether a .txt file carries no XML root, i.e. it is a plain-text data file.
 
     The format keeps some tables as plain text: ``equipment_*`` and ``surnames_*``
-    are named as lists, and a mod may add its own, so the content decides as well
-    (docs/cli.md section 4.3).  A file that cannot be decoded counts as a document,
-    so the caller still reports it.
+    are named as lists, and the project's ``Mod/mod.txt`` names the rest, so this is
+    the content rule ``is_list_file`` falls back on (docs/cli.md section 4.3).  A
+    file that cannot be decoded counts as a document, so the caller still reports it.
     """
     if path.suffix.lower() != ".txt":
         return False
@@ -328,6 +328,64 @@ def is_plain_text(path: Path) -> bool:
     except FfError:
         return False
     return False
+
+
+LIST_KEYS = ("equipment", "surnames")
+
+
+def declared_lists(scope: Scope) -> set[str]:
+    """The plain-text table names the project's settings declare.
+
+    ``<equipment>`` and ``<surnames>`` in the project's ``Mod/mod.txt`` name the
+    tables the game keeps as text; a project that carries only ``mod_setting.toml``
+    declares the same names there.  A scope that declares neither has no list of its
+    own and the name conventions decide alone (docs/cli.md section 4.3).
+    """
+    from core import settings
+
+    names: set[str] = set()
+    table: toml.TomlTable | None = None
+    stock = scope.root / settings.MOD_TXT
+    project_file = scope.project / "mod_setting.toml"
+    try:
+        if stock.is_file():
+            source = textio.read_source(stock)
+            table, _ = settings.render(source.text, str(stock))
+        elif project_file.is_file():
+            source = textio.read_source(project_file)
+            table = toml.parse(source.text, str(project_file))
+    except (FfError, OSError):
+        return set()
+    stack: list[toml.TomlEntry] = [table]
+    while stack:
+        entry = stack.pop()
+        if isinstance(entry, toml.TomlTable):
+            for key, child in entry.entries:
+                if key in LIST_KEYS:
+                    value = getattr(child, "value", None)
+                    if isinstance(value, list):
+                        names.update(str(item) for item in value if str(item))
+                    elif isinstance(value, str) and value:
+                        names.add(value)
+                stack.append(child)
+        elif isinstance(entry, toml.TomlArrayEntry):
+            stack.extend(entry.items)
+    return names
+
+
+def is_list_file(relative: str, declared: set[str], path: Path | None = None) -> bool:
+    """Whether a file is a plain-text table rather than an entity document.
+
+    A name the project declares under ``<equipment>`` or ``<surnames>`` is a table
+    whatever the file holds; the name conventions cover a scope that declares
+    nothing, and a ``.txt`` with no XML root is a table by its content
+    (docs/cli.md section 4.3).
+    """
+    if not is_entity(relative):
+        return True
+    if relative.rsplit("/", 1)[-1] in declared:
+        return True
+    return path is not None and is_plain_text(path)
 
 
 def single_document(ctx: Context) -> tuple[Path, str]:
@@ -424,6 +482,7 @@ def stored_index(ctx: Context, scope: Scope):
 
 def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[dict], list[dict], str]:
     """The references of the selected files, from the stored tables or a fresh walk."""
+    declared = declared_lists(scope)
     stored = stored_index(ctx, scope)
     if stored is not None:
         _, refs_tables = stored
@@ -431,7 +490,7 @@ def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[
         collected: list[dict] = []
         for path in files:
             relative = relative_of(scope, path)
-            if not is_entity(relative):
+            if is_list_file(relative, declared):
                 continue
             lines = by_source.get(relative)
             if not isinstance(lines, list):
@@ -454,7 +513,7 @@ def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[
     errors: list[dict] = []
     for path in files:
         relative = relative_of(scope, path)
-        if not is_entity(relative):
+        if is_list_file(relative, declared, path):
             continue
         try:
             document = load_document(path, relative)
@@ -496,8 +555,9 @@ def cmd_index(ctx: Context) -> Result:
     errors: list[dict] = []
     references = 0
     skipped = 0
+    declared = declared_lists(scope)
     for relative, path in items:
-        if not is_entity(relative):
+        if is_list_file(relative, declared, path):
             skipped += 1
             continue
         try:
@@ -600,7 +660,7 @@ def cmd_list(ctx: Context) -> Result:
 def cmd_show(ctx: Context) -> Result:
     """Show one entity, as stored or in the other representation."""
     path, relative = single_document(ctx)
-    if not is_entity(relative):
+    if is_list_file(relative, declared_lists(ctx.scope), path):
         text = textio.read_source(path).text
         return Result({"path": relative, "format": "list", "text": text, "warnings": []}, text.rstrip("\n"))
     document = load_document(path, relative)
@@ -772,11 +832,12 @@ def cmd_find(ctx: Context) -> Result:
         raise UsageError("nothing to search for; pass tag=<name>, value=<text> or path=<a/b>")
     needle = value.casefold() if (value and ignore_case) else value
     files = filter_category(targets(ctx), ctx, ctx.scope)
+    declared = declared_lists(ctx.scope)
     matches: list[dict] = []
     total = 0
     for path in files:
         relative = relative_of(ctx.scope, path)
-        if not is_entity(relative) or is_plain_text(path):
+        if is_list_file(relative, declared, path):
             continue
         try:
             document = load_document(path, relative)
@@ -831,13 +892,14 @@ def cmd_stats(ctx: Context) -> Result:
     bytes_total = 0
     errors: list[dict] = []
     lists = 0
+    declared = declared_lists(scope)
     for path in files:
         relative = relative_of(scope, path)
         category = category_of_path(relative)
         by_category[category] = by_category.get(category, 0) + 1
         by_format[path.suffix.lstrip(".")] = by_format.get(path.suffix.lstrip("."), 0) + 1
         bytes_total += path.stat().st_size
-        if not is_entity(relative):
+        if is_list_file(relative, declared, path):
             lists += 1
             continue
         try:
@@ -920,7 +982,12 @@ def cmd_deps(ctx: Context) -> Result:
     kind = ctx.options.get("kind")
     if not value:
         raise UsageError("name what to look for: value=<token>")
-    files = [path for path in entity_files(scope) if is_entity(relative_of(scope, path))]
+    declared = declared_lists(scope)
+    files = [
+        path
+        for path in entity_files(scope)
+        if not is_list_file(relative_of(scope, path), declared)
+    ]
     collected, errors, origin = reference_rows(ctx, scope, files)
     incoming = [
         item
@@ -966,9 +1033,10 @@ def cmd_check(ctx: Context) -> Result:
     graph = refs_core.RefGraph()
     loaded = 0
     skipped = 0
+    declared = declared_lists(scope)
     for path in files:
         relative = relative_of(scope, path)
-        if not is_entity(relative):
+        if is_list_file(relative, declared, path):
             skipped += 1
             continue
         try:
@@ -1439,9 +1507,10 @@ def cmd_convert(ctx: Context) -> Result:
     copied: list[dict] = []
     skipped: list[dict] = []
     errors: list[dict] = []
+    declared = declared_lists(scope)
     for path in filter_category(targets(ctx), ctx, scope):
         relative = relative_of(scope, path)
-        if not is_entity(relative) or is_plain_text(path):
+        if is_list_file(relative, declared, path):
             skipped.append({"path": relative, "reason": "list file"})
             continue
         out = data_root / Path(relative).with_suffix(SUFFIX_TOML)
