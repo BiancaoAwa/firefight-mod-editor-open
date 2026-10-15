@@ -88,6 +88,7 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 | [refs.md](docs/refs.md) | reference rules and coverage |
 | [toml-mapping.md](docs/toml-mapping.md) | how stock XML maps onto the TOML editing model |
 | [m1-design.md](docs/m1-design.md) | data core design |
+| [CHANGELOG.md](CHANGELOG.md) | what each version added, changed, and left as a known limitation |
 
 ## Building a mod
 

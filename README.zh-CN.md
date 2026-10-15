@@ -75,6 +75,7 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 | [refs.md](docs/refs.zh-CN.md) | 引用规则与覆盖情况 |
 | [toml-mapping.md](docs/toml-mapping.zh-CN.md) | 原版 XML 如何映射到 TOML 编辑模型 |
 | [m1-design.md](docs/m1-design.md) | 数据内核设计 |
+| [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md) | 各版本新增、变更与已知限制 |
 
 ## 制作模组
 

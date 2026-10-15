@@ -53,6 +53,7 @@ def build_fixtures() -> dict[str, bytes]:
         "stock/Data/equipment_german.txt": b"WEAPON_A\nWEAPON_B\n",
         "broken/Data/Weapons/WEAPON_C.txt": WEAPON_XML.replace("\n", "\r\n").encode("cp1252"),
         "broken/Data/Weapons/PLAIN.txt": b"this file is not XML at all\n",
+        "broken/Data/Weapons/WEAPON_D.toml": b'[weapon\n\tname = "Demo Rifle"\n',
         # Beside Data/, the way a mod carries its own artwork and sound.
         "stock/Images/units/rifleman.png": b"\x89PNG\r\n\x1a\nfixture\n",
         "stock/Sounds/rifle.ogg": b"OggS-fixture\n",
@@ -214,8 +215,15 @@ class ConvertCommandTest(unittest.TestCase):
         self.assertEqual((code, err), (1, ""))
         self.assertEqual(payload["written"], 1)
         self.assertEqual(len(payload["errors"]), 1)
-        self.assertEqual(payload["errors"][0]["path"], "Data/Weapons/PLAIN.txt")
+        self.assertEqual(payload["errors"][0]["path"], "Data/Weapons/WEAPON_D.toml")
         self.assertTrue((OUT / "Mod" / "Data" / "Weapons" / "WEAPON_C.toml").is_file())
+
+    def test_c4_a_txt_without_an_xml_root_is_skipped_as_a_list_file(self) -> None:
+        """A plain-text table carries no root element, so it is data and not a document."""
+        code, payload, err = run_json("Firefight", "convert", f"to={OUT}", f"root={BROKEN}", "--write")
+        self.assertEqual((code, err), (1, ""))
+        self.assertIn({"path": "Data/Weapons/PLAIN.txt", "reason": "list file"}, payload["skipped_files"])
+        self.assertFalse((OUT / "Mod" / "Data" / "Weapons" / "PLAIN.toml").exists())
 
     # --- assets --------------------------------------------------------------
 

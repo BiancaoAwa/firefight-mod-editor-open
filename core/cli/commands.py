@@ -311,6 +311,25 @@ def is_entity(relative: str) -> bool:
     return category_of_path(relative) not in ("equipment", "surnames")
 
 
+def is_plain_text(path: Path) -> bool:
+    """Whether a .txt file carries no XML root, i.e. it is a plain-text data file.
+
+    The format keeps some tables as plain text: ``equipment_*`` and ``surnames_*``
+    are named as lists, and a mod may add its own, so the content decides as well
+    (docs/cli.md section 4.3).  A file that cannot be decoded counts as a document,
+    so the caller still reports it.
+    """
+    if path.suffix.lower() != ".txt":
+        return False
+    try:
+        xml.parse(textio.read_source(path).text, str(path))
+    except XmlStructureError:
+        return True
+    except FfError:
+        return False
+    return False
+
+
 def single_document(ctx: Context) -> tuple[Path, str]:
     """The one file an entity command needs, with a clear error when ambiguous."""
     files = targets(ctx)
@@ -757,7 +776,7 @@ def cmd_find(ctx: Context) -> Result:
     total = 0
     for path in files:
         relative = relative_of(ctx.scope, path)
-        if not is_entity(relative):
+        if not is_entity(relative) or is_plain_text(path):
             continue
         try:
             document = load_document(path, relative)
@@ -1422,7 +1441,7 @@ def cmd_convert(ctx: Context) -> Result:
     errors: list[dict] = []
     for path in filter_category(targets(ctx), ctx, scope):
         relative = relative_of(scope, path)
-        if not is_entity(relative):
+        if not is_entity(relative) or is_plain_text(path):
             skipped.append({"path": relative, "reason": "list file"})
             continue
         out = data_root / Path(relative).with_suffix(SUFFIX_TOML)
