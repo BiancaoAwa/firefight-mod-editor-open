@@ -2,8 +2,8 @@
 
 The package carries the layout the game installs: every managed document is rendered back
 to stock XML, files the editor does not manage are copied byte for byte,
-``mod_setting.toml`` becomes ``Mod/mod.txt``, and the project's ``README.md`` and
-``LICENSE`` sit at the archive root (docs/project-layout.md section 5).  ``.editor/`` never
+``ModSetting.toml`` becomes ``Mod/mod.txt``, and the project's ``README.md`` and
+``LICENSE`` sit at the archive root (docs/project-layout.md section 5).  ``EditorCache/`` never
 enters the package.
 
 Members are written with a fixed timestamp, so packing the same project twice produces the
@@ -24,13 +24,13 @@ from pathlib import Path
 from core.toml import TomlTable, TomlValue
 
 ARCHIVE_SUFFIX = ".zip"
-MOD_FOLDER = "Mod"
+MOD_FOLDER = "Mod"  # the archive root prefix the game expects, not an on-disk folder
 MOD_TXT = "mod.txt"
-SETTING_FILE = "mod_setting.toml"
-MANIFEST = "mod.toml"
+SETTING_FILE = "ModSetting.toml"
+MANIFEST = "ModInformation.toml"
 ROOT_FILES = ("README.md", "LICENSE")
-SKIP_DIRS = frozenset({".editor", "EditorCache"})
-PROJECT_ONLY = frozenset({".ff-editor.local.toml", ".gitignore", ".gitattributes", "mod.toml"})
+SKIP_DIRS = frozenset({"EditorCache"})
+PROJECT_ONLY = frozenset({".gitignore", ".gitattributes", MANIFEST, SETTING_FILE, "Setting.toml"})
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)
 UNSAFE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
@@ -59,7 +59,7 @@ def archive_name(name: str, version: str = "") -> str:
 
 
 def metadata(table: TomlTable) -> dict[str, str]:
-    """``name`` and ``version_name`` out of a parsed ``mod.toml``."""
+    """``name`` and ``version_name`` out of a parsed ``ModInformation.toml``."""
     section = table.get("mod")
     if not isinstance(section, TomlTable):
         return {}
@@ -75,11 +75,11 @@ def plan(project: Path) -> tuple[tuple[Piece, ...], tuple[dict[str, str], ...]]:
     """Classify a project into the members of its package and what was left out.
 
     A ``.toml`` document goes in as the stock ``.txt`` it stands for; a ``.txt`` beside a
-    document is that document's stale twin and stays out; ``Mod/mod.txt`` is rendered from
-    ``mod_setting.toml`` by the caller and is not a copy either; everything else under
-    ``Mod/`` is copied as it stands.
+    document is that document's stale twin and stays out; ``mod.txt`` is rendered from
+    ``ModSetting.toml`` by the caller and is not a copy either; everything else in the
+    project directory is copied as it stands.
     """
-    root = project / MOD_FOLDER
+    root = project
     pieces: list[Piece] = []
     skipped: list[dict[str, str]] = []
     if root.is_dir():
@@ -97,6 +97,9 @@ def plan(project: Path) -> tuple[tuple[Piece, ...], tuple[dict[str, str], ...]]:
                 continue
             if path.name.startswith(".") or path.name in PROJECT_ONLY:
                 skipped.append({"path": relative.as_posix(), "reason": "the editor's own file"})
+                continue
+            if relative.as_posix() in ROOT_FILES:
+                # These belong at the archive root, not under the ``Mod/`` prefix.
                 continue
             if path.suffix.lower() == ".toml":
                 stem = relative.with_suffix("").as_posix()

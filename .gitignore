@@ -9,15 +9,13 @@ dist/
 *.7z
 
 # Editor state: event log, baseline, lock and the web instance record (docs/project-layout.md §8)
-.editor/
+EditorCache/
 
 # Local scratch
 *.tmp
 _out/
-.ff-editor.local.toml
+Setting.toml
 tests/_scratch_*/
 
 # Launcher runtime output (logs, state and downloads stay out of the repository)
-tools/launcher/logs/
-tools/launcher/out/
-tools/launcher/*.json
+Logs/

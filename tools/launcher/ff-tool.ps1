@@ -12,7 +12,7 @@ ff-tool.ps1 - one-click start / stop for the Firefight mod editor tool (the `cor
            -Scope <name> picks the scope (default Firefight, -Project implies Mod);
            -NoBrowser opens no page, -Browser uses the default browser instead of the app window
 
-Every CLI call is appended to <workdir>\logs\tool-<date>.log.
+Every CLI call is appended to <workdir>\tool-<date>.log.
 Override paths with -Python/-Cli/-Root/-Project/-WorkDir or the FF_PYTHON / FF_CLI /
 FF_ROOT / FF_PROJECT / FF_SCOPE / FF_WORK environment variables.
 #>
@@ -61,7 +61,8 @@ $defaultCli = $cliCandidates | Where-Object { Test-Path -LiteralPath $_ } | Sele
 if (-not $defaultCli) { $defaultCli = $cliCandidates[0] }
 $editorRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $defaultCli))
 $bundledRoot = Join-Path $editorRoot 'Firefight'
-$defaultWork = $PSScriptRoot
+# Logs live next to the core folder, in both layouts (repository and release).
+$defaultWork = Join-Path $editorRoot 'Logs'
 
 if (-not $Python) { $Python = $defaultPython }
 if (-not $Cli) { $Cli = $defaultCli }
@@ -71,7 +72,7 @@ function Get-ConfiguredFirefightRoot {
     # Reads `firefight = "<path>"` from CONFIG_NAME, the key core/cli/scope.py resolves.
     foreach ($dir in @($WorkDir, (Split-Path -Parent $WorkDir), $editorRoot)) {
         if (-not $dir) { continue }
-        $configPath = Join-Path $dir '.ff-editor.local.toml'
+        $configPath = Join-Path $dir 'Setting.toml'
         $text = Get-Content -LiteralPath $configPath -Raw -ErrorAction SilentlyContinue
         if ($text -and $text -match '(?m)^\s*firefight\s*=\s*"([^"]+)"') {
             return ($Matches[1] -replace '/', '\')
@@ -127,7 +128,7 @@ function Write-Info([string]$Text) { Write-Host "  $Text" -ForegroundColor Gray 
 
 function Initialize-Log {
     if (-not (Test-Path $WorkDir)) { New-Item -ItemType Directory -Path $WorkDir -Force | Out-Null }
-    $logDir = Join-Path $WorkDir 'logs'
+    $logDir = $WorkDir
     if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
     $script:LogFile = Join-Path $logDir ('tool-' + (Get-Date -Format 'yyyyMMdd') + '.log')
     Add-Content -Path $script:LogFile -Value ("--- {0} :: {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), ($Action)) -Encoding UTF8
@@ -242,12 +243,12 @@ function Show-Preflight {
     else { Write-Bad "stock root not found: $Root"; $fails++ }
 
     if ($Project) {
-        $manifest = Join-Path $Project 'mod.toml'
+        $manifest = Join-Path $Project 'ModInformation.toml'
         if (Test-Path $manifest) { Write-Ok "project  $Project" }
-        else { Write-Bad "no mod.toml in the project directory: $Project"; $fails++ }
+        else { Write-Bad "no ModInformation.toml in the project directory: $Project"; $fails++ }
     }
     else {
-        Write-Info 'project  (none) - Mod scope needs -Project <dir with mod.toml> or root=<dir>'
+        Write-Info 'project  (none) - Mod scope needs -Project <dir with ModInformation.toml> or root=<dir>'
     }
     return $fails
 }
@@ -310,7 +311,7 @@ function Start-Tool {
     Write-Info '  ff Firefight check --json'
     Write-Info ("the stock root is:  " + $Root)
     Write-Info 'to query another project, pass root=<that directory> (a real path, not a placeholder)'
-    Write-Info 'a `Mod` scope needs -Project <dir with mod.toml> when the window starts'
+    Write-Info 'a `Mod` scope needs -Project <dir with ModInformation.toml> when the window starts'
     Write-Info 'stop the tool with:  stop'
     Write-Info ("open the pages in their own window:  web-open   (http://127.0.0.1:{0}/)" -f $Port)
     Write-Info 'web-open starts the UI hidden and leaves this prompt free (nothing to close but the page)'
@@ -377,7 +378,7 @@ function Start-Web {
 
 function Get-WebInstanceFile {
     # the record the CLI writes for the instance it serves (core/web/server.py)
-    Join-Path $editorRoot '.editor\web.json'
+    Join-Path $editorRoot 'EditorCache\web.json'
 }
 
 function Read-WebInstance {
@@ -766,7 +767,7 @@ function Show-Status {
         elseif ($row.name -eq 'output') { Write-Info ("{0} (not created yet)" -f $line) }
         else { Write-Bad $line }
     }
-    if (-not $Project) { Write-Info 'project  (none) - Mod scope needs -Project <dir with mod.toml>' }
+    if (-not $Project) { Write-Info 'project  (none) - Mod scope needs -Project <dir with ModInformation.toml>' }
 
     Write-Head 'running'
     $procs = Get-FfPython
@@ -861,7 +862,7 @@ function Watch-Web([string]$PortArg, [string]$ServerPidArg, [string]$PagePidArg,
     # Watch one web session to its end and clean up after it.
     # Forwards: when the server stops (退出 on the page, `stop`, Ctrl-C, a crash), close the
     # app window and delete its throw-away profile; the verdict is appended to
-    # logs\web-<port>-exit.log, which `status` shows as the last session.
+    # web-<port>-exit.log, which `status` shows as the last session.
     # Reverse: with PageModeArg 'app', three dead checks in a row mean the user closed the
     # window first, and the server is then asked to leave through /quit (see Test-WindowAlive
     # for the signal). In 'browser' mode the window belongs to the user's own browser and is
@@ -976,7 +977,7 @@ function Show-Help {
     Write-Info 'options port=<n> (8765) -Port <n>, token=<text> (add ?t=<text>), pagesize=<n> (200), browser=1'
     Write-Head 'the CLI itself'
     Write-Info 'ff <scope> <command> [selector] [key=value ...] [--json]'
-    Write-Info 'scope   Firefight (stock game data) | Mod (the project with mod.toml) | a mod folder name'
+    Write-Info 'scope   Firefight (stock game data) | Mod (the project with ModInformation.toml) | a mod folder name'
     Write-Info 'command check, deps, export, find, get, list, refs, show, stats, version, web   (all'
     Write-Info '        read-only except export, which writes only under to=; there is no edit command yet)'
     Write-Info 'exit    0 ok | 1 executed failure (the JSON payload is still valid) | 2 usage error'

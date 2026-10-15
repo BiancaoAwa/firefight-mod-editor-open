@@ -9,13 +9,16 @@ Status: data core, XML/TOML round-trip, reference graph, the command line, the l
 the editing loop — `set` changes one field of one project document, adds and deletes array
 entries, and leaves the rest of the file byte-identical; `add` and `remove` create and delete
 whole documents; `log`, `undo` and `redo` record every write and revert it from the bytes kept
-under `.editor/` ([cli.md](docs/cli.md) §4.1, §4.2, §4.5) — one-command import of the stock
-data as project documents (`convert`), the reference index (`.editor/index.toml` and
-`.editor/refs.toml`, [cli.md](docs/cli.md) §4.6), the translation between the stock `Mod/mod.txt`
-and `mod_setting.toml` in both directions ([cli.md](docs/cli.md) §4.7), the mod-zip builder
+under `EditorCache/` ([cli.md](docs/cli.md) §4.1, §4.2, §4.5) — one-command import of the stock
+data as project documents (`convert`), the reference index (`EditorCache/index.toml` and
+`EditorCache/refs.toml`, [cli.md](docs/cli.md) §4.6), the translation between the stock `mod.txt`
+and `ModSetting.toml` in both directions ([cli.md](docs/cli.md) §4.7), the mod-zip builder
 `pack` ([cli.md](docs/cli.md) §4.8), the MCP server `python -m core.mcp`,
 which offers the commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI
-that runs the same commands, writing ones included, in Chinese or English. `init` creates a
+that runs the same commands, writing ones included, in Chinese or English ([web.md](docs/web.md)):
+`/edit` lists every field of a document with its own input box, `/ops` offers each writing command
+as a form and runs it with `--write --dry-run` before offering the write, and `/log` shows the
+event log with the undo and redo forms. `init` creates a
 project in an empty directory ([cli.md](docs/cli.md) §4.9). `export` reproduces a stock file
 byte for byte, layout included — 1840 of 1840 files on the installed game
 (`tools/export_fidelity.py`). [flow.md](docs/flow.md) shows how the pieces fit together. No
@@ -36,8 +39,8 @@ python -m core.cli Firefight web  "root=<game directory>"   # pages on 127.0.0.1
 
 `<game directory>` is the directory that holds `Data/`, `Images/` and `Sounds/` — the one
 containing `Firefight.exe` for an installed game. `Mod` is the project the current
-directory belongs to (nearest ancestor with `mod.toml`). `Firefight` may also be resolved
-from the `FIREFIGHT_DATA` environment variable or a local `.ff-editor.local.toml`; see
+directory belongs to (nearest ancestor with `ModInformation.toml`). `Firefight` may also be resolved
+from the `FIREFIGHT_DATA` environment variable or a local `Setting.toml`; see
 [cli.md](docs/cli.md) §2.
 
 Exit codes: `0` success, `1` executed but reported a failure (the JSON payload is usually
@@ -51,14 +54,15 @@ core/     the code: core/cli (command line), core/mcp (stdio MCP server), core/w
 docs/     specification: what the editor does and how it is built
 tests/    the suite (no game install, no network)
 tools/    auxiliary tools: round-trip and fidelity harnesses, FirefightModPackager,
-          launcher/ (the implementation behind the released ff-web.cmd / ff-ai.cmd)
+          launcher/ (the implementation behind the released StartWebUI.cmd /
+          StartWebUI(Basic).cmd)
 ```
 
 The command line is started as `python -m core.cli`; `core/cli/__main__.py` is the module
 entry point, so there is no `ff.py` at the root to import or wrap.
 
 The **editor folder** a release ships — launchers, `skills/`, `docs/`, `core/`, `launcher/`,
-a bundled `Firefight/` data copy and `Mods/` — is specified in
+a bundled `Firefight/` data copy and `Mod/` — is specified in
 [project-layout.md](docs/project-layout.md) §10; the repository above is the source tree and
 deliberately has a different shape.
 
@@ -92,8 +96,8 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 
 ## Building a mod
 
-A project is a directory holding `mod.toml`, `mod_setting.toml` and `Mod/` (the mod's own
-`Data/`, `Images/`, `Sounds/`), plus `.editor/` for the log and baselines; a mod is a partial
+A project is a directory holding `ModInformation.toml`, `ModSetting.toml` and the data folders (the mod's own
+`Data/`, `Images/`, `Sounds/`), plus `EditorCache/` for the log and baselines; a mod is a partial
 overwrite, so anything it does not carry is read from the stock scope. The editor reads `.toml`
 under a project and `.txt` under the stock scope. `convert` turns the stock data into project
 documents one file at a time (`to=<project directory> --write`, existing targets skipped;

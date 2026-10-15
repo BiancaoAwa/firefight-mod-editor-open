@@ -2,7 +2,7 @@
 
 Each command returns a JSON payload and its text rendering; ``set`` changes one field of one
 project document, ``log``, ``undo`` and ``redo`` read and revert the event log, ``index``
-builds the cross-reference tables under ``.editor/``, and ``export`` writes XML under ``to=``
+builds the cross-reference tables under ``EditorCache/``, and ``export`` writes XML under ``to=``
 (docs/cli.md).
 """
 
@@ -17,7 +17,7 @@ from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 from core.xml import XmlElement
 
-from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, Scope, UsageError, entity_files
+from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, SETTING_FILE, Scope, UsageError, entity_files
 
 
 SUFFIX_TOML = ".toml"
@@ -315,7 +315,7 @@ def is_plain_text(path: Path) -> bool:
     """Whether a .txt file carries no XML root, i.e. it is a plain-text data file.
 
     The format keeps some tables as plain text: ``equipment_*`` and ``surnames_*``
-    are named as lists, and the project's ``Mod/mod.txt`` names the rest, so this is
+    are named as lists, and the project's ``mod.txt`` names the rest, so this is
     the content rule ``is_list_file`` falls back on (docs/cli.md section 4.3).  A
     file that cannot be decoded counts as a document, so the caller still reports it.
     """
@@ -336,8 +336,8 @@ LIST_KEYS = ("equipment", "surnames")
 def declared_lists(scope: Scope) -> set[str]:
     """The plain-text table names the project's settings declare.
 
-    ``<equipment>`` and ``<surnames>`` in the project's ``Mod/mod.txt`` name the
-    tables the game keeps as text; a project that carries only ``mod_setting.toml``
+    ``<equipment>`` and ``<surnames>`` in the project's ``mod.txt`` name the
+    tables the game keeps as text; a project that carries only ``ModSetting.toml``
     declares the same names there.  A scope that declares neither has no list of its
     own and the name conventions decide alone (docs/cli.md section 4.3).
     """
@@ -346,7 +346,7 @@ def declared_lists(scope: Scope) -> set[str]:
     names: set[str] = set()
     table: toml.TomlTable | None = None
     stock = scope.root / settings.MOD_TXT
-    project_file = scope.project / "mod_setting.toml"
+    project_file = scope.project / SETTING_FILE
     try:
         if stock.is_file():
             source = textio.read_source(stock)
@@ -1088,15 +1088,16 @@ def cmd_check(ctx: Context) -> Result:
 
 
 def cmd_init(ctx: Context) -> Result:
-    """Create a project: ``mod.toml`` and an empty ``Mod/Data`` (docs/cli.md section 4.9).
+    """Create a project: ``ModInformation.toml`` and an empty ``Data/`` (docs/cli.md section 4.9).
 
     ``root=`` or ``workspace=`` names the directory to create the project in, the working
     directory when neither is given; that directory may be empty and is created when it is
     missing.  Every other command resolves a scope that already exists — ``init`` is the one
-    that makes one.  An existing ``mod.toml`` is refused, so an initialised project is never
-    overwritten.  ``name=`` fills the mod name in, the directory name otherwise.  The record
-    goes into the log like any other new document, so ``undo`` takes the ``mod.toml`` away
-    again; the empty ``Mod/Data`` is a directory, not a document, and no record reverts it.
+    that makes one.  An existing ``ModInformation.toml`` is refused, so an initialised
+    project is never overwritten.  ``name=`` fills the mod name in, the directory name
+    otherwise.  The record goes into the log like any other new document, so ``undo`` takes
+    the manifest away again; the empty ``Data`` is a directory, not a document, and no
+    record reverts it.
     """
     from core import edit
 
@@ -1113,7 +1114,7 @@ def cmd_init(ctx: Context) -> Result:
     if not name:
         raise UsageError("init needs a name: this directory has none, so pass name=<name>")
 
-    data_root = project / MOD_FOLDER / DATA_FOLDER
+    data_root = project / DATA_FOLDER
     plan = edit.plan_create(manifest, PROJECT_FILE, edit.project_skeleton(name), entity=name)
     if dry_run:
         payload = edit.apply_document(plan, project, dry_run=True)
@@ -1136,7 +1137,7 @@ def _init_text(payload: dict) -> str:
     tail = f" [{payload['id']}]" if payload.get("id") else ""
     return (
         f"{payload['project']}: {payload['name']} {state} "
-        f"({PROJECT_FILE} and an empty {MOD_FOLDER}/{DATA_FOLDER}){tail}"
+        f"({PROJECT_FILE} and an empty {DATA_FOLDER}/){tail}"
     )
 
 
@@ -1499,7 +1500,7 @@ def cmd_convert(ctx: Context) -> Result:
     if ctx.options.get("write") != "1":
         raise UsageError("convert needs --write; add --dry-run to inspect the result without writing")
     destination = Path(target)
-    data_root = destination if destination.name == MOD_FOLDER else destination / MOD_FOLDER
+    data_root = destination
     overwrite = ctx.options.get("overwrite") == "1"
     assets = ctx.options.get("assets") == "1"
     dry_run = ctx.options.get("dry-run") == "1"
@@ -1567,7 +1568,7 @@ def cmd_convert(ctx: Context) -> Result:
 
 
 def cmd_settings(ctx: Context) -> Result:
-    """Translate between the stock ``Mod/mod.txt`` and ``mod_setting.toml``.
+    """Translate between the stock ``mod.txt`` and ``ModSetting.toml``.
 
     ``op=render`` (the default) turns the stock file the game loads into the project file,
     ``op=emit`` turns the project file back into the stock one.  Either way an existing
@@ -1587,9 +1588,9 @@ def cmd_settings(ctx: Context) -> Result:
     project = scope.project
     stock = settings.source_path(project)
     if op == "render":
-        source, target = stock, project / "mod_setting.toml"
+        source, target = stock, project / SETTING_FILE
     else:
-        source, target = project / "mod_setting.toml", stock
+        source, target = project / SETTING_FILE, stock
     if not source.is_file():
         raise UsageError(f"nothing to {op} from: {source} is not there")
     overwrite = ctx.options.get("overwrite") == "1"
@@ -1609,12 +1610,12 @@ def cmd_settings(ctx: Context) -> Result:
             source_text = textio.read_source(source)
             table, warnings = settings.render(source_text.text, str(source))
             text = toml.render(table)
-            plan = edit.plan_render(target, "mod_setting.toml", text, entity="mod_setting")
+            plan = edit.plan_render(target, SETTING_FILE, text, entity="mod_setting")
         else:
-            document = load_document(source, "mod_setting.toml")
+            document = load_document(source, SETTING_FILE)
             text, warnings = settings.emit(edit.root_table(document.table, document.root_tag))
             newline, encoding = _stock_style(stock)
-            plan = edit.plan_render(target, f"{MOD_FOLDER}/{settings.MOD_TXT}", text, entity="mod_setting", newline=newline, encoding=encoding)
+            plan = edit.plan_render(target, settings.MOD_TXT, text, entity="mod_setting", newline=newline, encoding=encoding)
         result = edit.apply_document(
         plan, edit.project_root_of(scope.root), dry_run=dry_run, actor=write_actor(ctx)
     )
@@ -1667,9 +1668,9 @@ def _convert_text(payload: dict) -> str:
 def cmd_pack(ctx: Context) -> Result:
     """Build the mod-zip the game installs (docs/cli.md section 4.8).
 
-    Every managed document is rendered back to stock XML, ``mod_setting.toml`` becomes
+    Every managed document is rendered back to stock XML, ``ModSetting.toml`` becomes
     ``Mod/mod.txt``, unmanaged files are copied, and the archive is named after the
-    project's ``mod.toml``.  It goes to ``to=``, the project directory when that is not
+    project's ``ModInformation.toml``.  It goes to ``to=``, the project directory when that is not
     given; an archive that is already there is replaced unless ``overwrite=0``.  The whole
     package is rendered before anything is written.
 
@@ -1717,7 +1718,7 @@ def cmd_pack(ctx: Context) -> Result:
 
     warnings: list[str] = []
     setting = project / pack_core.SETTING_FILE
-    stock = project / MOD_FOLDER / pack_core.MOD_TXT
+    stock = project / pack_core.MOD_TXT
     setting_data: bytes | None = None
     if setting.is_file():
         newline, encoding = _stock_style(stock)

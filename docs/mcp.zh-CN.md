@@ -54,7 +54,7 @@
 
 凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`mcp_ff_set`、`mcp_ff_add`、`mcp_ff_remove`、`mcp_ff_index`、`mcp_ff_convert`、`mcp_ff_settings`、`mcp_ff_undo`、`mcp_ff_redo`、`mcp_ff_init` 与 `mcp_ff_pack` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
 
-`mcp_ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/Mod/mod.txt` 写 `mod_setting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
+`mcp_ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/mod.txt` 写 `ModSetting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
 
 `mcp_ff_init` 在还不是工程的目录里建工程，`mcp_ff_pack` 生成可安装的模组 zip（docs/cli.zh-CN.md §4.9、§4.8）。
 
@@ -76,7 +76,7 @@
 **权限门。** 服务启动时只读；`--write` 使其进入 workspace-write 档。
 
 * 只读服务：`tools/list` 中不含写入工具，直接调用写入工具按未知工具拒绝，不做静默降级。
-* 启用写入的服务：写入限于工程目录内（`Mod/` 与 `.editor/`）。指向 `Firefight` 库存作用域的写入无条件拒绝；游戏安装目录永不被修改。
+* 启用写入的服务：写入限于工程目录内（`Data/`、`Images/`、`Sounds/` 与 `EditorCache/`）。指向 `Firefight` 库存作用域的写入无条件拒绝；游戏安装目录永不被修改。
 * 拒绝即终态。服务不重试、不在同一次调用里再次询问，并把拒绝如实报给调用方；fail-closed 行为与命令行一致。
 * 每次写入追加一条事件日志记录，`actor` 为 `mcp`，使审计链能区分智能体写入与命令行写入。
 * 逐动作批准属于客户端：MCP 协议没有批准原语。DSH 在每次写入前询问；其他客户端应自行对 `mcp_ff_set`/`mcp_ff_undo` 调用设门，服务的 `--write` 是第二道、服务端的门。
@@ -91,7 +91,7 @@
 | 参数缺失或非法、资源不存在 | `-32602` invalid params（2026-07-28 把资源不存在从 `-32002` 移到这里） |
 | 服务端意外故障 | `-32603` internal error |
 | 权限门或作用域规则拒绝写入 | `-32000` |
-| `.editor/lock` 被其他写者持有 | `-32001` |
+| `EditorCache/lock` 被其他写者持有 | `-32001` |
 | 暂存后文档被磁盘上改动 | `-32003` |
 | 值无法用文档编码表示 | `-32004` |
 | 值被 schema 拒绝 | `-32005` |
@@ -101,7 +101,7 @@
 ## 7. 入口与分发
 
 * 仓库内：`python -m core.mcp`（`core/mcp/__main__.py`），与 `core/cli` 形态一致。它接受 `--write` 以暴露写入工具，并接受 `workspace=<目录>`、`root=<目录>` 与 `firefight=<目录>` 作为每次工具调用与资源读取默认继承的值；单次调用可以覆盖前两者。
-* 编辑器文件夹（发行态，不是仓库）：与 `ff-ai.cmd`、`ff-web.cmd` 并列的 `ff-mcp.cmd`。它把参数转发给模块，除协议外不向 stdout 写任何内容，也不等待按键。
+* 编辑器文件夹（发行态，不是仓库）：与 `StartWebUI.cmd`、`StartWebUI(Basic).cmd` 并列的 `Start(McpOnly).cmd`。它把参数转发给模块，除协议外不向 stdout 写任何内容，也不等待按键。
 * DSH 接线使用 profile 的 MCP 客户端条目：`transport: stdio`、`serverName`、`command`（解释器）、`cwd`（编辑器文件夹）与 `args`（`-m core.mcp`，仅在需要写入时再加 `--write`）。
 * 通用客户端在其自身配置块里填入同样三项：命令、工作目录、参数。不涉及网络监听、端口或 token。
 

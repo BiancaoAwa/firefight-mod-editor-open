@@ -1,8 +1,8 @@
 """`pack` and the archive the game installs.
 
-The package carries the stock layout: documents rendered back to XML, ``mod_setting.toml``
+The package carries the stock layout: documents rendered back to XML, ``ModSetting.toml``
 as ``Mod/mod.txt``, unmanaged files copied, and the project's README and LICENSE at the
-archive root.  ``.editor/`` and a document's stale ``.txt`` twin stay out
+archive root.  ``EditorCache/`` and a document's stale ``.txt`` twin stay out
 (docs/cli.md section 4.8, docs/project-layout.md section 5).
 """
 
@@ -110,14 +110,14 @@ class PackTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        write(PROJECT / "mod.toml", MOD_TOML)
-        write(PROJECT / "Mod" / "mod.txt", MOD_TXT)
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_SEED.txt", WEAPON_XML)
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_SEED.toml", render(WEAPON_XML, "WEAPON_SEED"))
+        write(PROJECT / "ModInformation.toml", MOD_TOML)
+        write(PROJECT / "mod.txt", MOD_TXT)
+        write(PROJECT / "Data/Weapons/WEAPON_SEED.txt", WEAPON_XML)
+        write(PROJECT / "Data/Weapons/WEAPON_SEED.toml", render(WEAPON_XML, "WEAPON_SEED"))
         write(PROJECT / "README.md", "the fixture readme\n")
         write(PROJECT / "LICENSE", "the fixture licence\n")
         self.ready()
-        self.stock = (PROJECT / "Mod" / "mod.txt").read_bytes()
+        self.stock = (PROJECT / "mod.txt").read_bytes()
 
     def tearDown(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
@@ -139,31 +139,31 @@ class PackTestCase(unittest.TestCase):
         self.assertIn("pack needs --write", err)
 
     def test_pack_refuses_the_stock_scope(self) -> None:
-        code, _, err = run("Firefight", "pack", f"root={PROJECT / 'Mod'}", "--write", cwd=PROJECT)
+        code, _, err = run("Firefight", "pack", f"root={PROJECT}", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("read-only", err)
 
     def test_pack_needs_a_mod_name(self) -> None:
         self.ready()
-        write(PROJECT / "mod.toml", '[mod]\n\nversion_name = "0.0.1"\n')
+        write(PROJECT / "ModInformation.toml", '[mod]\n\nversion_name = "0.0.1"\n')
         code, _, err = self.build()
         self.assertEqual(code, 2)
         self.assertIn("no [mod] name", err)
 
     def test_a_document_that_cannot_be_rendered_is_reported_and_left_out(self) -> None:
         self.ready()
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
+        write(PROJECT / "Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
         code, payload, err = self.build()
         self.assertEqual(code, 0, err)
         self.assertEqual(
-            [item["path"] for item in payload["errors"]], ["Mod/Data/Weapons/WEAPON_BROKEN.toml"]
+            [item["path"] for item in payload["errors"]], ["Data/Weapons/WEAPON_BROKEN.toml"]
         )
         self.assertFalse([name for name in members(ARCHIVE) if "WEAPON_BROKEN" in name])
         self.assertEqual(payload["check"], {"errors": 1, "dangling": 0})
 
     def test_strict_refuses_a_document_that_cannot_be_rendered(self) -> None:
         self.ready()
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
+        write(PROJECT / "Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
         code, _, err = self.build("strict=1")
         self.assertEqual(code, 2)
         self.assertIn("strict=1", err)
@@ -200,28 +200,28 @@ class PackTestCase(unittest.TestCase):
         _, payload, _ = self.build()
         reasons = {item["path"]: item["reason"] for item in payload["skipped"]}
         self.assertEqual(reasons["Data/Weapons/WEAPON_SEED.txt"], "a toml document covers it")
-        self.assertIn("rendered from mod_setting.toml", reasons["mod.txt"])
+        self.assertIn("rendered from ModSetting.toml", reasons["mod.txt"])
 
     def test_the_editor_cache_never_enters_the_package(self) -> None:
         self.ready()
-        write(PROJECT / "Mod/EditorCache/junk.txt", "cache\n")
-        write(PROJECT / "Mod/.editor/junk.txt", "state\n")
+        write(PROJECT / "EditorCache/junk.txt", "cache\n")
+        write(PROJECT / "EditorCache/junk.txt", "state\n")
         self.build()
         names = members(ARCHIVE)
         self.assertNotIn("Mod/EditorCache/junk.txt", names)
-        self.assertNotIn("Mod/.editor/junk.txt", names)
+        self.assertNotIn("Mod/EditorCache/junk.txt", names)
 
     def test_an_unmanaged_file_is_copied_as_it_stands(self) -> None:
         self.ready()
-        write(PROJECT / "Mod/Data/equipment_fixture.txt", "plain list\n")
+        write(PROJECT / "Data/equipment_fixture.txt", "plain list\n")
         self.build()
         self.assertEqual(members(ARCHIVE)["Mod/Data/equipment_fixture.txt"], b"plain list\n")
 
     def test_a_rendered_document_keeps_the_encoding_of_its_twin(self) -> None:
         self.ready()
         text = "<weapon>\r\n\t<name>K\u00f6nig</name>\r\n\t<type>rifle</type>\r\n</weapon>\r\n"
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_UMTEXT.txt", text, encoding="cp1252")
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_UMTEXT.toml", render(text, "WEAPON_UMTEXT"))
+        write(PROJECT / "Data/Weapons/WEAPON_UMTEXT.txt", text, encoding="cp1252")
+        write(PROJECT / "Data/Weapons/WEAPON_UMTEXT.toml", render(text, "WEAPON_UMTEXT"))
         self.build()
         self.assertEqual(
             members(ARCHIVE)["Mod/Data/Weapons/WEAPON_UMTEXT.txt"], text.encode("cp1252")
@@ -265,7 +265,7 @@ class PackTestCase(unittest.TestCase):
 
     def test_pack_refuses_when_mod_txt_disagrees_with_the_rendering(self) -> None:
         self.ready()
-        write(PROJECT / "Mod" / "mod.txt", MOD_TXT.replace("<name>Pack Fixture</name>", "<name>Other</name>"))
+        write(PROJECT / "mod.txt", MOD_TXT.replace("<name>Pack Fixture</name>", "<name>Other</name>"))
         code, _, err = self.build()
         self.assertEqual(code, 2)
         self.assertIn("settings op=emit --write overwrite=1", err)
@@ -273,7 +273,7 @@ class PackTestCase(unittest.TestCase):
 
     def test_pack_renders_mod_txt_when_the_project_has_none(self) -> None:
         self.ready()
-        (PROJECT / "Mod" / "mod.txt").unlink()
+        (PROJECT / "mod.txt").unlink()
         code, _, err = self.build()
         self.assertEqual(code, 0, err)
         self.assertEqual(members(ARCHIVE)["Mod/mod.txt"], self.stock)
@@ -288,7 +288,7 @@ class PackTestCase(unittest.TestCase):
     def test_strict_refuses_a_project_with_dangling_references(self) -> None:
         self.ready()
         write(
-            PROJECT / "Mod/Data/Weapons/WEAPON_DANGLING.txt",
+            PROJECT / "Data/Weapons/WEAPON_DANGLING.txt",
             "<weapon>\r\n\t<name>Dangling</name>\r\n\t<image_view>nope.png</image_view>\r\n</weapon>\r\n",
         )
         code, _, err = self.build("strict=1")
@@ -299,7 +299,7 @@ class PackTestCase(unittest.TestCase):
     def test_a_project_with_a_dangling_reference_packs_without_strict(self) -> None:
         self.ready()
         write(
-            PROJECT / "Mod/Data/Weapons/WEAPON_DANGLING.txt",
+            PROJECT / "Data/Weapons/WEAPON_DANGLING.txt",
             "<weapon>\r\n\t<name>Dangling</name>\r\n\t<image_view>nope.png</image_view>\r\n</weapon>\r\n",
         )
         code, _, err = self.build()
@@ -324,7 +324,7 @@ class PackPlanTestCase(unittest.TestCase):
     def test_metadata_reads_the_mod_table(self) -> None:
         from core import pack
 
-        table = toml_core.parse(MOD_TOML, "mod.toml")
+        table = toml_core.parse(MOD_TOML, "ModInformation.toml")
         self.assertEqual(pack.metadata(table), {"name": "Pack Fixture", "version_name": "0.0.1"})
 
 
@@ -342,10 +342,10 @@ class PackLogTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        write(PROJECT / "mod.toml", MOD_TOML)
-        write(PROJECT / "Mod" / "mod.txt", MOD_TXT)
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_SEED.txt", WEAPON_XML)
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_SEED.toml", render(WEAPON_XML, "WEAPON_SEED"))
+        write(PROJECT / "ModInformation.toml", MOD_TOML)
+        write(PROJECT / "mod.txt", MOD_TXT)
+        write(PROJECT / "Data/Weapons/WEAPON_SEED.txt", WEAPON_XML)
+        write(PROJECT / "Data/Weapons/WEAPON_SEED.toml", render(WEAPON_XML, "WEAPON_SEED"))
         write(PROJECT / "README.md", "the fixture readme\n")
         write(PROJECT / "LICENSE", "the fixture licence\n")
         settle()

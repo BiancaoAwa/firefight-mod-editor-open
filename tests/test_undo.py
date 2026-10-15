@@ -23,8 +23,8 @@ SCRATCH = Path(__file__).resolve().parent / "_scratch_undo"
 PROJECT = SCRATCH / "project"
 STOCK = SCRATCH / "stock"
 
-SQUAD = PROJECT / "Mod" / "Data" / "Infantry" / "DEMO_SQUAD.toml"
-WEAPON = PROJECT / "Mod" / "Data" / "Weapons" / "WEAPON_DEMO.txt"
+SQUAD = PROJECT / "Data" / "Infantry" / "DEMO_SQUAD.toml"
+WEAPON = PROJECT / "Data" / "Weapons" / "WEAPON_DEMO.txt"
 
 SQUAD_XML = """<squad>
 \t<description>
@@ -92,12 +92,12 @@ class UndoTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
         cls._env = {name: os.environ.pop(name, None) for name in ("FIREFIGHT_DATA", "FIREFIGHT_MODS")}
-        FIXTURES["project/mod.toml"] = 'name = "Undo Fixture"\n'.encode("cp1252")
+        FIXTURES["project/ModInformation.toml"] = 'name = "Undo Fixture"\n'.encode("cp1252")
         FIXTURES["stock/Data/Weapons/WEAPON_STOCK.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-        FIXTURES["project/Mod/Data/Infantry/DEMO_SQUAD.toml"] = toml_document(SQUAD_XML, "squad").encode("cp1252")
-        FIXTURES["project/Mod/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-        FIXTURES["project/Mod/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00rifle\n"
-        FIXTURES["project/Mod/Sounds/SOUND_CARBINE.ogg"] = b"OggS\x00carbine\n"
+        FIXTURES["project/Data/Infantry/DEMO_SQUAD.toml"] = toml_document(SQUAD_XML, "squad").encode("cp1252")
+        FIXTURES["project/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
+        FIXTURES["project/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00rifle\n"
+        FIXTURES["project/Sounds/SOUND_CARBINE.ogg"] = b"OggS\x00carbine\n"
         cls.write_fixtures()
 
     @classmethod
@@ -114,7 +114,7 @@ class UndoTest(unittest.TestCase):
             path = SCRATCH / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-        shutil.rmtree(PROJECT / ".editor", ignore_errors=True)
+        shutil.rmtree(PROJECT / "EditorCache", ignore_errors=True)
 
     def setUp(self) -> None:
         self.write_fixtures()
@@ -152,7 +152,7 @@ class UndoTest(unittest.TestCase):
         self.assertEqual(event["actor"], "cli")
         self.assertEqual(event["result"], "set")
         self.assertIsNone(event["target"])
-        self.assertEqual(event["document"], "Mod/Data/Weapons/WEAPON_DEMO.txt")
+        self.assertEqual(event["document"], "Data/Weapons/WEAPON_DEMO.txt")
         self.assertEqual(event["entity"], "Demo Rifle")
         self.assertEqual(event["field"], "name")
         self.assertEqual((event["before"], event["after"]), ("Demo Rifle", "Demo Rifle II"))
@@ -162,7 +162,7 @@ class UndoTest(unittest.TestCase):
         self.assertEqual(event["bytes_after"], WEAPON.stat().st_size)
         self.assertFalse(event["dry_run"])
         self.assertEqual(payload["event"], event["id"])
-        blob = PROJECT / ".editor" / "baseline" / event["digest_before"]
+        blob = PROJECT / "EditorCache" / "baseline" / event["digest_before"]
         self.assertEqual(blob.read_bytes(), before)
 
     def test_a_dry_run_leaves_no_log_and_no_editor_state(self) -> None:
@@ -171,7 +171,7 @@ class UndoTest(unittest.TestCase):
             cwd=PROJECT,
         )
         self.assertEqual((code, err), (0, ""))
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
         self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "Demo Rifle II")
         code, out, err = run("Mod", "log", cwd=PROJECT)
         self.assertEqual((code, err), (0, ""))
@@ -210,13 +210,13 @@ class UndoTest(unittest.TestCase):
         code, payload, err = run_json("Mod", "log", "1", cwd=PROJECT)
         self.assertEqual((code, err), (0, ""))
         self.assertEqual((payload["total"], payload["shown"]), (2, 1))
-        self.assertEqual(payload["events"][0]["document"], "Mod/Data/Infantry/DEMO_SQUAD.toml")
+        self.assertEqual(payload["events"][0]["document"], "Data/Infantry/DEMO_SQUAD.toml")
 
     def test_log_reads_a_project_without_a_log(self) -> None:
         code, out, err = run("Mod", "log", cwd=PROJECT)
         self.assertEqual((code, err), (0, ""))
         self.assertIn("0 record(s)", out)
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     # --- undo and redo ------------------------------------------------------
 
@@ -234,7 +234,7 @@ class UndoTest(unittest.TestCase):
         self.assertEqual([event["result"] for event in found], ["set", "undo"])
         self.assertEqual(found[-1]["target"], found[0]["id"])
         self.assertEqual(found[-1]["id"], f"{found[0]['segment'].split('.')[0]}:2")
-        self.assertFalse((PROJECT / ".editor" / "lock").exists())
+        self.assertFalse((PROJECT / "EditorCache" / "lock").exists())
 
     def test_b14_undo_redo_undo_is_byte_identical(self) -> None:
         start = WEAPON.read_bytes()
@@ -275,7 +275,7 @@ class UndoTest(unittest.TestCase):
         self.set_field("Data/Infantry/DEMO_SQUAD.toml", "description.quality", "QUALITY_ELITE")
         code, payload, err = run_json("Mod", "undo", "1", "--write", cwd=PROJECT)
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(payload["documents"][0]["document"], "Mod/Data/Infantry/DEMO_SQUAD.toml")
+        self.assertEqual(payload["documents"][0]["document"], "Data/Infantry/DEMO_SQUAD.toml")
         self.assertEqual(SQUAD.read_bytes(), squad)
         self.assertIn(b"First", WEAPON.read_bytes())
 
@@ -318,7 +318,7 @@ class UndoTest(unittest.TestCase):
         code, _, err = run("Mod", "redo", "1", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("redo needs --write", err)
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_the_stock_scope_is_never_reverted(self) -> None:
         before = (STOCK / "Data" / "Weapons" / "WEAPON_STOCK.txt").read_bytes()
@@ -326,13 +326,13 @@ class UndoTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("read-only", err)
         self.assertEqual((STOCK / "Data" / "Weapons" / "WEAPON_STOCK.txt").read_bytes(), before)
-        self.assertFalse((STOCK / ".editor").exists())
+        self.assertFalse((STOCK / "EditorCache").exists())
 
     def test_an_empty_log_refuses_undo(self) -> None:
         code, _, err = run_json("Mod", "undo", "1", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("no change to undo", err)
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_a_count_beyond_the_log_is_refused_without_writing(self) -> None:
         self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "First")
@@ -348,7 +348,7 @@ class UndoTest(unittest.TestCase):
             code, _, err = run("Mod", command, "all", "--write", cwd=PROJECT)
             self.assertEqual(code, 2, command)
             self.assertIn("takes a count of at least 1", err)
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_a_document_changed_by_hand_is_not_reverted(self) -> None:
         self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "First")
@@ -362,7 +362,7 @@ class UndoTest(unittest.TestCase):
     def test_a_missing_baseline_fails_without_writing(self) -> None:
         self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "First")
         event = records()[0]
-        (PROJECT / ".editor" / "baseline" / event["digest_before"]).unlink()
+        (PROJECT / "EditorCache" / "baseline" / event["digest_before"]).unlink()
         edited = WEAPON.read_bytes()
         code, _, err = run_json("Mod", "undo", "1", "--write", cwd=PROJECT)
         self.assertEqual(code, 1)
@@ -373,10 +373,10 @@ class UndoTest(unittest.TestCase):
     def test_a_held_lock_refuses_a_revert(self) -> None:
         self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "First")
         edited = WEAPON.read_bytes()
-        (PROJECT / ".editor" / "lock").write_text(json.dumps({"pid": 4321}), encoding="utf-8")
+        (PROJECT / "EditorCache" / "lock").write_text(json.dumps({"pid": 4321}), encoding="utf-8")
         code, _, err = run_json("Mod", "undo", "1", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
-        self.assertIn(".editor/lock is held", err)
+        self.assertIn("EditorCache/lock is held", err)
         self.assertIn("pid=4321", err)
         self.assertEqual(WEAPON.read_bytes(), edited)
         self.assertEqual(len(records()), 1)

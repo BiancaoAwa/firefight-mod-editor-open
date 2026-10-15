@@ -10,14 +10,15 @@ from pathlib import Path
 from core import toml
 from core.toml import TomlTable, TomlValue
 
-CONFIG_NAME = ".ff-editor.local.toml"
+CONFIG_NAME = "Setting.toml"
 ENV_DATA = "FIREFIGHT_DATA"
 ENV_MODS = "FIREFIGHT_MODS"
-PROJECT_FILE = "mod.toml"
+PROJECT_FILE = "ModInformation.toml"
+SETTING_FILE = "ModSetting.toml"
 MOD_FOLDER = "Mod"
 DATA_FOLDER = "Data"
-# Files that sit in the project directory rather than under the data root.
-PROJECT_FILES = (PROJECT_FILE, "mod_setting.toml")
+# The files a project keeps next to its data root; the data root is the project directory.
+PROJECT_FILES = (PROJECT_FILE, SETTING_FILE)
 
 
 class UsageError(Exception):
@@ -38,9 +39,7 @@ class Scope:
 
     @property
     def project(self) -> Path:
-        """The project directory: the one above ``Mod/``, which holds ``mod.toml``."""
-        if self.root.name == MOD_FOLDER and self.root.parent != self.root:
-            return self.root.parent
+        """The project directory.  It is the data root, holding ``Data/`` and ``ModInformation.toml``."""
         return self.root
 
     def describe(self) -> str:
@@ -102,8 +101,8 @@ def resolve_all(options: dict[str, str], cwd: Path) -> dict[str, Scope]:
         except UsageError:
             continue
     workspace = _workspace_root(options, None, cwd)
-    if workspace is not None:
-        for directory in sorted((workspace / "Mods").glob("*")) if (workspace / "Mods").is_dir() else ():
+    if workspace is not None and (workspace / MOD_FOLDER).is_dir():
+        for directory in sorted((workspace / MOD_FOLDER).glob("*")):
             if directory.is_dir():
                 try:
                     found[directory.name] = resolve_scope(directory.name, options, cwd)
@@ -164,19 +163,23 @@ def _named_scope(name: str, options: dict[str, str], config: TomlTable | None, c
             f"unknown scope {name!r}; known scopes are Mod and Firefight, and workspace mods need "
             f"workspace=<directory> or {ENV_MODS}"
         )
-    for candidate in (workspace / "Mods" / name, workspace / name):
+    for candidate in (workspace / MOD_FOLDER / name, workspace / name):
         if candidate.is_dir():
             return Scope(name, _data_root(candidate, name), f"workspace {workspace}")
-    raise UsageError(f"mod {name!r} not found under {workspace / 'Mods'}")
+    raise UsageError(f"mod {name!r} not found under {workspace / MOD_FOLDER}")
 
 
 def _workspace_root(options: dict[str, str], config: TomlTable | None, cwd: Path) -> Path | None:
+    """The directory that holds ``Mod/``: the override, else the editor root, else the cwd."""
     explicit = options.get("workspace") or os.environ.get(ENV_MODS)
     if explicit:
         return Path(explicit)
     from_config = config_value(config, "workspace")
     if from_config:
         return Path(from_config)
+    editor = _editor_root(cwd)
+    if editor is not None:
+        return editor
     return cwd
 
 
@@ -184,7 +187,9 @@ def _editor_root(cwd: Path) -> Path | None:
     """Nearest ancestor that looks like an editor folder (repository or distribution).
 
     The code moved from ``cli/`` to ``core/cli/`` when the repository was realigned
-    with GitHub (core/ docs/ tests/ tools/), so both shapes count as an editor.
+    with GitHub (core/ docs/ tests/ tools/), so both shapes count as an editor.  The
+    distribution spells the folder ``Core/``; the lookup finds it either way because
+    Windows compares file names without case.
     """
     for directory in (cwd, *cwd.parents):
         cli = (directory / "core" / "cli" / "__init__.py").is_file() or (directory / "cli" / "__init__.py").is_file()
@@ -201,9 +206,7 @@ def _project_root(start: Path) -> Path | None:
 
 
 def _project_data(project: Path) -> Path:
-    """A project keeps its data either under ``Mod/`` or at the project root."""
-    if (project / MOD_FOLDER / DATA_FOLDER).is_dir():
-        return project / MOD_FOLDER
+    """A project directory holds ``Data/`` directly."""
     return _data_root(project, str(project))
 
 

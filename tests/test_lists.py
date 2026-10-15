@@ -1,8 +1,8 @@
 """Tests for the plain-text tables the project's settings declare.
 
-``Mod/mod.txt`` names the tables the game keeps as text under ``<equipment>`` and
+``mod.txt`` names the tables the game keeps as text under ``<equipment>`` and
 ``<surnames>``; a name declared there is a table whatever the file holds, and a project
-that carries only ``mod_setting.toml`` declares the same names.  A scope that declares
+that carries only ``ModSetting.toml`` declares the same names.  A scope that declares
 nothing falls back to the name conventions and to the file content (docs/cli.md
 section 4.3).  The fixture keeps an XML root in the declared table, so only the
 declaration can single it out.
@@ -67,19 +67,19 @@ def write_fixtures() -> None:
         shutil.rmtree(base, ignore_errors=True)
     shutil.rmtree(OUT, ignore_errors=True)
     for base in (PROJECT, TOML_ONLY, PLAIN):
-        (base / "Mod" / "Data" / "Weapons").mkdir(parents=True, exist_ok=True)
-        (base / "Mod" / "Data" / "Weapons" / "WEAPON_A.txt").write_bytes(
+        (base / "Data" / "Weapons").mkdir(parents=True, exist_ok=True)
+        (base / "Data" / "Weapons" / "WEAPON_A.txt").write_bytes(
             WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
         )
-        (base / "Mod" / "Data" / "news_main.txt").write_bytes(
+        (base / "Data" / "news_main.txt").write_bytes(
             TABLE_XML.replace("\n", "\r\n").encode("cp1252")
         )
-    (PROJECT / "Mod" / "mod.txt").write_text(MOD_TXT, encoding="utf-8", newline="")
-    (PROJECT / "Mod" / "Data" / "equipment_american.txt").write_bytes(b"WEAPON_A\n")
-    (PROJECT / "Mod" / "Data" / "surnames_american.txt").write_bytes(b"Smith\n")
-    (TOML_ONLY / "mod_setting.toml").write_text(MOD_SETTING_TOML, encoding="utf-8", newline="")
-    (TOML_ONLY / "Mod" / "Data" / "equipment_american.txt").write_bytes(b"WEAPON_A\n")
-    (TOML_ONLY / "Mod" / "Data" / "surnames_american.txt").write_bytes(b"Smith\n")
+    (PROJECT / "mod.txt").write_text(MOD_TXT, encoding="utf-8", newline="")
+    (PROJECT / "Data" / "equipment_american.txt").write_bytes(b"WEAPON_A\n")
+    (PROJECT / "Data" / "surnames_american.txt").write_bytes(b"Smith\n")
+    (TOML_ONLY / "ModSetting.toml").write_text(MOD_SETTING_TOML, encoding="utf-8", newline="")
+    (TOML_ONLY / "Data" / "equipment_american.txt").write_bytes(b"WEAPON_A\n")
+    (TOML_ONLY / "Data" / "surnames_american.txt").write_bytes(b"Smith\n")
 
 
 def run(*argv: str) -> tuple[int, str, str]:
@@ -97,7 +97,7 @@ def run_json(*argv: str) -> tuple[int, dict, str]:
 
 
 class DeclaredListsTest(unittest.TestCase):
-    """The declaration is read from ``Mod/mod.txt`` or from ``mod_setting.toml``."""
+    """The declaration is read from ``mod.txt`` or from ``ModSetting.toml``."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -114,15 +114,15 @@ class DeclaredListsTest(unittest.TestCase):
         write_fixtures()
 
     def test_mod_txt_declares_the_tables(self) -> None:
-        scope = Scope("Mod", PROJECT / "Mod", "test")
+        scope = Scope("Mod", PROJECT, "test")
         self.assertEqual(declared_lists(scope), DECLARED)
 
     def test_mod_setting_toml_declares_the_same_names(self) -> None:
-        scope = Scope("Mod", TOML_ONLY / "Mod", "test")
+        scope = Scope("Mod", TOML_ONLY, "test")
         self.assertEqual(declared_lists(scope), DECLARED)
 
     def test_a_scope_that_declares_nothing_returns_nothing(self) -> None:
-        self.assertEqual(declared_lists(Scope("Mod", PLAIN / "Mod", "test")), set())
+        self.assertEqual(declared_lists(Scope("Mod", PLAIN, "test")), set())
 
 
 class DeclaredTableCommandTest(unittest.TestCase):

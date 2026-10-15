@@ -30,26 +30,25 @@ A project is a **folder named after the mod** and can be exported to, or importe
 
 ```
 <mod name>/
-├── mod.toml                    mod metadata (information about the project itself)
-├── mod_setting.toml            mod settings (the TOML form of the stock mod.txt)
+├── ModInformation.toml                    mod metadata (information about the project itself)
+├── ModSetting.toml            mod settings (the TOML form of the stock mod.txt)
+├── mod.txt                     the stock settings file the game reads
 ├── README.md                   documentation shipped with the package
 ├── LICENSE                     licence shipped with the package
-├── Mod/                        ← when exported as a standard mod, this level is the stock Firefight/Mod
-│   ├── Data/
-│   │   ├── Infantry/<unit name>.toml
-│   │   ├── Vehicles/<unit name>.toml
-│   │   ├── AT Guns/<unit name>.toml
-│   │   ├── Aircraft/<unit name>.toml
-│   │   ├── Weapons/<weapon name>.toml
-│   │   └── equipment_<nation>.toml    unit list (plain text in stock)
-│   ├── Images/
-│   │   ├── Units/{HMGs,Mortars,Vehicles/{Hulls,Turrets,Profiles}}
-│   │   ├── Uniforms/uniform_<unit name>/...
-│   │   ├── Chooser/{Buttons}
-│   │   └── Game/{Control Panel,Flags,Map,Toolbar}
-│   └── Sounds/...
-└── .editor/                    editor working data and caches (**part of the project, never part of the install package**, confirmed by the project owner)
-    ├── setting.toml            editor settings
+├── Data/                       ← when exported as a standard mod, this level is the stock Firefight/Mod
+│   ├── Infantry/<unit name>.toml
+│   ├── Vehicles/<unit name>.toml
+│   ├── AT Guns/<unit name>.toml
+│   ├── Aircraft/<unit name>.toml
+│   ├── Weapons/<weapon name>.toml
+│   └── equipment_<nation>.toml    unit list (plain text in stock)
+├── Images/
+│   ├── Units/{HMGs,Mortars,Vehicles/{Hulls,Turrets,Profiles}}
+│   ├── Uniforms/uniform_<unit name>/...
+│   ├── Chooser/{Buttons}
+│   └── Game/{Control Panel,Flags,Map,Toolbar}
+├── Sounds/...
+└── EditorCache/                    editor working data and caches (**part of the project, never part of the install package**, confirmed by the project owner)
     ├── log/                    event-log segment directory (see §8)
     │   ├── 20261009T012000.jsonl
     │   └── 20261009T031500.jsonl
@@ -60,15 +59,20 @@ A project is a **folder named after the mod** and can be exported to, or importe
     └── notes.toml              human-readable notes extracted from stock `//` comments (optional)
 ```
 
+The project directory is its own data root: `Data/` sits directly inside it. On export the
+`Data/`, `Images/` and `Sounds/` trees are placed under the archive's `Mod/` prefix, which is
+what a Firefight installation expects; the editor folder keeps the projects themselves under
+its own `Mod/` area (§10.2).
+
 **Confirmed rules**
 
 * One file per entity, with directories **mirroring the stock mod structure** (`Data/<type>/`).
-* `mod.toml` holds mod metadata; `mod_setting.toml` holds the mod settings (stock `mod.txt`); caches such as cross-references each get their own TOML file.
-* Caches and editor state live together under **`.editor/`** at the project root, travel with the project (the project owner confirmed "put the mod cache inside the mod folder") and are **never packed into the install package**.
+* `ModInformation.toml` holds mod metadata; `ModSetting.toml` holds the mod settings (stock `mod.txt`); caches such as cross-references each get their own TOML file.
+* Caches and editor state live together under **`EditorCache/`** at the project root, travel with the project (the project owner confirmed "put the mod cache inside the mod folder") and are **never packed into the install package**.
 * A mod is a **partial overlay**: the project contains only changed or added entities, and everything else is read from the stock baseline (the measured WW3 sample has no `AT Guns/` and no `Aircraft/`).
 * `Surnames/` is **neither modelled nor packaged** (the project owner confirmed "not mod content"); at most it is referenced as a read-only stock resource.
 
-## 3. `mod.toml` (mod metadata)
+## 3. `ModInformation.toml` (mod metadata)
 
 ```toml
 [mod]
@@ -81,7 +85,7 @@ authors = ["WW3 Mod Development Team"]
 license = "CC BY-SA 4.0"
 ```
 
-## 4. `mod_setting.toml` (= the stock `mod.txt`)
+## 4. `ModSetting.toml` (= the stock `mod.txt`)
 
 The structure of `mod.txt` is measured on the installed 13.2.0.0 sample: 10170 bytes, 428 lines, 12 nations. `settings` translates between that file and this one (docs/cli.md §4.7): `op=render` reads the stock file and writes the TOML form, so `<nationality>` blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements one array per nation, the bare `<ranks>` numbers quoted keys, and the `<units>` / `<filename>` elements pass through unchanged. A mapping example:
 
@@ -163,7 +167,7 @@ Key points
 ```
 <mod name>-<version>.zip
 ├── Mod/                       ← the game MOD root (confirmed by the project owner; evidenced by assets/Mod/ on Android)
-│   ├── mod.txt                rendered from mod_setting.toml
+│   ├── mod.txt                rendered from ModSetting.toml
 │   ├── Data/...               rendered from the entity TOML files
 │   ├── Images/...
 │   └── Sounds/...
@@ -173,7 +177,7 @@ Key points
 
 * Packaging must compare against the stock baseline of the **target game version**: a file that already exists in the target version may be reused and need not be packed (the project owner confirmed this is what "anything stock does not report an error" means).
 * **v1 does not do APK packaging** (confirmed by the project owner).
-* The default prefix is **`Mod/`** with README/LICENSE at the zip root. It can be changed in `mod.toml`; **the import side must accept any prefix** (`.Mod/`, `<mod name>/` and a flat, prefixless layout must all be recognised), using the same test as the existing tool's `find_mod_root()`: the project root is the shallowest directory containing `mod.txt`.
+* The default prefix is **`Mod/`** with README/LICENSE at the zip root. It can be changed in `ModInformation.toml`; **the import side must accept any prefix** (`.Mod/`, `<mod name>/` and a flat, prefixless layout must all be recognised), using the same test as the existing tool's `find_mod_root()`: the project root is the shallowest directory containing `mod.txt`.
 * The PC-side root name has been verified by the project owner on a running installation: relative to the directory holding the game executable (`Firefight/`), it is **`Mod/`**, matching `assets/Mod/` on Android, so the exported root name `Mod/` is supported on both sides.
 * The WW3 distribution uses `.Mod/` with its documents inside `.Mod/`; that is a **project folder naming habit**, not the standard install layout.
 
@@ -190,7 +194,7 @@ python -m core.cli <scope> <command> <operation> <path...> [key=value ...] [--js
 | Value | Meaning |
 |---|---|
 | `Mod` | Path relative to the current mod |
-| `Firefight` | Stock game path (given by `root=<path>`, `FIREFIGHT_DATA`, or `.ff-editor.local.toml`) |
+| `Firefight` | Stock game path (given by `root=<path>`, `FIREFIGHT_DATA`, or `Setting.toml`) |
 | `<other mod folder name>` | Another mod, used for cross-mod references |
 
 An entity in another mod may also be addressed with the form `<other mod folder name>:<path>`, which overrides the prefix for that single path.
@@ -227,17 +231,17 @@ is parsed as a `key=value` option; `set`, `undo` and `redo` need `--write` and r
 * The CLI expresses the tier with a flag: a command that writes needs `--write`, and a write
   outside the project directory is refused (`set`, `undo` and `redo` confine themselves to the
   project directory, docs/cli.md §4.1, §4.2).
-* All AI actions are written to `.editor/log/`, recording who made the change.
+* All AI actions are written to `EditorCache/log/`, recording who made the change.
 * Any command that writes produces an event (invariant 2).
 
 ## 8. Event log and rollback
 
 * Granularity: **a single entity field-level modification** (one `set` may produce several field events). [default]
 * Dual track: a human-facing change description plus a machine-facing structured event. [default]
-* Form: event sourcing with periodic snapshots (`.editor/baseline/` provides unchanged echo-back of unedited entities).
+* Form: event sourcing with periodic snapshots (`EditorCache/baseline/` provides unchanged echo-back of unedited entities).
 * Deliberate exception: the log uses **JSONL** (append-only, O(1)); TOML cannot be appended to, so logging in TOML would be O(N²).
 * **Segmentation**: one file per segment, with the rule "**seal the current segment after 5 minutes without a new event, and start a new segment on the next event**".
-  * Path: `.editor/log/<segment start local time>.jsonl`, for example `20261009T012000.jsonl`.
+  * Path: `EditorCache/log/<segment start local time>.jsonl`, for example `20261009T012000.jsonl`.
   * A segment is appended to only; sealing merely means "no further writes to this file" and produces no extra marker.
   * Rollback and time travel work across segments by reading them in filename order, which equals chronological order.
   * Segment files have no size limit; the 5-minute rule is the **only** split condition (not process start/stop, not calendar day).
@@ -249,7 +253,7 @@ is parsed as a `key=value` option; `set`, `undo` and `redo` need `--write` and r
   (always `false`: a dry run is not an event). A `pack` record names no document and carries no
   digests: it notes that an archive was built, and no stack holds it.
 * **Byte-level rollback**: every write stores the document before and after it under
-  `.editor/baseline/<sha256>`, content-addressed and deduplicated across changes, so `undo` and
+  `EditorCache/baseline/<sha256>`, content-addressed and deduplicated across changes, so `undo` and
   `redo` write recorded bytes rather than a re-serialisation. A digest whose bytes are gone, or
   whose bytes no longer hash to their name, fails the command; a document that moved on disk
   after the recorded change refuses the revert instead of overwriting it.
@@ -281,12 +285,12 @@ the editor ships as loose code or as a packed executable.
 │   ├── web/       the local web UI: server, pages, running-instance record, i18n.py (the language table)
 │   └── *.py       schema, parsers (XML/TOML), model, conversion, reference graph,
 │                  editing (edit, journal, history), index.py (the reference index),
-│                  settings.py (the mod.txt <-> mod_setting.toml translator)
+│                  settings.py (the mod.txt <-> ModSetting.toml translator)
 ├── docs/          specification: what the editor does and how it is built, English plus *.zh-CN.md mirror (this file lives here)
 ├── tests/         the suite (no game install, no network)
 ├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
 │                  FirefightModPackager/, and launcher/ (the implementation behind
-│                  ff-web.cmd / ff-ai.cmd)
+│                  StartWebUI.cmd / StartWebUI(Basic).cmd / Start(McpOnly).cmd)
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
 
@@ -302,37 +306,48 @@ The CLI entry is the module `core.cli`, started from the repository root; there 
 
 ```
 <editor>/
-├── ff-web.cmd          launcher with the web UI (double-click; page in its own window)
-├── ff-ai.cmd           launcher without a UI, for AI callers (forwards to the CLI)
-├── README.md           package description; README.zh-CN.md is its Chinese mirror
-├── skills/             AI skills: skills/firefight-editor/SKILL.md
-├── docs/               documentation: English files and their *.zh-CN.md mirrors
-├── core/               the code (core/cli/__main__.py is the CLI entry)
-├── launcher/           the implementation behind ff-web.cmd / ff-ai.cmd
-├── Firefight/          stock game data copy (optional; reference, read-only)
-├── Mods/               mod projects
-│   └── <name>/         mod.toml, mod_setting.toml, README.md, LICENSE,
-│                       Mod/{Data,Images,Sounds},
-│                       .editor/{refs.toml, index.toml, log/, baseline/, notes.toml}
-└── .ff-editor.local.toml   machine-local settings: which mod, which stock directory
+├── StartWebUI           launcher with the web UI (double-click; page in its own window)
+├── StartWebUI(Basic)    launcher without a window, serving in the foreground
+├── Start(McpOnly)       stdio MCP server for AI callers
+├── StopAll              stops the running editor
+├── ErrorFinder          reports what `check` finds, in readable form
+├── ReadMe.md  ReadMe(Cn).md  ChangeLog.md  ChangeLog(Cn).md  Lisense
+├── core/                the code (core/cli/__main__.py is the CLI entry)
+├── docs/                documentation: English files and their *.zh-CN.md mirrors
+├── EditorAssets/        the editor's own resources
+├── launcher/            the implementation behind the entry points above
+├── Firefight/           stock game data copy (optional; reference, read-only)
+├── Logs/                launcher logs
+├── Mod/                 the projects area: one directory per mod project
+│   └── <name>/          ModInformation.toml, ModSetting.toml, mod.txt,
+│                        README.md, LICENSE, Data/, Images/, Sounds/,
+│                        EditorCache/{refs.toml, index.toml, log/, baseline/, notes.toml}
+└── Setting.toml         machine-local settings: which mod, which stock directory
 ```
+
+The entry points carry the `.cmd` suffix on disk (`StartWebUI.cmd` and so on); Windows hides
+known extensions, so they appear as the names above.
+
+The code and documentation folders keep the repository spelling `core/` and `docs/`:
+`python -m core.cli` resolves the package name case-sensitively (measured — a directory named
+`Core/` is not importable as `core`), so only the folders the editor adds are new names.
 
 Rules that follow from this layout:
 
 * The editor looks for the stock data next to its own entry point (`<editor>/Firefight/Data`)
   and reports that origin as `editor copy <path>`; an installation therefore works without
   the game being installed.
-* `Mods/` is the workspace root for `<name>` scopes and `mod.toml` marks a mod project.
+* `Mod/` is the workspace root for `<name>` scopes and `ModInformation.toml` marks a mod project.
 * A mod project is a **partial overlay**: it may only replace files the game already reads,
-  so `Mod/Data`, `Mod/Images` and `Mod/Sounds` mirror the game folders exactly.
-* `.editor/` travels with a project, is excluded from any package, and holds the
+  so `Data/`, `Images/` and `Sounds/` mirror the game folders exactly.
+* `EditorCache/` travels with a project, is excluded from any package, and holds the
   caches (`refs.toml`, `index.toml`, both written by `index`), the event log and the baseline
   snapshots.
-* `mod_setting.toml` is the TOML form of the stock `Mod/mod.txt`, and `settings` translates
+* `ModSetting.toml` is the TOML form of the stock `mod.txt` beside it, and `settings` translates
   between the two in either direction (docs/cli.md §4.7). Each direction is a function of the
   source bytes: `render` reproduces every element of the `mod.txt` it reads, and `emit`
-  reproduces the stock shape of the `mod_setting.toml` it reads.
-* Both launchers run the CLI as `python -m core.cli`, which resolves the `core` package from
+  reproduces the stock shape of the `ModSetting.toml` it reads.
+* Every entry point runs the CLI as `python -m core.cli`, which resolves the `core` package from
   the current directory, so the entry works in both layouts while the code sits one level
   down in `core/`.
 

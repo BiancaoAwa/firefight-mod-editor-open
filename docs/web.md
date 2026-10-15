@@ -2,11 +2,14 @@
 
 # Local web UI
 
-Status: **browsing and command line**. The UI renders the same results as the CLI, and a page
-may run a writing command: the command's own gate (`--write`, project confinement, the
-stock-scope rule) decides whether the write happens, so a refusal reads exactly as it does in a
-shell ([cli.md](cli.md) §4.1–§4.3). What is still missing is a typed editing panel — the pages
-offer text boxes and forms, not field editors with a semantic diff.
+Status: **browsing, editing and the command line**. The UI renders the same results as the CLI,
+and a page may run a writing command: the command's own gate (`--write`, project confinement,
+the stock-scope rule) decides whether the write happens, so a refusal reads exactly as it does
+in a shell ([cli.md](cli.md) §4.1–§4.3). Three pages cover the writing side: `/edit` lists every
+field of one document with its own input box, `/ops` offers every writing command as a form with
+a check step before the write, and `/log` shows the event log with the undo and redo forms
+(§2.1). What is still missing is a semantic diff before the write, conflict detection and a
+permission indicator.
 
 The whole UI is served by the Python standard library — no new dependency, no build step,
 no JavaScript, no external asset, no cookie. Every page is server-rendered HTML, so the
@@ -37,7 +40,7 @@ The address is printed at startup, and each request is logged to stderr:
 Firefight 模组编辑器 Web UI · 作用域 Firefight
   根目录   <game directory>
   地址     http://127.0.0.1:8765/
-  实例记录 <editor folder>\.editor\web.json
+  实例记录 <editor folder>\EditorCache\web.json
   无 JavaScript；Ctrl-C 停止，或点页面上的「退出」
   GET / 200 (312 ms)
 ```
@@ -66,12 +69,12 @@ To serve it without tying up the prompt, use the local launcher that wraps the C
 server **hidden in the background** — no console window is left behind — and opens the page in
 a plain application window of its own (`msedge --app=<url>`: no tabs, no address bar — a
 window, not a browser session); `-Browser` forces an ordinary browser window and `-NoBrowser`
-opens nothing at all. The released `ff-web.cmd` in the editor folder takes that path by
+opens nothing at all. The released `StartWebUI.cmd` in the editor folder takes that path by
 default — `-Foreground` serves in the console instead — and `-Scope <name>` chooses the scope
 it serves, so a double click always gets its own window and the watchdog below.
 
 The caller returns as soon as the port answers; the server's output goes
-to `logs\web-<port>-err.log` next to the launcher log, so nothing needs to stay open to read
+to `web-<port>-err.log` next to the launcher log, so nothing needs to stay open to read
 it. Its `status` action shows the server process and that log, and `stop` ends the process and
 clears the recorded state. A window that names no port does not fail on a busy one: it reuses
 the instance this editor already records, and otherwise takes the first free port from 8765
@@ -112,7 +115,7 @@ A hidden **watchdog** stays with a background session, and it works in both dire
 closed, because it is not the launcher's to close. `-NoBrowser` opens nothing, and there is
 nothing to watch either way.
 
-A running server is recorded in `<editor folder>/.editor/web.json`, or under the project
+A running server is recorded in `<editor folder>/EditorCache/web.json`, or under the project
 directory when no editor folder is recognised: `pid`, `host`, `port`, `url`, `scope`, `token`
 and `started`. The record is what makes a second `web` reuse the first instead of starting a
 rival. `serve` writes it once the port has answered and removes it on a clean stop; a record
@@ -136,6 +139,9 @@ window and reported a port that was in fact its own.
 | 反查 | `/deps` | who points at `value=<token>`; shows what the token resolved to |
 | 体检 | `/check` | load errors, warnings and dangling references; `selector=` narrows the scope |
 | 统计 | `/stats` | counts by category, root element and storage format |
+| 编辑 | `/edit` | every field of `path=<document>` with its own input box (§2.1) |
+| 日志 | `/log` | the event log, filtered by `document=`, `field=`, `actor=`, `result=`, `since=`, `until=`, plus the undo and redo forms |
+| 操作 | `/ops` | every writing command as a form, with a check step before the write (§2.1) |
 | 命令行 | `/cmd` | one command line, run as typed, printed as the CLI prints it (`line=`, `json=1`) |
 | 帮助 | `/help` | the CLI reference and the page list |
 | 退出 | `/quit` | ask first, then stop the server (`/quit?do=1`) |
@@ -160,6 +166,38 @@ stopping anything directly, because the UI is GET-only: a link can be prefetched
 by accident, a second deliberate click cannot. Confirming stops the server (the background
 thread stops `serve_forever` after the goodbye page has been sent); open data files and the
 game installation are untouched, and only the local serving process ends.
+
+### 2.1 The writing pages
+
+`/edit` takes `path=<document>` and lists every field of that document, one row per field, each
+with its own input box and its own `保存` button. The field path is the one `get` prints
+(`ammo.type.0.name`), so a path copied from this page works on the command line unchanged. A row
+does not write anything itself: its form posts to `/ops` with `command=set`, the document, the
+field path and the new value, so a save from this page passes the same check step as any other
+write. The page also links to `/ops` for a change that needs more than one option, and to `/log`.
+
+`/ops` is the whole writing side as a form: `set`, `add`, `remove`, `index`, `convert`,
+`settings`, `export`, `pack`, `init`, `undo` and `redo` — the eleven commands that can change
+something. Without `command=` it is a table with one link per command, each naming what the
+command does and whether it takes a document. A command argument gives its form; the fields come
+from the command's own options, so a checkbox is a flag (`overwrite=`, `assets=`, `strict=`) and
+a `select` is an enumeration (`op=` of `set` is `append`/`delete`, `op=` of `settings` is
+`render`/`emit`).
+
+Nothing is written on the first pass. With `confirm=1` the page prints the equivalent `ff` line
+and then the real result of running it with `--write --dry-run`, which is why it can promise that
+nothing reached the disk; a `写入` link carrying `write=1` then applies it. The check step passes
+`write=1 dry-run=1` rather than `--dry-run` alone, because every writing command takes `--write`
+and it is `--dry-run` that keeps it off the disk ([cli.md](cli.md) §4). When the command refuses
+the check — `undo` with nothing to undo, `init` over an existing project, `add` with a path that
+is not a working document — the page shows that refusal as the result of the check and offers no
+write link, because the write would be refused in exactly the same way. The two steps exist
+because the UI is GET-only: a link can be prefetched or followed by accident, and a write stays
+one deliberate click away from the page that shows what it would do. The command's own gate is
+still the last word.
+
+`/log` prints the event log with the filters the `log` command takes and the undo and redo forms
+beside it; those forms lead into `/ops`, so undoing is checked like everything else.
 
 ## 3. Design rules
 
@@ -204,12 +242,12 @@ game installation are untouched, and only the local serving process ends.
 * Long scans are synchronous and hold one worker thread each: `check` over the whole stock
   scope takes about as long as the same `check` in a shell (seconds), while other requests are
   served on their own threads.
-* A `Mod` scope still needs `mod.toml` (or `root=`); the UI does not invent projects.
+* A `Mod` scope still needs `ModInformation.toml` (or `root=`); the UI does not invent projects.
 
 ## 5. Tests
 
 ```
-python -m unittest tests.test_web          # 63 tests, ~7 s
+python -m unittest tests.test_web          # 80 tests, ~9 s
 python -m unittest discover -s tests -t .  # run the suite
 ```
 
@@ -222,7 +260,17 @@ a quoted path, a scope prefix, an unknown command, and `web`/`serve` refused on 
 `/json` while a writing command is allowed through), a write from a page reaching the
 command's own gate (a `set` without `--write` is refused with `set needs --write`, and the
 document is left alone), and the instance record (an answering instance is reused, a stale one
-is ignored, and a clean stop removes it). Measured against the stock installation, the first
+is ignored, and a clean stop removes it). The writing pages add their own cases: `/edit` lists
+every field of a document with one input box each and links the save through `/ops`; `/ops`
+lists the eleven writing commands and carries a required parameter for each of the eight that
+have one; a form names a parameter once; the check step runs `--write --dry-run` and leaves the
+project untouched, prints the equivalent `ff` line, and drops no `write=1` link; a command that
+refuses the check offers no write link and reports the refusal; `write=1` then changes the
+document, appends an event and lets `/log` show it, undo included; `/pack` with `strict=1` on a
+project with dangling references is refused and offers no write link; the field editor rejects
+`set` without a field and without a value, and on a table-valued path it asks for the entry
+directly; and the forms survive the language switch, so a link that was handed a language keeps
+it. Measured against the stock installation, the first
 slice answers every page in about two seconds (a cold `/stats` over the whole 1840-file stock
 scope was the slowest measured) and serves the 1204 references of
 `WEAPON_PISTOL_P38` from the paged `deps` view; `/cmd` answers `stats`, `deps
@@ -230,10 +278,12 @@ value=WEAPON_PISTOL_P38` and a quoted `show` the same way.
 
 ## 6. Next
 
-Editing is the gate for everything write-shaped, and the write path already exists and is
-shared: a page runs the same command the CLI runs, so `set`, `convert` and the event log
-behave identically in both. What is still missing is the front end of editing — field editors
-that know the schema, a semantic diff before the write, conflict detection and a permission
-indicator — and the indexer that would let `refs` and `deps` answer from
-`.editor/index.toml` instead of rebuilding the graph on each run.
+Editing now has a front end: `/edit` lists the fields of a document and `/ops` offers every
+writing command with a check step before the write. What is still missing is what a productivity
+tool adds on top of that — a semantic diff between the check and the write (the check reports the
+command's output, not a comparison of the before and after bytes), conflict detection when the
+document changed between the two steps, and a permission indicator that says up front whether the
+current scope and options can write at all. The other open piece is the indexer that would let
+`refs` and `deps` answer from `EditorCache/index.toml` instead of rebuilding the graph on each
+run.
 

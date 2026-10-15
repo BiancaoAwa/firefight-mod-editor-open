@@ -1,6 +1,6 @@
-"""Translate between the stock ``Mod\\mod.txt`` and the project file ``mod_setting.toml``.
+"""Translate between the stock ``mod.txt`` and the project file ``ModSetting.toml``.
 
-``mod.txt`` is what the game loads; ``mod_setting.toml`` is the editor's form of it
+``mod.txt`` is what the game loads; ``ModSetting.toml`` is the editor's form of it
 (docs/project-layout.md section 4).  :func:`render` reads the stock file and :func:`emit`
 writes it back, so a project can be edited in TOML and still reach the game.
 """
@@ -16,8 +16,8 @@ MOD_TXT = "mod.txt"
 
 
 def source_path(project: Path) -> Path:
-    """The stock settings file a project would render from."""
-    return project / "Mod" / MOD_TXT
+    """The stock settings file a project would render from: it sits at the data root."""
+    return project / MOD_TXT
 
 
 def render(text: str, origin: str) -> tuple[TomlTable, list[str]]:

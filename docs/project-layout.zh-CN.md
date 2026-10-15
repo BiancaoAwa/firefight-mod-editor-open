@@ -32,8 +32,8 @@ AI 层经 [mcp.md](mcp.zh-CN.md) 规定的 MCP 服务取得同样的能力。
 
 ```
 <模组名>/
-├── mod.toml                    模组元数据（关于工程自身的信息）
-├── mod_setting.toml            模组设置（原版 mod.txt 的 TOML 形式）
+├── ModInformation.toml                    模组元数据（关于工程自身的信息）
+├── ModSetting.toml            模组设置（原版 mod.txt 的 TOML 形式）
 ├── README.md                   随包发布的说明
 ├── LICENSE                     随包发布的许可
 ├── Mod/                        ← 按标准模组导出时，这一层就是原版的 Firefight/Mod
@@ -50,7 +50,7 @@ AI 层经 [mcp.md](mcp.zh-CN.md) 规定的 MCP 服务取得同样的能力。
 │   │   ├── Chooser/{Buttons}
 │   │   └── Game/{Control Panel,Flags,Map,Toolbar}
 │   └── Sounds/...
-└── .editor/                    编辑器工作数据与缓存（**属于工程，绝不进入安装包**，项目方已确认）
+└── EditorCache/                    编辑器工作数据与缓存（**属于工程，绝不进入安装包**，项目方已确认）
     ├── setting.toml            编辑器设置
     ├── log/                    事件日志分段目录（见 §8）
     │   ├── 20261009T012000.jsonl
@@ -65,14 +65,14 @@ AI 层经 [mcp.md](mcp.zh-CN.md) 规定的 MCP 服务取得同样的能力。
 **已确认规则**
 
 * 每个实体一个文件，目录**镜像原版模组结构**（`Data/<类型>/`）。
-* `mod.toml` 存模组元数据；`mod_setting.toml` 存模组设置（原版 `mod.txt`）；交叉引用等缓存各自一个 TOML 文件。
-* 缓存与编辑器状态一起放在工程根下的 **`.editor/`**，随工程迁移（项目方确认「把模组缓存放进模组文件夹」），
+* `ModInformation.toml` 存模组元数据；`ModSetting.toml` 存模组设置（原版 `mod.txt`）；交叉引用等缓存各自一个 TOML 文件。
+* 缓存与编辑器状态一起放在工程根下的 **`EditorCache/`**，随工程迁移（项目方确认「把模组缓存放进模组文件夹」），
   且**绝不打包进安装包**。
 * 模组是**部分覆盖**：工程只包含改动或新增的实体，其余一切从原版基线读取（实测 WW3 样本没有 `AT Guns/`
   与 `Aircraft/`）。
 * `Surnames/` **既不建模也不打包**（项目方确认「不是模组内容」）；最多作为只读的原版资源被引用。
 
-## 3. `mod.toml`（模组元数据）
+## 3. `ModInformation.toml`（模组元数据）
 
 ```toml
 [mod]
@@ -85,7 +85,7 @@ authors = ["WW3 Mod Development Team"]
 license = "CC BY-SA 4.0"
 ```
 
-## 4. `mod_setting.toml`（= 原版 `mod.txt`）
+## 4. `ModSetting.toml`（= 原版 `mod.txt`）
 
 实测 `mod.txt` 结构：10170 字节 / 428 行 / 12 个国家。`settings` 在两者之间双向转换（docs/cli.zh-CN.md §4.7）：`op=render` 读原版文件写 TOML 形态，`op=emit` 反向写回。映射示例见 [英文版](project-layout.md) 同节（`[mod_setting]` 基本字段、`[mod_setting.years]`、`[mod_setting.credits]`、
 `[mod_setting.text_colours]`、`[[mod_setting.nationality]]` 及其 `.flags` / `.ranks` / `.default_images`
@@ -105,7 +105,7 @@ license = "CC BY-SA 4.0"
 ```
 <模组名>-<版本>.zip
 ├── Mod/                       ← 游戏 MOD 根（项目方确认；Android 上 assets/Mod/ 可佐证）
-│   ├── mod.txt                由 mod_setting.toml 渲染
+│   ├── mod.txt                由 ModSetting.toml 渲染
 │   ├── Data/...               由实体 TOML 文件渲染
 │   ├── Images/...
 │   └── Sounds/...
@@ -116,7 +116,7 @@ license = "CC BY-SA 4.0"
 * 打包必须对照**目标游戏版本**的原版基线：目标版本中已存在的文件可以复用、不必打包（项目方确认这正是
   「原版的东西都不报错」的含义）。
 * **v1 不做 APK 打包**（项目方确认）。
-* 默认前缀是 **`Mod/`**，README/LICENSE 放在 zip 根。可在 `mod.toml` 中修改；**导入侧必须接受任意
+* 默认前缀是 **`Mod/`**，README/LICENSE 放在 zip 根。可在 `ModInformation.toml` 中修改；**导入侧必须接受任意
   前缀**（`.Mod/`、`<模组名>/` 以及无前缀的扁平布局都要能识别），判定方式与既有工具的 `find_mod_root()` 相同：
   工程根是包含 `mod.txt` 的最浅目录。
 * PC 侧的根目录名已由项目方在运行中的安装上验证：相对于存放游戏可执行文件的目录（`Firefight/`）为
@@ -138,7 +138,7 @@ python -m core.cli <作用域> <命令> <操作> <路径...> [key=value ...] [--
 | 取值 | 含义 |
 |---|---|
 | `Mod` | 相对于当前模组的路径 |
-| `Firefight` | 原版游戏路径（由 `root=<路径>`、`FIREFIGHT_DATA` 或 `.ff-editor.local.toml` 给出） |
+| `Firefight` | 原版游戏路径（由 `root=<路径>`、`FIREFIGHT_DATA` 或 `Setting.toml` 给出） |
 | `<其他模组文件夹名>` | 另一个模组，用于跨模组引用 |
 
 另一个模组中的实体也可以用 `<其他模组文件夹名>:<路径>` 形式寻址，该形式只对这一个路径覆盖前缀。
@@ -173,17 +173,17 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 * 操作逐条进入批准队列；**拒绝之后绝不重试**；任何失败都按 fail-closed 处理。
 * 命令行用标志表达档位：需要写入的命令必须带 `--write`，指向工程目录之外的写入被拒绝（`set`、`undo` 与 `redo`
   都把自己限制在工程目录内，docs/cli.md §4.1、§4.2）。
-* 所有 AI 动作都写入 `.editor/log/`，记录是谁做的改动。
+* 所有 AI 动作都写入 `EditorCache/log/`，记录是谁做的改动。
 * 任何写入型命令都产生事件（不变量 2）。
 
 ## 8. 事件日志与回滚
 
 * 粒度：**单个实体的字段级修改**（一次 `set` 可能产生多条字段事件）。[default]
 * 双轨：面向人的变更描述 + 面向机器的结构化事件。[default]
-* 形式：事件溯源 + 周期性快照（`.editor/baseline/` 提供未编辑实体的原样回显）。
+* 形式：事件溯源 + 周期性快照（`EditorCache/baseline/` 提供未编辑实体的原样回显）。
 * 有意例外：日志用 **JSONL**（只追加，O(1)）；TOML 无法追加，用 TOML 记日志会退化为 O(N²)。
 * **分段**：一个分段一个文件，规则是「**5 分钟内没有新事件就封存当前分段，下一个事件开启新分段**」。
-  * 路径：`.editor/log/<分段开始本地时间>.jsonl`，例如 `20261009T012000.jsonl`。
+  * 路径：`EditorCache/log/<分段开始本地时间>.jsonl`，例如 `20261009T012000.jsonl`。
   * 分段只追加；封存仅表示「不再写这个文件」，不产生额外标记。
   * 回滚与时间旅行按文件名字顺序读分段，而该顺序即时间顺序。
   * 分段文件没有大小上限；5 分钟规则是**唯一**的切分条件（不是进程启动/停止，也不是自然日）。
@@ -193,7 +193,7 @@ python -m core.cli Mod export --out dist/ --format mod-zip
   `id`，否则 `null`）、`document`（相对于工程的 POSIX 路径）、`entity`、`field`、`before`、`after`、
   `digest_before`、`digest_after`、`bytes_before`、`bytes_after`（均为 sha256 十六进制）与 `dry_run`（恒为
   `false`：空跑不是事件）。`pack` 记录不指向任何文档，也不带摘要：它只记下打过一次包，且不在任何可回滚的栈上。
-* **字节级回滚**：每次写入都把文档写入前与写入后的内容存到 `.editor/baseline/<sha256>`，按内容寻址、跨改动去重，
+* **字节级回滚**：每次写入都把文档写入前与写入后的内容存到 `EditorCache/baseline/<sha256>`，按内容寻址、跨改动去重，
   因此 `undo` 与 `redo` 写的是记录下来的字节，而不是重新序列化的结果。摘要对应的字节丢失、或字节与其摘要不符时命令
   失败；记录之后文档在磁盘上被改动时拒绝回退，而不是覆盖它。
 * **状态靠重放而非另存**：当前生效的改动即日志中被记录、且未被更晚的 `undo` 回退的那些；一次 `undo` 会追加一条自己
@@ -221,11 +221,11 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 │   ├── web/       本地 Web 界面：服务、页面、运行实例记录、i18n.py（语言表）
 │   └── *.py       schema、解析器（XML/TOML）、模型、转换、引用图、
 │                  编辑（edit、journal、history）、index.py（引用索引）、
-│                  settings.py（mod.txt 与 mod_setting.toml 的双向转换器）
+│                  settings.py（mod.txt 与 ModSetting.toml 的双向转换器）
 ├── docs/          规范：编辑器做什么、如何构建；英文文件 + `*.zh-CN.md` 中文对照（本文件所在）
 ├── tests/         测试套件（无需安装游戏、无需联网）
 ├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、
-│                  FirefightModPackager/，以及 launcher/（ff-web.cmd / ff-ai.cmd 背后的实现）
+│                  FirefightModPackager/，以及 launcher/（StartWebUI.cmd / StartWebUI(Basic).cmd / Start(McpOnly).cmd 背后的实现）
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
 
@@ -241,33 +241,39 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 
 ```
 <编辑器>/
-├── ff-web.cmd          带 Web 界面的启动器（双击运行；页面在独立窗口）
-├── ff-ai.cmd           不带界面、供 AI 调用的启动器（转发给命令行）
-├── README.md           包内说明；`README.zh-CN.md` 是其中文对照
-├── skills/             AI 技能：skills/firefight-editor/SKILL.md
-├── docs/               文档：英文文件 + 对应的 `*.zh-CN.md` 中文对照
+├── StartWebUI          启动器，带 Web 界面（双击运行；页面在独立应用窗口）
+├── StartWebUI(Basic)   启动器，无窗口，在控制台里服务
+├── Start(McpOnly)      供 AI 调用的 stdio MCP 服务
+├── StopAll             结束正在运行的编辑器
+├── ErrorFinder         把 `check` 的结果整理成可读形式
+├── ReadMe.md  ReadMe(Cn).md  ChangeLog.md  ChangeLog(Cn).md  Lisense
 ├── core/               代码（core/cli/__main__.py 是命令行入口）
-├── launcher/           ff-web.cmd / ff-ai.cmd 背后的实现
+├── docs/               文档：英文文件 + 对应的 `*.zh-CN.md` 中文对照
+├── EditorAssets/       编辑器自身的资源
+├── launcher/           上面各入口背后的实现
 ├── Firefight/          原版游戏数据副本（可选；参考用，只读）
-├── Mods/               模组工程
-│   └── <名称>/         mod.toml、mod_setting.toml、README.md、LICENSE、
-│                       Mod/{Data,Images,Sounds}、
-│                       .editor/{refs.toml, index.toml, log/, baseline/, notes.toml}
-└── .ff-editor.local.toml   本机设置：用哪个模组、哪个原版目录
+├── Logs/               启动器日志
+├── Mod/                模组工程区：一个子目录一个工程
+│   └── <名称>/         ModInformation.toml、ModSetting.toml、mod.txt、
+│                       README.md、LICENSE、Data/、Images/、Sounds/、
+│                       EditorCache/{refs.toml, index.toml, log/, baseline/, notes.toml}
+└── Setting.toml        本机设置：用哪个模组、哪个原版目录
 ```
+
+入口点在磁盘上带 `.cmd` 后缀（`StartWebUI.cmd` 等）；Windows 的「隐藏已知扩展名」把它们显示成上面的名字。
 
 由该布局得出的规则：
 
 * 编辑器在自身入口旁边寻找原版数据（`<编辑器>/Firefight/Data`），并把该来源报告为 `editor copy <路径>`；
   因此不安装游戏也能用。
-* `Mods/` 是 `<名称>` 作用域的工作区根，`mod.toml` 标记一个模组工程。
+* `Mod/` 是 `<名称>` 作用域的工作区根，`ModInformation.toml` 标记一个模组工程。
 * 模组工程是**部分覆盖**：它只能替换游戏本来就会读取的文件，因此 `Mod/Data`、`Mod/Images` 与 `Mod/Sounds`
   严格镜像游戏目录。
-* `.editor/` 随工程迁移，不进任何包，存放缓存（`refs.toml`、`index.toml`，两者都由 `index` 写出）、事件日志与
+* `EditorCache/` 随工程迁移，不进任何包，存放缓存（`refs.toml`、`index.toml`，两者都由 `index` 写出）、事件日志与
   基线快照。
-* `mod_setting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式，由 `settings` 双向转换（docs/cli.zh-CN.md §4.7）。
+* `ModSetting.toml` 是原版 `Mod/mod.txt` 的 TOML 形式，由 `settings` 双向转换（docs/cli.zh-CN.md §4.7）。
   两个方向都是各自源字节的函数：`render` 复现读到的 `mod.txt` 的每个元素，`emit` 复现读到的
-  `mod_setting.toml` 的原版形态。
+  `ModSetting.toml` 的原版形态。
 * 两个启动器都以 `python -m core.cli` 运行命令行，该形式从当前目录解析 `core` 包，因此代码位于下一层 `core/`
   时两种布局都可用。
 

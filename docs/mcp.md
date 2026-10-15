@@ -83,7 +83,7 @@ that reports itself read-only must not expose a tool that writes. `mcp_ff_set`, 
 `--dry-run`, so a write can be inspected before it happens.
 
 `mcp_ff_settings` carries the two directions of the project's stock settings file: `op=render`
-reads `<project>/Mod/mod.txt` and writes `mod_setting.toml`, `op=emit` writes the stock file
+reads `<project>/mod.txt` and writes `ModSetting.toml`, `op=emit` writes the stock file
 back (docs/cli.md §4.7).
 
 `mcp_ff_init` creates a project in a directory that need not be one yet, and `mcp_ff_pack`
@@ -119,7 +119,7 @@ working directory cannot resolve — the stock installation, typically — must 
 
 * Read-only server: `tools/list` contains no write tool, and a direct call to one is refused as an unknown
   tool, not silently downgraded.
-* Write-enabled server: writes are confined to the project directory (`Mod/` and `.editor/`). A write
+* Write-enabled server: writes are confined to the project directory (`Data/`, `Images/`, `Sounds/` and `EditorCache/`). A write
   aimed at the `Firefight` stock scope is refused unconditionally; the installation is never modified.
 * A refusal is final. The server does not retry, does not ask again in the same call, and reports the
   refusal to the caller; fail-closed behaviour matches the CLI.
@@ -139,7 +139,7 @@ working directory cannot resolve — the stock installation, typically — must 
 | Missing or invalid parameter, resource not found | `-32602` invalid params (2026-07-28 moved resource-not-found here from `-32002`) |
 | Unexpected server fault | `-32603` internal error |
 | Write refused by the permission gate or by the scope rule | `-32000` |
-| `.editor/lock` held by another writer | `-32001` |
+| `EditorCache/lock` held by another writer | `-32001` |
 | Document changed on disk after staging | `-32003` |
 | Value not representable in the document encoding | `-32004` |
 | Value rejected by the schema | `-32005` |
@@ -161,7 +161,7 @@ problem".
   takes `--write` to expose the writing tools, and `workspace=<directory>`,
   `root=<directory>` and `firefight=<directory>` as the defaults every tool call and every
   resource read inherits; a call can override the first two.
-* Editor folder (a release, not the repository): `ff-mcp.cmd` next to `ff-ai.cmd` and `ff-web.cmd`. It
+* Editor folder (a release, not the repository): `Start(McpOnly).cmd` next to `StartWebUI.cmd` and `StartWebUI(Basic).cmd`. It
   forwards its arguments to the module, writes nothing to stdout beyond the protocol, and never waits for
   a keypress.
 * DSH wiring uses the MCP client entry of the profile: `transport: stdio`, `serverName`,

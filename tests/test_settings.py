@@ -1,6 +1,6 @@
 """`settings` and the two files that sit in the project directory.
 
-``mod.toml`` and ``mod_setting.toml`` are not data documents, but they are editable
+``ModInformation.toml`` and ``ModSetting.toml`` are not data documents, but they are editable
 through the same commands, and a render creates and replaces one of them under the same
 gates as every other write (docs/cli.md sections 4.5 and 4.7).
 """
@@ -90,46 +90,46 @@ class SettingsTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        write(PROJECT / "mod.toml", MOD_TOML)
-        write(PROJECT / "Mod" / "mod.txt", MOD_TXT)
-        write(PROJECT / "Mod" / "Data/Weapons/WEAPON_SEED.toml", '[weapon]\n\nname = "Seed Gun"\n')
+        write(PROJECT / "ModInformation.toml", MOD_TOML)
+        write(PROJECT / "mod.txt", MOD_TXT)
+        write(PROJECT / "Data/Weapons/WEAPON_SEED.toml", '[weapon]\n\nname = "Seed Gun"\n')
 
     def tearDown(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
 
     def settings(self) -> Path:
         """The project file the renderer writes."""
-        return PROJECT / "mod_setting.toml"
+        return PROJECT / "ModSetting.toml"
 
     # --- the two project files are addressable ---------------------------------
 
     def test_mod_toml_is_readable(self) -> None:
-        code, payload, _ = run_json("Mod", "get", "mod.toml", "field=version_name", cwd=PROJECT)
+        code, payload, _ = run_json("Mod", "get", "ModInformation.toml", "field=version_name", cwd=PROJECT)
         self.assertEqual(code, 0)
         self.assertEqual(payload["values"][0]["value"], "0.0.1")
 
     def test_mod_toml_lists_every_field(self) -> None:
-        code, payload, _ = run_json("Mod", "get", "mod.toml", cwd=PROJECT)
+        code, payload, _ = run_json("Mod", "get", "ModInformation.toml", cwd=PROJECT)
         self.assertEqual(code, 0)
         self.assertEqual([row["path"] for row in payload["values"]][0], "name")
 
     def test_an_inline_array_survives_a_round_trip(self) -> None:
         code, payload, _ = run_json(
-            "Mod", "set", "mod.toml", "field=authors", 'value=["a", "b"]', "--write", cwd=PROJECT
+            "Mod", "set", "ModInformation.toml", "field=authors", 'value=["a", "b"]', "--write", cwd=PROJECT
         )
         self.assertEqual(code, 0)
-        self.assertIn('authors = ["a", "b"]', (PROJECT / "mod.toml").read_text(encoding="utf-8"))
+        self.assertIn('authors = ["a", "b"]', (PROJECT / "ModInformation.toml").read_text(encoding="utf-8"))
 
     def test_a_write_to_mod_toml_is_logged_and_can_be_undone(self) -> None:
-        before = (PROJECT / "mod.toml").read_bytes()
-        code, _, _ = run_json("Mod", "set", "mod.toml", "field=version_name", "value=9.9.9", "--write", cwd=PROJECT)
+        before = (PROJECT / "ModInformation.toml").read_bytes()
+        code, _, _ = run_json("Mod", "set", "ModInformation.toml", "field=version_name", "value=9.9.9", "--write", cwd=PROJECT)
         self.assertEqual(code, 0)
         code, payload, _ = run_json("Mod", "log", "count=1", cwd=PROJECT)
         self.assertEqual(code, 0)
-        self.assertEqual(payload["events"][0]["document"], "mod.toml")
+        self.assertEqual(payload["events"][0]["document"], "ModInformation.toml")
         code, _, _ = run_json("Mod", "undo", "--write", cwd=PROJECT)
         self.assertEqual(code, 0)
-        self.assertEqual((PROJECT / "mod.toml").read_bytes(), before)
+        self.assertEqual((PROJECT / "ModInformation.toml").read_bytes(), before)
 
     # --- the renderer ----------------------------------------------------------
 
@@ -140,7 +140,7 @@ class SettingsTestCase(unittest.TestCase):
         self.assertFalse(self.settings().exists())
 
     def test_settings_refuses_the_stock_scope(self) -> None:
-        code, _, err = run("Firefight", "settings", "root=" + str(PROJECT / "Mod"), "--write", cwd=PROJECT)
+        code, _, err = run("Firefight", "settings", "root=" + str(PROJECT), "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("stock scope is read-only", err)
 
@@ -149,7 +149,7 @@ class SettingsTestCase(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(payload["dry_run"])
         self.assertFalse(self.settings().exists())
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_settings_renders_the_stock_file(self) -> None:
         code, payload, _ = run_json("Mod", "settings", "--write", cwd=PROJECT)
@@ -180,7 +180,7 @@ class SettingsTestCase(unittest.TestCase):
         self.assertEqual(self.settings().read_text(encoding="utf-8"), "keep me\n")
 
     def test_settings_without_a_stock_file_is_a_usage_error(self) -> None:
-        (PROJECT / "Mod" / "mod.txt").unlink()
+        (PROJECT / "mod.txt").unlink()
         code, _, err = run("Mod", "settings", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("nothing to render from", err)
@@ -189,7 +189,7 @@ class SettingsTestCase(unittest.TestCase):
 
     def stock(self) -> Path:
         """The stock settings file the emitter writes back."""
-        return PROJECT / "Mod" / "mod.txt"
+        return PROJECT / "mod.txt"
 
     def render(self) -> None:
         """Put the project file in place, as the render direction would."""
@@ -211,7 +211,7 @@ class SettingsTestCase(unittest.TestCase):
         self.assertIn("settings needs --write", err)
 
     def test_emit_refuses_the_stock_scope(self) -> None:
-        code, _, err = run("Firefight", "settings", "op=emit", "root=" + str(PROJECT / "Mod"), "--write", cwd=PROJECT)
+        code, _, err = run("Firefight", "settings", "op=emit", "root=" + str(PROJECT), "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("stock scope is read-only", err)
 
@@ -249,9 +249,9 @@ class SettingsTestCase(unittest.TestCase):
 
     def test_a_field_edited_in_the_project_file_reaches_the_stock_form(self) -> None:
         self.render()
-        code, _, err = run_json("Mod", "set", "mod_setting.toml", "field=minimum_commonness", "value=40", "--write", cwd=PROJECT)
+        code, _, err = run_json("Mod", "set", "ModSetting.toml", "field=minimum_commonness", "value=40", "--write", cwd=PROJECT)
         self.assertEqual(code, 0, err)
-        code, _, err = run_json("Mod", "set", "mod_setting.toml", "field=allow_vehicles", "value=no", "--write", cwd=PROJECT)
+        code, _, err = run_json("Mod", "set", "ModSetting.toml", "field=allow_vehicles", "value=no", "--write", cwd=PROJECT)
         self.assertEqual(code, 0, err)
         self.assertEqual(
             run_json("Mod", "settings", "op=emit", "--write", "overwrite=1", cwd=PROJECT)[0], 0

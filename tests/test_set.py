@@ -1,6 +1,6 @@
 """End-to-end tests for ``set``: one field of one document, every other byte kept.
 
-The fixture is a small project (``mod.toml`` plus documents under ``Mod/Data``) so the write
+The fixture is a small project (``ModInformation.toml`` plus documents under ``Data``) so the write
 path, the refusal paths and the project lock are exercised without the retail corpus.  Text
 and binary comparisons are byte-level, because the promise of a write is that the bytes
 outside the edited field do not move (docs/cli.md section 4).
@@ -23,10 +23,10 @@ PROJECT = SCRATCH / "project"
 MANY = SCRATCH / "many"
 STOCK = SCRATCH / "stock"
 
-SQUAD = PROJECT / "Mod" / "Data" / "Infantry" / "DEMO_SQUAD.toml"
-WEAPON = PROJECT / "Mod" / "Data" / "Weapons" / "WEAPON_DEMO.txt"
-WEAPON_LF = PROJECT / "Mod" / "Data" / "Weapons" / "WEAPON_LF.txt"
-SQUAD_UTF8 = PROJECT / "Mod" / "Data" / "Infantry" / "DEMO_UTF8.toml"
+SQUAD = PROJECT / "Data" / "Infantry" / "DEMO_SQUAD.toml"
+WEAPON = PROJECT / "Data" / "Weapons" / "WEAPON_DEMO.txt"
+WEAPON_LF = PROJECT / "Data" / "Weapons" / "WEAPON_LF.txt"
+SQUAD_UTF8 = PROJECT / "Data" / "Infantry" / "DEMO_UTF8.toml"
 STOCK_WEAPON = STOCK / "Data" / "Weapons" / "WEAPON_STOCK.txt"
 
 SQUAD_XML = """<squad>
@@ -132,7 +132,7 @@ def changed_lines(before: bytes, after: bytes) -> list[tuple[bytes, bytes]]:
 
 def many_target() -> Path:
     """The file the scale test edits."""
-    return MANY / "Mod" / "Data" / "Weapons" / "WEAPON_00.toml"
+    return MANY / "Data" / "Weapons" / "WEAPON_00.toml"
 
 
 class SetTest(unittest.TestCase):
@@ -141,22 +141,22 @@ class SetTest(unittest.TestCase):
         shutil.rmtree(SCRATCH, ignore_errors=True)
         cls._env = {name: os.environ.pop(name, None) for name in ("FIREFIGHT_DATA", "FIREFIGHT_MODS")}
         FIXTURES.clear()
-        FIXTURES["project/mod.toml"] = 'name = "Set Fixture"\n'.encode("cp1252")
-        FIXTURES["many/mod.toml"] = 'name = "Scale Fixture"\n'.encode("cp1252")
+        FIXTURES["project/ModInformation.toml"] = 'name = "Set Fixture"\n'.encode("cp1252")
+        FIXTURES["many/ModInformation.toml"] = 'name = "Scale Fixture"\n'.encode("cp1252")
         FIXTURES["stock/Data/Weapons/WEAPON_STOCK.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-        FIXTURES["project/Mod/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00fixture\n"
+        FIXTURES["project/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00fixture\n"
 
         squad = "# Demo squad\n\n" + toml_document(SQUAD_XML, "squad")
         marked = squad.replace('quality = "QUALITY_REGULAR"', 'quality = "QUALITY_REGULAR"  # tier')
         if marked == squad:
             raise AssertionError("fixture text is missing the quality assignment")
-        FIXTURES["project/Mod/Data/Infantry/DEMO_SQUAD.toml"] = marked.encode("cp1252")
-        FIXTURES["project/Mod/Data/Infantry/DEMO_UTF8.toml"] = toml_document(UTF8_SQUAD_XML, "squad").encode("utf-8")
-        FIXTURES["project/Mod/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-        FIXTURES["project/Mod/Data/Weapons/WEAPON_LF.txt"] = WEAPON_XML.encode("cp1252")
+        FIXTURES["project/Data/Infantry/DEMO_SQUAD.toml"] = marked.encode("cp1252")
+        FIXTURES["project/Data/Infantry/DEMO_UTF8.toml"] = toml_document(UTF8_SQUAD_XML, "squad").encode("utf-8")
+        FIXTURES["project/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
+        FIXTURES["project/Data/Weapons/WEAPON_LF.txt"] = WEAPON_XML.encode("cp1252")
         many = toml_document(MANY_XML, "weapon").encode("cp1252")
         for index in range(MANY_COUNT):
-            FIXTURES[f"many/Mod/Data/Weapons/WEAPON_{index:02d}.toml"] = many
+            FIXTURES[f"many/Data/Weapons/WEAPON_{index:02d}.toml"] = many
         cls.write_fixtures()
 
     @classmethod
@@ -173,14 +173,14 @@ class SetTest(unittest.TestCase):
             path = SCRATCH / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-        shutil.rmtree(PROJECT / ".editor", ignore_errors=True)
-        shutil.rmtree(MANY / ".editor", ignore_errors=True)
+        shutil.rmtree(PROJECT / "EditorCache", ignore_errors=True)
+        shutil.rmtree(MANY / "EditorCache", ignore_errors=True)
 
     def setUp(self) -> None:
         self.write_fixtures()
 
     def assert_no_editor_state(self, project: Path) -> None:
-        self.assertFalse((project / ".editor").exists(), f"{project.name}/.editor was created")
+        self.assertFalse((project / "EditorCache").exists(), f"{project.name}/EditorCache was created")
 
     # --- accepted writes ----------------------------------------------------
 
@@ -390,7 +390,7 @@ class SetTest(unittest.TestCase):
         self.assert_no_editor_state(STOCK)
 
     def test_b17_a_held_lock_refuses_the_second_writer(self) -> None:
-        editor = PROJECT / ".editor"
+        editor = PROJECT / "EditorCache"
         editor.mkdir(parents=True, exist_ok=True)
         lock = editor / "lock"
         lock.write_text(json.dumps({"pid": 4321, "started": "2026-10-11T10:00:00+0800"}), encoding="utf-8")
@@ -400,7 +400,7 @@ class SetTest(unittest.TestCase):
             "--write", cwd=PROJECT,
         )
         self.assertEqual(code, 2)
-        self.assertIn(".editor/lock is held", err)
+        self.assertIn("EditorCache/lock is held", err)
         self.assertIn("pid=4321", err)
         self.assertEqual(SQUAD.read_bytes(), before)
         self.assertTrue(lock.exists(), "the lock of the holder was removed")
@@ -414,7 +414,7 @@ class SetTest(unittest.TestCase):
             edit.apply_plan(plan, PROJECT)
         self.assertIn("changed after the change was staged", str(raised.exception))
         self.assertTrue(SQUAD.read_bytes().endswith(b"# someone else was here\n"))
-        self.assertFalse((PROJECT / ".editor" / "lock").exists())
+        self.assertFalse((PROJECT / "EditorCache" / "lock").exists())
 
     def test_an_unknown_field_is_refused(self) -> None:
         code, _, err = run(
@@ -435,7 +435,7 @@ class SetTest(unittest.TestCase):
     # --- scale --------------------------------------------------------------
 
     def test_b20_only_the_target_of_many_files_changes(self) -> None:
-        files = sorted((MANY / "Mod" / "Data" / "Weapons").glob("*.toml"))
+        files = sorted((MANY / "Data" / "Weapons").glob("*.toml"))
         self.assertEqual(len(files), MANY_COUNT)
         before = {path: path.read_bytes() for path in files}
         self.assertEqual(len(before), MANY_COUNT)

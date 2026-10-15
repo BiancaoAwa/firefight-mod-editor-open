@@ -111,7 +111,7 @@ ROOT = Parameter(
 WORKSPACE = Parameter(
     "workspace",
     "string",
-    "Directory that holds Mods/, passed as workspace=<directory>. Defaults to the server "
+    "Directory that holds Mod/, passed as workspace=<directory>. Defaults to the server "
     "option workspace= or the working directory.",
     target="workspace",
 )
@@ -125,7 +125,7 @@ LIMIT = Parameter(
 DRY_RUN = Parameter(
     "dryRun",
     "boolean",
-    "Report what would happen without writing anything, not even .editor/.",
+    "Report what would happen without writing anything, not even EditorCache/.",
     target="dry-run",
 )
 OVERWRITE = Parameter(
@@ -356,8 +356,8 @@ TOOLS: tuple[ToolSpec, ...] = (
         name="ff_index",
         command="index",
         description=(
-            "Build the cross-reference tables of a project, .editor/index.toml and "
-            ".editor/refs.toml, and report what ``check`` would find. This writes; without it "
+            "Build the cross-reference tables of a project, EditorCache/index.toml and "
+            "EditorCache/refs.toml, and report what ``check`` would find. This writes; without it "
             "ff_refs and ff_deps answer from a graph built on each run."
         ),
         parameters=(
@@ -381,7 +381,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         parameters=(
             SCOPE,
             Parameter("selector", "string", "Optional entity or folder to convert instead of the whole scope.", target="selector"),
-            Parameter("to", "string", "Destination project directory, passed as to=<directory>; the editor appends Mod/.", target="to", required=True),
+            Parameter("to", "string", "Destination project directory, passed as to=<directory>.", target="to", required=True),
             OVERWRITE,
             ASSETS,
             DRY_RUN,
@@ -395,7 +395,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         name="ff_settings",
         command="settings",
         description=(
-            "Translate between the stock Mod/mod.txt of a project and its mod_setting.toml. "
+            "Translate between the stock mod.txt of a project and its ModSetting.toml. "
             "op=render reads the stock file and writes the project file, op=emit writes the "
             "stock file back. This writes; a target that is already there is skipped unless "
             "overwrite is true."
@@ -405,7 +405,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             Parameter(
                 "op",
                 "string",
-                "render (default) for stock mod.txt to mod_setting.toml, emit for the other direction.",
+                "render (default) for stock mod.txt to ModSetting.toml, emit for the other direction.",
                 target="op",
                 enum=("render", "emit"),
             ),
@@ -449,13 +449,13 @@ TOOLS: tuple[ToolSpec, ...] = (
         name="ff_init",
         command="init",
         description=(
-            "Create a project in a directory that need not be one yet: mod.toml from the schema "
-            "skeleton and an empty Mod/Data. This writes; a directory that already carries a "
-            "mod.toml is refused."
+            "Create a project in a directory that need not be one yet: ModInformation.toml from the schema "
+            "skeleton and an empty Data/. This writes; a directory that already carries a "
+            "ModInformation.toml is refused."
         ),
         parameters=(
             SCOPE,
-            Parameter("name", "string", "The mod name the new mod.toml carries; the directory name otherwise.", target="name"),
+            Parameter("name", "string", "The mod name the new ModInformation.toml carries; the directory name otherwise.", target="name"),
             DRY_RUN,
             ROOT,
             WORKSPACE,
@@ -468,8 +468,8 @@ TOOLS: tuple[ToolSpec, ...] = (
         command="pack",
         description=(
             "Build the installable mod-zip of a project: every document back as stock XML under "
-            "the Mod/ prefix, mod_setting.toml written out as Mod/mod.txt, the project README and "
-            "LICENSE at the archive root, .editor/ left out. This writes; an archive that is "
+            "the Mod/ prefix, ModSetting.toml written out as Mod/mod.txt, the project README and "
+            "LICENSE at the archive root, EditorCache/ left out. This writes; an archive that is "
             "already there is replaced unless overwrite is false."
         ),
         parameters=(

@@ -64,8 +64,8 @@ class EntryTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        (PROJECT / "Mod" / "Data/Weapons").mkdir(parents=True)
-        (PROJECT / "mod.toml").write_bytes(b'name = "Entry Fixture"\n')
+        (PROJECT / "Data/Weapons").mkdir(parents=True)
+        (PROJECT / "ModInformation.toml").write_bytes(b'name = "Entry Fixture"\n')
         self.write(MAPPED)
 
     def tearDown(self) -> None:
@@ -74,11 +74,11 @@ class EntryTestCase(unittest.TestCase):
     def write(self, text: str, *, newline: str = "\n") -> None:
         """Write the fixture document with the given line ending."""
         body = text.replace("\n", newline)
-        (PROJECT / "Mod" / DOCUMENT).write_bytes(body.encode("utf-8"))
+        (PROJECT / DOCUMENT).write_bytes(body.encode("utf-8"))
 
     def text(self) -> str:
         """The fixture document as it stands."""
-        return (PROJECT / "Mod" / DOCUMENT).read_bytes().decode("utf-8")
+        return (PROJECT / DOCUMENT).read_bytes().decode("utf-8")
 
     def test_append_writes_a_new_entry(self) -> None:
         code, payload, _ = run_json("Mod", "set", DOCUMENT, "field=ammo.type", "op=append", "--write", cwd=PROJECT)
@@ -139,14 +139,14 @@ class EntryTestCase(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(payload["dry_run"])
         self.assertEqual(self.text(), MAPPED)
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_a_crlf_document_keeps_crlf(self) -> None:
         self.write(MAPPED, newline="\r\n")
         self.assertEqual(
             run_json("Mod", "set", DOCUMENT, "field=ammo.type", "op=append", "--write", cwd=PROJECT)[0], 0
         )
-        raw = (PROJECT / "Mod" / DOCUMENT).read_bytes()
+        raw = (PROJECT / DOCUMENT).read_bytes()
         self.assertNotIn(b"\n", raw.replace(b"\r\n", b""))
         self.assertEqual(raw.count(b"[[weapon.ammo.type]]\r\n"), 2)
 

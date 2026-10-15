@@ -16,9 +16,9 @@ from core.cli.scope import UsageError, init_scope, resolve_all, resolve_scope, s
 USAGE = """python -m core.cli <scope> <command> [selector] [key=value ...] [--json]
 
 Scopes
-  Mod              the mod project this directory belongs to (mod.toml), or root=<dir>
+  Mod              the mod project this directory belongs to (ModInformation.toml), or root=<dir>
   Firefight        stock game data, or root=<dir>
-  <name>           another mod folder under the workspace Mods/
+  <name>           another mod folder under the workspace Mod/
 
 Commands
   list   (ls)      entities with category, format and size
@@ -29,11 +29,11 @@ Commands
   refs   (graph)   outgoing references of the selection
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
-  index            build the cross-reference tables under .editor/ (needs --write)
-  init             create a project: mod.toml and an empty Mod/Data (needs --write)
+  index            build the cross-reference tables under EditorCache/ (needs --write)
+  init             create a project: ModInformation.toml and an empty Data/ (needs --write)
   add              create one entity document (needs --write)
   remove  (rm)     delete one entity document (needs --write)
-  settings         translate between the stock Mod/mod.txt and mod_setting.toml (needs --write)
+  settings         translate between the stock mod.txt and ModSetting.toml (needs --write)
   set              change one field of one document (needs --write)
   convert          turn the selection into project working files under to= (needs --write)
   log              log segments and the newest records inside them
@@ -46,7 +46,7 @@ Commands
 
 Options
   root=<dir>       scope root override
-  workspace=<dir>  directory holding Mods/ (default: current directory)
+  workspace=<dir>  directory holding Mod/ (default: current directory)
   to=<dir>         export destination, the project convert writes into, or where pack
                    leaves the archive (default: the project directory)
   as=raw|toml|xml  how show renders a document
@@ -54,7 +54,7 @@ Options
   type=<category>  filter by editor category
   kind=<name>      filter by reference kind
   path=<a/b>       document path prefix for find
-  name=<text>      init: the mod name the new mod.toml carries (default: the directory name)
+  name=<text>      init: the mod name the new ModInformation.toml carries (default: the directory name)
   limit=<n>        cap the rows printed (default 200; 0 prints every row)
   ignore_case=1    case-insensitive find
   from=<path>      add: copy this document instead of writing the schema skeleton
@@ -64,7 +64,7 @@ Options
   overwrite=1      convert: replace a working file that is already there
   assets=1         convert: also copy the scope's Images/ and Sounds/ trees as they are
   overwrite=0      export: leave a file that is already there untouched
-  overwrite=1      settings: replace an existing mod_setting.toml, or an existing Mod/mod.txt
+  overwrite=1      settings: replace an existing ModSetting.toml, or an existing mod.txt
   overwrite=0      pack: leave an archive that is already there untouched
   strict=1         pack: refuse to write while the project has load errors or dangling
                    references; without it both are reported and the pack goes ahead
