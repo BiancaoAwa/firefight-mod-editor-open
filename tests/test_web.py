@@ -107,8 +107,8 @@ class WebTestCase(unittest.TestCase):
         write(STOCK / "Data/Infantry/American-Rifle Squad.txt", INFANTRY_XML)
         write(STOCK / "Data/equipment_american_WW2.txt", EQUIPMENT_LIST)
         write(STOCK / "Data/equipment_evil.txt", EVIL_LIST)
-        write(PROJECT / "mod.toml", 'name = "Fixture Mod"\n')
-        write(WORKSPACE / "Mods/other-mod/Data/Weapons/WEAPON_OTHER.txt", WEAPON_XML)
+        write(PROJECT / "ModInformation.toml", 'name = "Fixture Mod"\n')
+        write(WORKSPACE / "Mod/other-mod/Data/Weapons/WEAPON_OTHER.txt", WEAPON_XML)
         cls.options = {"root": str(STOCK), "workspace": str(WORKSPACE)}
         cls.app = App(cls.options, SCRATCH, "Firefight")
         cls.server = make_server(cls.app, 0)
@@ -315,7 +315,7 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("用法错误", body)
 
     def test_show_rejects_path_traversal(self) -> None:
-        for attempt in ("../mod.toml", "..\\mod.toml", "/etc/passwd", "C:/Windows/win.ini"):
+        for attempt in ("../ModInformation.toml", "..\\ModInformation.toml", "/etc/passwd", "C:/Windows/win.ini"):
             status, body = self.fetch("/show", path=attempt, **{"as": "raw"})
             self.assertEqual(status, 400, f"{attempt} was not refused")
             self.assertNotIn("Fixture Mod", body)
@@ -482,7 +482,7 @@ class WebTestCase(unittest.TestCase):
 
     def test_a_page_may_run_a_writing_command(self) -> None:
         """The UI can change a project document; the command's own gate still applies."""
-        document = PROJECT / "Mod" / "Data" / "Weapons" / "WEAPON_WEB.txt"
+        document = PROJECT / "Data" / "Weapons" / "WEAPON_WEB.txt"
         write(document, WEAPON_XML)
         before = document.read_bytes()
         app = App({"workspace": str(WORKSPACE)}, PROJECT, "Mod")
@@ -523,8 +523,8 @@ class WebTestCase(unittest.TestCase):
 
     def test_a_page_may_build_a_package_without_writing_it(self) -> None:
         """`pack` runs from a page too; its own gates decide what reaches the disk."""
-        write(PROJECT / "mod.toml", '[mod]\n\tname = "Web Mod"\n\tversion_name = "0.0.1"\n')
-        (PROJECT / "Mod" / "Data").mkdir(parents=True, exist_ok=True)
+        write(PROJECT / "ModInformation.toml", '[mod]\n\tname = "Web Mod"\n\tversion_name = "0.0.1"\n')
+        (PROJECT / "Data").mkdir(parents=True, exist_ok=True)
         app = App({"workspace": str(WORKSPACE)}, PROJECT, "Mod")
         server = make_server(app, 0)
         server.quiet = True
@@ -549,6 +549,115 @@ class WebTestCase(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=5)
+
+    # --- editing, the event log and the operation page ----------------------
+
+    @contextlib.contextmanager
+    def running(self, root: Path):
+        """Serve a second app whose default scope is a real project directory."""
+        app = App({"workspace": str(WORKSPACE)}, root, "Mod")
+        server = make_server(app, 0)
+        server.quiet = True
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
+    @staticmethod
+    def fetch_from(base: str, route: str = "", **params) -> tuple[int, str]:
+        """GET a route of a server other than the class-wide one."""
+        url = base + route
+        if params:
+            url += "?" + urlencode(params)
+        try:
+            with urllib.request.urlopen(url, timeout=20) as response:
+                return response.status, response.read().decode("utf-8")
+        except urllib.error.HTTPError as error:
+            return error.code, error.read().decode("utf-8")
+
+    def test_edit_lists_every_field_of_a_document(self) -> None:
+        status, body = self.fetch("/edit", path="Data/Weapons/WEAPON_PISTOL_P38.txt")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn('<form method="get" action="/edit">', body)
+        for field in ("name", "type", "shoot.sound_shoot", "ammo.type.0.flavour"):
+            self.assertIn(field, body)
+        self.assertIn("P38 Pistol", body)
+
+    def test_edit_asks_for_a_document_before_listing_fields(self) -> None:
+        status, body = self.fetch("/edit")
+        self.assertEqual(status, 200)
+        self.assertIn('name="path"', body)
+        self.assertNotIn("当前值", body)
+
+    def test_edit_saves_one_field_through_the_operation_page(self) -> None:
+        """Each row posts to /ops, so the write still passes the operation page's check."""
+        _, body = self.fetch("/edit", path="Data/Weapons/WEAPON_PISTOL_P38.txt")
+        self.assertIn('action="/ops"', body)
+        for name in ("command", "selector", "field", "value"):
+            self.assertIn(f'name="{name}"', body)
+
+    def test_the_log_page_carries_the_undo_and_redo_forms(self) -> None:
+        status, body = self.fetch("/log")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn("事件日志", body)
+        self.assertIn("撤销与重做", body)
+        self.assertIn('name="count"', body)
+
+    def test_ops_lists_every_writing_command(self) -> None:
+        status, body = self.fetch("/ops")
+        self.assertEqual(status, 200, body[:400])
+        for command in ("set", "add", "remove", "index", "convert", "settings", "export", "pack", "init", "undo", "redo"):
+            self.assertIn(f"command={command}", body, f"/ops does not offer {command}")
+
+    def test_ops_rejects_a_command_that_cannot_write(self) -> None:
+        status, body = self.fetch("/ops", command="rmdir")
+        self.assertEqual(status, 400)
+        self.assertIn("没有这条写入命令", body)
+
+    def test_the_check_step_shows_the_line_and_writes_nothing(self) -> None:
+        """The check runs the command with --dry-run, so the page can promise nothing was written."""
+        project = SCRATCH / "ops-project"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Ops Mod"\n\tversion_name = "0.0.1"\n')
+        document = project / "Data" / "Weapons" / "WEAPON_OPS.txt"
+        write(document, WEAPON_XML)
+        before = document.read_bytes()
+        try:
+            with self.running(project) as base:
+                asked = {"command": "set", "selector": "Data/Weapons/WEAPON_OPS.txt",
+                         "field": "name", "value": "Ops Pistol", "confirm": "1"}
+                status, body = self.fetch_from(base, "/ops", **asked)
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("--write --dry-run", body)
+                self.assertIn("尚未写入", body)
+                self.assertIn("write=1", body)
+                self.assertEqual(document.read_bytes(), before, "the check step wrote the document")
+                status, body = self.fetch_from(base, "/ops", **asked, write="1")
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("写入结果", body)
+                self.assertIn(b"Ops Pistol", document.read_bytes())
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+    def test_a_refused_check_offers_no_write_link(self) -> None:
+        """A refusal is a normal outcome of a check, not an error page."""
+        project = SCRATCH / "ops-refused"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Refused Mod"\n')
+        (project / "Data").mkdir(parents=True, exist_ok=True)
+        try:
+            with self.running(project) as base:
+                status, body = self.fetch_from(base, "/ops", command="undo", count="1", confirm="1")
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("there is no change to undo", body)
+                self.assertIn("命令拒绝了这次检查", body)
+                self.assertNotIn("write=1", body)
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
 
     # --- ports and the running-instance record ------------------------------
 
@@ -604,7 +713,7 @@ class WebTestCase(unittest.TestCase):
         self.assertEqual(server.state_root(WORKSPACE), server._editor_root(WORKSPACE))
         record = server.instance_path(WORKSPACE)
         self.assertEqual(record.name, "web.json")
-        self.assertEqual(record.parent.name, ".editor")
+        self.assertEqual(record.parent.name, "EditorCache")
 
     def test_token_is_required_and_carried_in_links(self) -> None:
         app = App(self.options, SCRATCH, "Firefight", token="s3cret")
@@ -628,7 +737,7 @@ class WebTestCase(unittest.TestCase):
             thread.join(timeout=5)
 
     def test_pages_render_without_script_tags(self) -> None:
-        for route in ("/", "/list", "/find", "/deps", "/check", "/stats", "/help", "/quit"):
+        for route in ("/", "/list", "/find", "/deps", "/check", "/stats", "/edit", "/log", "/ops", "/help", "/quit"):
             _, body = self.fetch(route)
             self.assertNotIn("<script", body, f"{route} contains JavaScript")
 
@@ -650,14 +759,14 @@ class WebTestCase(unittest.TestCase):
 
     def test_no_form_keeps_parameters_in_its_action(self) -> None:
         """A GET submission replaces the query of the action, so it must carry none."""
-        for route in ("/", "/find", "/get", "/deps", "/quit"):
+        for route in ("/", "/find", "/get", "/deps", "/edit", "/ops", "/quit"):
             _, body = self.fetch(route)
             for action in re.findall(r'<form[^>]*action="([^"]*)"', body):
                 self.assertNotIn("?", action, f"{route} form action still carries a query: {action}")
 
     def test_a_page_never_spells_a_parameter_twice(self) -> None:
         """The carried scope must not be repeated by a field of the form itself."""
-        for route in ("/find", "/deps", "/quit"):
+        for route in ("/find", "/deps", "/edit", "/quit"):
             _, body = self.fetch(route)
             form = re.search(r"<form[^>]*>(.*?)</form>", body, re.S)
             self.assertIsNotNone(form, route)

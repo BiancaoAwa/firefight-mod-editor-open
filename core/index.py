@@ -1,12 +1,12 @@
 """Cross-reference tables of a project: build them once, read them back.
 
-``Mod index --write`` writes ``.editor/index.toml`` (the documents of the scope)
-and ``.editor/refs.toml`` (the outgoing references of each of them).  Both start
+``Mod index --write`` writes ``EditorCache/index.toml`` (the documents of the scope)
+and ``EditorCache/refs.toml`` (the outgoing references of each of them).  Both start
 with a fingerprint of the files they were built from, so a reader that finds a
 different fingerprint ignores them and walks the documents again; a stale table
 never changes an answer (docs/cli.md section 4.6).
 
-The two files are a cache under ``.editor/``: the editor is their only writer
+The two files are a cache under ``EditorCache/``: the editor is their only writer
 and their only reader, so the reader below understands the shape the writer
 emits and nothing else.
 """
@@ -85,7 +85,7 @@ def _built(built: dict) -> list[str]:
 
 
 def render_index(built: dict, documents: dict[str, str]) -> str:
-    """``.editor/index.toml``: every document of the scope and its root element."""
+    """``EditorCache/index.toml``: every document of the scope and its root element."""
     lines = [HEADER, ""] + _built(built) + ["", "[documents]"]
     for relative in sorted(documents):
         lines.append(f"{_quote(relative)} = {_quote(documents[relative])}")
@@ -93,7 +93,7 @@ def render_index(built: dict, documents: dict[str, str]) -> str:
 
 
 def render_refs(built: dict, by_source: dict[str, list[str]]) -> str:
-    """``.editor/refs.toml``: the outgoing references of each document."""
+    """``EditorCache/refs.toml``: the outgoing references of each document."""
     lines = [HEADER, ""] + _built(built) + ["", "[by_source]"]
     for relative in sorted(by_source):
         items = ", ".join(_quote(item) for item in by_source[relative])
@@ -102,7 +102,7 @@ def render_refs(built: dict, by_source: dict[str, list[str]]) -> str:
 
 
 def write(project_root: Path, built: dict, documents: dict[str, str], by_source: dict[str, list[str]]) -> list[Path]:
-    """Write both tables under the project's ``.editor/`` and return their paths."""
+    """Write both tables under the project's ``EditorCache/`` and return their paths."""
     directory = journal.editor_dir(project_root)
     directory.mkdir(parents=True, exist_ok=True)
     written = []

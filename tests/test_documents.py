@@ -57,15 +57,15 @@ class DocumentTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        write(PROJECT / "mod.toml", 'name = "Document Fixture"\n')
-        write(PROJECT / "Mod" / SEED, SEED_TOML)
+        write(PROJECT / "ModInformation.toml", 'name = "Document Fixture"\n')
+        write(PROJECT / SEED, SEED_TOML)
 
     def tearDown(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
 
     def document(self, name: str) -> Path:
         """The path of a document in the fixture project."""
-        return PROJECT / "Mod" / "Data/Weapons" / name
+        return PROJECT / "Data/Weapons" / name
 
     def test_add_writes_the_schema_skeleton(self) -> None:
         code, payload, _ = run_json("Mod", "add", "Data/Weapons/WEAPON_NEW.toml", "--write", cwd=PROJECT)
@@ -100,7 +100,7 @@ class DocumentTestCase(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(payload["dry_run"])
         self.assertFalse(self.document("WEAPON_NEW.toml").exists())
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_add_needs_write(self) -> None:
         code, _, err = run("Mod", "add", "Data/Weapons/WEAPON_NEW.toml", cwd=PROJECT)
@@ -111,10 +111,10 @@ class DocumentTestCase(unittest.TestCase):
         code, _, err = run("Mod", "add", SEED, "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("already there", err)
-        self.assertEqual((PROJECT / "Mod" / SEED).read_bytes(), SEED_TOML.encode("utf-8"))
+        self.assertEqual((PROJECT / SEED).read_bytes(), SEED_TOML.encode("utf-8"))
 
     def test_add_refuses_the_stock_scope(self) -> None:
-        code, _, err = run("Firefight", "add", "Data/Weapons/WEAPON_NEW.toml", f"root={PROJECT / 'Mod'}", "--write", cwd=PROJECT)
+        code, _, err = run("Firefight", "add", "Data/Weapons/WEAPON_NEW.toml", f"root={PROJECT}", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("read-only", err)
 

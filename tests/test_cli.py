@@ -153,12 +153,12 @@ class CliTestCase(unittest.TestCase):
         write(STOCK / "Sounds/reload_magazine.ogg", "")
         write(STOCK / "Images/Units/Vehicles/Image-M2 Medium Tank.png", "")
         write(STOCK / "Images/Uniforms/uniform_american_marines/marine.png", "")
-        write(PROJECT / "mod.toml", 'name = "Fixture Mod"\n')
-        write(PROJECT / "Mod/Sounds/shoot_test.ogg", "")
+        write(PROJECT / "ModInformation.toml", 'name = "Fixture Mod"\n')
+        write(PROJECT / "Sounds/shoot_test.ogg", "")
         document = xml.parse(MOD_WEAPON_XML, "fixture")
         table = convert.xml_to_toml(document, schema.schema_for("weapon"))
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_TEST_GUN.toml", toml.render(table))
-        write(WORKSPACE / "Mods/other-mod/Data/Weapons/WEAPON_OTHER.txt", OTHER_MOD_XML)
+        write(PROJECT / "Data/Weapons/WEAPON_TEST_GUN.toml", toml.render(table))
+        write(WORKSPACE / "Mod/other-mod/Data/Weapons/WEAPON_OTHER.txt", OTHER_MOD_XML)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -373,7 +373,7 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(payload["count"], 1)
         self.assertEqual(payload["entities"][0]["path"], "Data/Weapons/WEAPON_TEST_GUN.toml")
         self.assertEqual(payload["entities"][0]["format"], "toml")
-        self.assertEqual(Path(payload["root"]), PROJECT / "Mod")
+        self.assertEqual(Path(payload["root"]), PROJECT)
 
     def test_mod_entity_converts_back_to_its_source_xml(self) -> None:
         code, payload, _ = run_json("Mod", "show", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=xml", cwd=PROJECT)
@@ -393,7 +393,7 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(payload["entities"][0]["path"], "Data/Weapons/WEAPON_OTHER.txt")
 
     def test_local_config_supplies_the_stock_root(self) -> None:
-        config = SCRATCH / ".ff-editor.local.toml"
+        config = SCRATCH / "Setting.toml"
         write(config, f'firefight = "{STOCK.as_posix()}"\n')
         try:
             code, payload, _ = run_json("Firefight", "stats")

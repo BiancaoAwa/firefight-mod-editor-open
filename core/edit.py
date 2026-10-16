@@ -19,7 +19,7 @@ from core.errors import EditRefused, FfError
 from core.schema import schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 
-MOD_FOLDER = "Mod"  # docs/project-layout.md section 2
+MOD_FOLDER = "Mod"  # the projects area at the editor root (docs/project-layout.md section 2)
 INTEGER_RE = toml.INTEGER_RE
 FLOAT_RE = toml.FLOAT_RE
 BOOLEANS = {
@@ -59,11 +59,11 @@ class EditPlan:
 def project_root_of(data_root: Path) -> Path:
     """The directory that holds the project's editor state.
 
-    A project keeps its data under ``Mod/``, so the editor directory sits one
-    level above the data root; a project without ``Mod/`` uses its own root
+    A project directory is its own data root — it holds ``Data/`` and
+    ``ModInformation.toml`` side by side — so the editor state sits in it
     (docs/project-layout.md section 2).
     """
-    return data_root.parent if data_root.name == MOD_FOLDER else data_root
+    return data_root
 
 
 def entity_of(document, relative: str) -> str:
@@ -715,7 +715,7 @@ def _skeleton_table(node) -> TomlTable:
 
 
 def project_skeleton(name: str) -> str:
-    """``mod.toml`` as ``init`` writes it: the schema's table with the mod name filled in.
+    """``ModInformation.toml`` as ``init`` writes it: the schema's table with the mod name filled in.
 
     Every other leaf keeps the schema's empty value of its own type, so the file parses and
     ``set`` can fill each one in; the array leaf is left out for the reason given in
@@ -838,7 +838,7 @@ def apply_document(
 ) -> dict:
     """Create or delete a whole document, or report what would happen.
 
-    A dry run leaves the disk and ``.editor/`` alone.  A real run re-checks the
+    A dry run leaves the disk and ``EditorCache/`` alone.  A real run re-checks the
     state the plan was built from, keeps the bytes on both sides of the change in
     the baseline, writes or deletes the file and appends one event.
     """

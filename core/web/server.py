@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from core.errors import FfError
+from core.journal import EDITOR_DIR
 from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, current, html_lang, tr, use
 
 from core.cli.commands import ALIASES, DEFAULT_LIMIT, VERSION, Context, command_names, run_command
@@ -125,7 +126,7 @@ def layout(title: str, body: str, nav: str = "", subtitle: str = "") -> str:
 
 def nav_bar(url: Url, links: dict[str, str] | None = None) -> str:
     """The line of section links, with the current scope and the exit link."""
-    links = links or {"index": tr("首页"), "list": tr("实体列表"), "find": tr("查找"), "deps": tr("引用查询"), "check": tr("体检"), "stats": tr("统计"), "cmd": tr("命令行"), "help": tr("帮助")}
+    links = links or {"index": tr("首页"), "list": tr("实体列表"), "edit": tr("编辑"), "find": tr("查找"), "deps": tr("引用查询"), "check": tr("体检"), "stats": tr("统计"), "log": tr("日志"), "ops": tr("操作"), "cmd": tr("命令行"), "help": tr("帮助")}
     parts = [f'<a href="{att(url(route))}">{esc(label)}</a>' for route, label in links.items()]
     parts.append(tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-")))
     other = "zh" if current() == "en" else "en"
@@ -273,6 +274,145 @@ def hidden(name: str, value: str) -> str:
     return f'<input type="hidden" name="{att(name)}" value="{att(value)}">'
 
 
+class Operation:
+    """One writing command as the UI offers it: what it does and what it asks for."""
+
+    __slots__ = ("command", "title", "selector", "note", "fields")
+
+    def __init__(self, command: str, title: str, selector: str, note: str, fields: tuple) -> None:
+        self.command = command
+        self.title = title
+        self.selector = selector
+        self.note = note
+        self.fields = fields
+
+
+def operations() -> tuple:
+    """Every writing command, with the form the UI shows for it.
+
+    Built per request so each label goes through the language in force. A field is
+    ``(option, label, kind, default)``; the kinds are ``text``, ``check`` and
+    ``select:<value>|<value>``, where an empty value is the default choice.
+    """
+    return (
+        Operation(
+            "set",
+            tr("改字段"),
+            tr("文档"),
+            tr("改一个字段的值；数组或表条目用「数组动作」追加或删除。"),
+            (
+                ("field", tr("字段路径"), "text", ""),
+                ("value", tr("新值"), "text", ""),
+                ("op", tr("数组动作"), "select:|append|delete", ""),
+                ("from", tr("新值取自文档字段"), "text", ""),
+            ),
+        ),
+        Operation(
+            "add",
+            tr("新建文档"),
+            tr("新文档路径"),
+            tr("按 schema 建一份骨架；填「复制来源」则复制那份文档。"),
+            (("from", tr("复制来源"), "text", ""),),
+        ),
+        Operation("remove", tr("删除文档"), tr("文档"), tr("把一份文档从工程里删掉；撤销会把它放回。"), ()),
+        Operation("index", tr("建索引"), "", tr("重建 EditorCache/index.toml 与 refs.toml。"), ()),
+        Operation(
+            "convert",
+            tr("转换原版数据"),
+            "",
+            tr("把当前作用域的数据转成工程文档；assets=1 时连 Images/ 与 Sounds/ 一起复制。"),
+            (
+                ("to", tr("目标目录"), "text", ""),
+                ("type", tr("存储形态"), "select:|toml|txt", ""),
+                ("assets", tr("一并复制素材"), "check", ""),
+                ("overwrite", tr("覆盖已有文件"), "check", ""),
+            ),
+        ),
+        Operation(
+            "settings",
+            tr("工程设置"),
+            "",
+            tr("render 读 Mod/mod.txt 写 ModSetting.toml；emit 反向写回原版文件。"),
+            (
+                ("op", tr("方向"), "select:render|emit", "render"),
+                ("overwrite", tr("覆盖已有文件"), "check", ""),
+            ),
+        ),
+        Operation(
+            "export",
+            tr("导出文档"),
+            "",
+            tr("把工程里的文档按工程相对路径导出到目录；overwrite=0 跳过已存在的文件。"),
+            (
+                ("to", tr("目标目录"), "text", ""),
+                ("overwrite", tr("覆盖已有文件"), "check", ""),
+            ),
+        ),
+        Operation(
+            "pack",
+            tr("打包"),
+            "",
+            tr("打成可安装的 zip；strict=1 时加载错误与悬空引用会拒绝写入。"),
+            (
+                ("to", tr("目标目录"), "text", ""),
+                ("strict", tr("严格模式"), "check", ""),
+                ("overwrite", tr("覆盖已有归档"), "check", ""),
+            ),
+        ),
+        Operation("init", tr("新建工程"), "", tr("把当前目录建成一个模组工程。"), (("name", tr("工程名"), "text", ""),)),
+        Operation("undo", tr("撤销"), "", tr("把最近几次写入换回原来的字节。"), (("count", tr("条数"), "text", "1"),)),
+        Operation("redo", tr("重做"), "", tr("重新应用最近撤销掉的写入。"), (("count", tr("条数"), "text", "1"),)),
+    )
+
+
+def operation_field(spec: tuple, value: str = "") -> str:
+    """One control of an operation form."""
+    name, label, kind, default = spec
+    if kind == "text":
+        return text_field(name, label, value or default, 40)
+    if kind == "check":
+        return checkbox(name, label, value == "1")
+    if kind.startswith("select:"):
+        options = [
+            ("" if item == "" else item, tr("默认") if item == "" else item)
+            for item in kind[len("select:"):].split("|")
+        ]
+        return select_field(name, label, options, value or default)
+    raise ValueError(f"unknown field kind {kind!r}")
+
+
+def operation_options(operation: Operation, query: dict) -> dict:
+    """The options a query asks for; a blank control means the option is not sent."""
+    options = {}
+    for name, _label, kind, _default in operation.fields:
+        raw = query.get(name, "")
+        if kind == "check":
+            if raw in ("1", "yes", "true"):
+                options[name] = "1"
+        elif raw.strip():
+            options[name] = raw.strip()
+    return options
+
+
+def shell_line(scope_name: str, command: str, selector: str, options: dict) -> str:
+    """The shell command equivalent to one operation, for the confirmation step.
+
+    The ``key=value`` options come first and the two flags last, which is the order the usage
+    text and the documentation use.
+    """
+    parts = ["ff", scope_name, command]
+    if selector:
+        parts.append(f'"{selector}"' if " " in selector else selector)
+    flags = {"write": "--write", "dry-run": "--dry-run"}
+    for key in sorted(options):
+        if key not in flags:
+            parts.append(f"{key}={options[key]}")
+    for key, flag in flags.items():
+        if key in options:
+            parts.append(flag)
+    return " ".join(parts)
+
+
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 RESERVED = ("scope", "t", "command", "selector", "page", "lang")
@@ -396,7 +536,7 @@ class Handler(BaseHTTPRequestHandler):
     """GET router; every route returns HTML, /json returns the raw payload."""
 
     server_version = f"ff-web/{VERSION}"
-    routes = ("index", "list", "show", "get", "find", "refs", "deps", "check", "stats", "cmd", "json", "help", "quit")
+    routes = ("index", "list", "show", "get", "edit", "find", "refs", "deps", "check", "stats", "log", "ops", "cmd", "json", "help", "quit")
 
     # --- plumbing -----------------------------------------------------------
 
@@ -558,6 +698,9 @@ class Handler(BaseHTTPRequestHandler):
             links = " · ".join(
                 [
                     link(here("list"), tr("列表")),
+                    link(here("edit"), tr("编辑")),
+                    link(here("log"), tr("日志")),
+                    link(here("ops"), tr("操作")),
                     link(here("stats"), tr("统计")),
                     link(here("check"), tr("体检")),
                 ]
@@ -566,7 +709,7 @@ class Handler(BaseHTTPRequestHandler):
         body = h2(tr("可用的作用域"))
         body += table([tr("作用域"), tr("根目录"), tr("来源"), tr("操作")], rows)
         if not rows:
-            body += warn(tr("没有解析到任何作用域：用 root=<目录> 启动，或先建一个含 mod.toml 的工程。"))
+            body += warn(tr("没有解析到任何作用域：用 root=<目录> 启动，或先建一个含 ModInformation.toml 的工程。"))
 
         listing = self.app.call("list", scope, "all")
         payload = listing.payload
@@ -937,6 +1080,141 @@ class Handler(BaseHTTPRequestHandler):
         result = self.app.call_from_query(command, scope, query)
         return json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
+    def page_edit(self, query: dict[str, str]) -> str:
+        """Every field of one document with its own input box."""
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        selector = query.get("path", "").strip()
+        body = h2(tr("编辑文档"))
+        body += note(tr("填一个文档路径，页面列出它的全部字段；改哪一行就改哪一行的输入框，然后按该行的「保存」。"))
+        body += form(url("edit"), [text_field("path", tr("文档"), selector, 60)], tr("读取"))
+        if not selector:
+            return self.shell(tr("编辑文档"), body, scope.name)
+        payload = self.app.call("get", scope, selector).payload
+        values = payload.get("values") or []
+        if not values:
+            body += note(tr("这个文档没有可列出的字段。"))
+            return self.shell(tr("编辑文档"), body, scope.name)
+        document = payload["path"]
+        body += crumbs([(url("index"), tr("首页")), (url("show", path=document), document), ("", tr("编辑"))])
+        rows = []
+        for item in values:
+            actions = form(
+                url("ops", command="set"),
+                [hidden("selector", document), hidden("field", item["path"]), text_field("value", tr("新值"), "", 30)],
+                tr("保存"),
+            )
+            rows.append([esc(item["path"]), pre(item["value"]), actions])
+        body += table([tr("字段"), tr("当前值"), tr("改为")], rows)
+        body += note_html(tr("也可以用{}一次给多个参数，或到{}看事件日志。", link(url("ops", command="set"), tr("操作页")), link(url("log"), tr("事件日志"))))
+        return self.shell(tr("编辑文档"), body, scope.name)
+
+    def page_log(self, query: dict[str, str]) -> str:
+        """The event log, with the undo and redo forms beside it."""
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        filters = {key: query[key] for key in ("document", "field", "actor", "result", "since", "until") if query.get(key)}
+        filters["limit"] = str(self.app.page_size)
+        payload = self.app.call("log", scope, **filters).payload
+        body = crumbs([(url("index"), tr("首页")), ("", tr("事件日志"))])
+        body += h2(tr("事件日志"))
+        body += note_html(
+            tr("每条记录是一次写入。{} 与 {} 把最近几次写入换回或重做；命令行页可以按 document=、field=、actor=、result=、since=、until= 过滤。",
+               link(url("ops", command="undo"), "undo"), link(url("ops", command="redo"), "redo"))
+        )
+        rows = [
+            [
+                esc(item.get("id") or ""),
+                esc(item.get("time") or ""),
+                esc(item.get("result") or ""),
+                esc(item.get("document") or ""),
+                esc(item.get("field") or ""),
+                pre(item.get("after") or ""),
+            ]
+            for item in payload.get("events") or []
+        ]
+        body += table([tr("编号"), tr("时间"), tr("动作"), tr("文档"), tr("字段"), tr("结果")], rows)
+        body += note(tr("共 {} 条记录，显示 {} 条。", payload.get("selected", 0), payload.get("shown", 0)))
+        body += h3(tr("撤销与重做"))
+        body += form(url("ops", command="undo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
+        body += form(url("ops", command="redo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
+        return self.shell(tr("事件日志"), body, scope.name)
+
+    def page_ops(self, query: dict[str, str]) -> str:
+        """Every writing command as a form, with a check step before the write.
+
+        Nothing is written until the confirmation step is followed: this UI is GET-only, so a
+        link can be prefetched or followed by accident, and the write is kept one deliberate
+        click away from the page that shows what it would do.
+
+        The check step passes ``write=1 dry-run=1``, which is the line a person would type:
+        every writing command takes ``--write``, and ``--dry-run`` is what keeps it from
+        touching the disk (docs/cli.md section 4).
+        """
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        offered = operations()
+        wanted = query.get("command", "")
+        if not wanted:
+            body = h2(tr("写入操作"))
+            body += note(tr("每条写入命令一张表。先按「检查」：下一步给出等价命令行和只检查不写入的真实结果，确认后再写入。"))
+            rows = [
+                [
+                    link(url("ops", command=item.command), item.command),
+                    esc(item.title),
+                    esc(item.selector or tr("不需要文档")),
+                ]
+                for item in offered
+            ]
+            body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
+            body += note_html(tr("要运行任意命令用{}。", link(url("cmd"), tr("命令行页"))))
+            return self.shell(tr("写入操作"), body, scope.name)
+        operation = next((item for item in offered if item.command == wanted), None)
+        if operation is None:
+            raise UsageError(tr("没有这条写入命令：{}", wanted))
+        selector = query.get("selector", "").strip()
+        options = operation_options(operation, query)
+        body = crumbs([(url("index"), tr("首页")), (url("ops"), tr("写入操作")), ("", operation.command)])
+        body += h2(f"{operation.command} · {operation.title}")
+        body += note(operation.note)
+        fields = []
+        if operation.selector:
+            fields.append(text_field("selector", operation.selector, selector, 60))
+        fields.extend(operation_field(spec, query.get(spec[0], "")) for spec in operation.fields)
+        body += form(url("ops", command=operation.command), fields, tr("检查"))
+        if query.get("confirm") != "1":
+            return self.shell(operation.title, body, scope.name)
+        check = {**options, "write": "1", "dry-run": "1"}
+        body += h3(tr("将要运行"))
+        body += pre(shell_line(scope.name, operation.command, selector, check))
+        body += h3(tr("只检查不写入"))
+        refused = ""
+        try:
+            dry = self.app.call(operation.command, scope, selector, **check)
+        except (UsageError, FfError) as error:
+            refused = str(error)
+            body += bad(refused)
+        else:
+            body += pre(dry.text or tr("（这条命令没有文本输出，看载荷）"))
+            if dry.code != 0:
+                body += warn(tr("退出码 {}：命令报了失败项，写入前先看上面的输出。", dry.code))
+        if not refused and query.get("write") == "1":
+            result = self.app.call(operation.command, scope, selector, write="1", **options)
+            body += h3(tr("写入结果"))
+            body += warn(tr("已写入，退出码 {}。", result.code))
+            body += pre(result.text or tr("（这条命令没有文本输出，看载荷）"))
+            body += note_html(
+                tr("等价命令：") + mono(shell_line(scope.name, operation.command, selector, {**options, "write": "1"}))
+                + " · " + self.json_link(scope.name, operation.command, selector=selector, **options)
+            )
+            return self.shell(operation.title, body, scope.name)
+        if refused:
+            body += note(tr("命令拒绝了这次检查；写入不会比它更宽容，因此没有写入链接。"))
+            return self.shell(operation.title, body, scope.name)
+        body += warn(tr("尚未写入。核对上面的结果，确认无误后再按「写入」。"))
+        body += note_html(link(url("ops", command=operation.command, confirm="1", write="1", selector=selector, **options), tr("写入")))
+        return self.shell(operation.title, body, scope.name)
+
     def page_cmd(self, query: dict[str, str]) -> str:
         """A command line: run one CLI command and print exactly what the CLI prints.
 
@@ -999,6 +1277,9 @@ class Handler(BaseHTTPRequestHandler):
             [link(url("list"), "/list"), tr("实体表格，可按路径片段与分类过滤"), mono(tr("ff {} list <前缀>", scope.name))],
             [link(url("show", path=""), "/show"), tr("一个实体的原始 / TOML / XML 视图"), mono(tr("ff {} show <路径> as=toml", scope.name))],
             [link(url("get", path=""), "/get"), tr("某个字段的取值、文档路径与行号"), mono(tr("ff {} get <路径> field=<字段>", scope.name))],
+            [link(url("edit"), "/edit"), tr("一个文档的全部字段，每行一个输入框"), mono(tr("ff {} get <路径>", scope.name))],
+            [link(url("log"), "/log"), tr("事件日志，以及撤销与重做的入口"), mono(f"ff {scope.name} log")],
+            [link(url("ops"), "/ops"), tr("11 条写入命令的表单；先检查，确认后才写入"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
             [link(url("find"), "/find"), tr("按标签、取值或文档路径搜索"), mono(tr("ff {} find <前缀> tag=…", scope.name))],
             [link(url("refs", path=""), "/refs"), tr("一个实体指向谁"), mono(tr("ff {} refs <路径>", scope.name))],
             [link(url("deps"), "/deps"), tr("谁引用了某个取值"), mono(tr("ff {} deps value=<取值>", scope.name))],
@@ -1113,7 +1394,7 @@ def state_root(cwd: Path) -> Path:
 
 def instance_path(root: Path) -> Path:
     """The record file of one editor folder or project."""
-    return Path(root) / ".editor" / INSTANCE_NAME
+    return Path(root) / EDITOR_DIR / INSTANCE_NAME
 
 
 def read_instance(root: Path) -> dict | None:

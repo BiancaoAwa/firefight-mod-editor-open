@@ -170,7 +170,7 @@ Scanner, not a grammar. Rules, each derived from a measurement:
 
 1. A tag opens at `<` and closes at the next `>`; the name charset is `[A-Za-z_][A-Za-z0-9_-]*` plus `[0-9]+` (numeric names occur in `mod.txt`).
 2. `&` is an ordinary character; no entity expansion at all. This is what makes the 16 bare-`&` files readable.
-3. `//` starts a comment that runs to the end of the line, but only where the marker is at the start of a line or preceded by whitespace, a tab or `>`. All 1732 occurrences in the corpus satisfy that test, so no legitimate value is truncated. Comments are removed from element text before the text is recorded, and the raw commented text is offered to the caller for optional `.editor/notes.toml` capture.
+3. `//` starts a comment that runs to the end of the line, but only where the marker is at the start of a line or preceded by whitespace, a tab or `>`. All 1732 occurrences in the corpus satisfy that test, so no legitimate value is truncated. Comments are removed from element text before the text is recorded, and the raw commented text is offered to the caller for optional `EditorCache/notes.toml` capture.
 4. Whitespace-only text between elements is discarded; non-whitespace text is retained as the element's value.
 5. Nesting is tracked with a stack; a closing tag that does not match the innermost open tag unwinds to the nearest matching open tag (never raises on ragged input), and the unwind is reported as a warning on the document.
 6. Each node records `tag`, `children`, `value`, and `line` (1-based).
@@ -317,6 +317,6 @@ Warnings are collected on the document, never raised: ragged close tags, unknown
 | A `//` inside a legitimate value (for example a URL) is stripped as a comment | Resolved by measurement: all **1732** `//` occurrences in the corpus are at the start of a line or preceded by whitespace, tab or `>`, so the reader treats `//` as a comment only in those positions and leaves any other occurrence as data |
 | Schema errors surface late, when a rare tag appears | Unknown tags warn and are preserved rather than dropped, so a gap degrades to a warning instead of data loss |
 | Numeric fidelity of floats | Never re-render an unedited value; assert in tests that `raw` survives `parse` → `render` |
-| The 5-minute log segments and `.editor/` layout are irrelevant to M1 | Nothing in M1 writes `.editor/` |
+| The 5-minute log segments and `EditorCache/` layout are irrelevant to M1 | Nothing in M1 writes `EditorCache/` |
 | Deferring `mod` to project-file support leaves the project file unmodelled for now | The deferral is a scope decision, not a gap: stock files never repeat a leaf (§2.5), so no deliverable here is blocked by it, and §2.7 records the shape `mod` will need |
 

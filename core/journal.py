@@ -1,4 +1,4 @@
-"""Editor state under ``.editor/``: the write lock, the baseline store and the event log.
+"""Editor state under ``EditorCache/``: the write lock, the baseline store and the event log.
 
 Every write appends one JSONL record naming the bytes it replaced and the bytes it left, and
 keeps both in a content-addressed baseline, so a rollback restores recorded bytes instead of
@@ -18,7 +18,7 @@ from typing import Callable, Iterator
 
 from core.errors import EditRefused, FfError
 
-EDITOR_DIR = ".editor"
+EDITOR_DIR = "EditorCache"
 LOCK_NAME = "lock"
 LOG_DIR = "log"
 BASELINE_DIR = "baseline"
@@ -111,7 +111,7 @@ def _holder(project_root: Path) -> str:
 
 @contextmanager
 def hold_lock(project_root: Path, *, tool: str) -> Iterator[None]:
-    """Hold ``.editor/lock`` for one write; a held lock refuses, it is never stolen."""
+    """Hold ``EditorCache/lock`` for one write; a held lock refuses, it is never stolen."""
     editor = editor_dir(project_root)
     editor.mkdir(parents=True, exist_ok=True)
     lock = editor / LOCK_NAME

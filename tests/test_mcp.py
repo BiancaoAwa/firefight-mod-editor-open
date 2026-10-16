@@ -122,12 +122,12 @@ def setUpModule() -> None:
     global _ENV
     shutil.rmtree(SCRATCH, ignore_errors=True)
     _ENV = {name: os.environ.pop(name, None) for name in ("FIREFIGHT_DATA", "FIREFIGHT_MODS")}
-    FIXTURES["project/mod.toml"] = b'name = "Mcp Fixture"\n'
-    FIXTURES["project/Mod/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-    FIXTURES["project/Mod/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00fixture\n"
+    FIXTURES["project/ModInformation.toml"] = b'name = "Mcp Fixture"\n'
+    FIXTURES["project/Data/Weapons/WEAPON_DEMO.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
+    FIXTURES["project/Sounds/SOUND_RIFLE.ogg"] = b"OggS\x00fixture\n"
     FIXTURES["stock/Data/Weapons/WEAPON_STOCK.txt"] = WEAPON_XML.replace("\n", "\r\n").encode("cp1252")
-    FIXTURES["broken/mod.toml"] = b'name = "Mcp Broken"\n'
-    FIXTURES["broken/Mod/Data/Weapons/WEAPON_BROKEN.txt"] = BROKEN_XML.replace("\n", "\r\n").encode("cp1252")
+    FIXTURES["broken/ModInformation.toml"] = b'name = "Mcp Broken"\n'
+    FIXTURES["broken/Data/Weapons/WEAPON_BROKEN.txt"] = BROKEN_XML.replace("\n", "\r\n").encode("cp1252")
     write_fixtures()
 
 
@@ -396,7 +396,7 @@ class ServerTest(unittest.TestCase):
 
     def test_a_write_from_this_server_is_logged_as_the_mcp_actor(self) -> None:
         made = "Data/Weapons/WEAPON_MADE.toml"
-        self.addCleanup(lambda: (PROJECT / "Mod" / made).unlink(missing_ok=True))
+        self.addCleanup(lambda: (PROJECT / made).unlink(missing_ok=True))
         answer = self.writing.handle(
             call(1, "tools/call", {"name": exposed("ff_add"), "arguments": {"scope": "Mod", "selector": made}})
         )
@@ -404,7 +404,7 @@ class ServerTest(unittest.TestCase):
         written = [event for event in journal.read_events(PROJECT) if event.get("result") == "add"]
         self.assertTrue(written, "the write left no record")
         self.assertEqual(written[-1]["actor"], "mcp")
-        self.assertEqual(written[-1]["document"], f"Mod/{made}")
+        self.assertEqual(written[-1]["document"], made)
 
     def test_a_bad_parameter_is_an_invalid_params_error(self) -> None:
         answer = self.server.handle(call(1, "tools/call", {"name": exposed("ff_show"), "arguments": [1]}))
@@ -467,7 +467,7 @@ class ServerTest(unittest.TestCase):
 
     def test_the_command_line_options(self) -> None:
         self.assertEqual(parse_argv([]), ({}, False, False))
-        self.assertEqual(parse_argv(["--write", "workspace=Mods"]), ({"write": "1", "workspace": "Mods"}, False, False))
+        self.assertEqual(parse_argv(["--write", "workspace=Mod"]), ({"write": "1", "workspace": "Mod"}, False, False))
         self.assertEqual(parse_argv(["--help"]), ({}, True, False))
         self.assertEqual(parse_argv(["--version"]), ({}, False, True))
         with self.assertRaises(tools.CallRefused):
@@ -494,8 +494,8 @@ class ServerTest(unittest.TestCase):
         self.assertIn("cannot find the stock Firefight data", refused["error"]["message"])
 
     def test_the_command_line_defaults_are_parsed(self) -> None:
-        options, _, _ = parse_argv(["firefight=D:/game", "workspace=Mods", "--write"])
-        self.assertEqual(options, {"firefight": "D:/game", "workspace": "Mods", "write": "1"})
+        options, _, _ = parse_argv(["firefight=D:/game", "workspace=Mod", "--write"])
+        self.assertEqual(options, {"firefight": "D:/game", "workspace": "Mod", "write": "1"})
 
 
 class ToolTableTest(unittest.TestCase):
@@ -544,7 +544,7 @@ class ToolTableTest(unittest.TestCase):
         self.assertEqual(specs.tool_named("ff_deps").call({"value": "WEAPON_PISTOL_P38"}), ("Mod", "", {"value": "WEAPON_PISTOL_P38"}))
         self.assertEqual(specs.tool_named("ff_undo").call({"count": 2}), ("Mod", "2", {}))
         self.assertEqual(specs.tool_named("ff_set").call({"selector": "x", "field": "name", "value": "", "dryRun": True}), ("Mod", "x", {"field": "name", "value": "", "dry-run": "1"}))
-        self.assertEqual(specs.tool_named("ff_list").call({"type": "weapon"}, defaults={"workspace": "Mods"}), ("Mod", "", {"type": "weapon", "workspace": "Mods"}))
+        self.assertEqual(specs.tool_named("ff_list").call({"type": "weapon"}, defaults={"workspace": "Mod"}), ("Mod", "", {"type": "weapon", "workspace": "Mod"}))
         self.assertEqual(specs.tool_named("ff_stats").call({"scope": ""}), ("Mod", "", {}))
 
 

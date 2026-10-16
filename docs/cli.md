@@ -28,16 +28,16 @@ A scope root is a directory holding `Data/`, `Images/` and `Sounds/`.
 
 | Scope | Meaning | Resolution |
 |---|---|---|
-| `Mod` | the mod project the current directory belongs to | `root=`/`mod=` option, else `mod` in the local config, else nearest ancestor with `mod.toml`; data lives under `Mod/` when present, otherwise at the project root |
+| `Mod` | the mod project the current directory belongs to | `root=`/`mod=` option, else `mod` in the local config, else nearest ancestor with `ModInformation.toml`; the project directory is its data root |
 | `Firefight` | the stock game data | `root=`/`firefight=` option, else `FIREFIGHT_DATA`, else `firefight` in the local config found upwards, else the copy shipped with the editor |
-| `<name>` | another mod folder in the workspace | a directory of that name, else `<workspace>/Mods/<name>`, else `<workspace>/<name>`; workspace from `workspace=<dir>`, else `FIREFIGHT_MODS`, else the local config, else the current directory |
+| `<name>` | another mod folder in the workspace | a directory of that name, else `<workspace>/Mod/<name>`, else `<workspace>/<name>`; workspace from `workspace=<dir>`, else `FIREFIGHT_MODS`, else the local config, else the current directory |
 
 A scope root is the directory that holds `Data/`, `Images/` and `Sounds/`; passing the
 `Data` directory itself is accepted and normalized to its parent. For an installed game
 that is the directory containing `Firefight.exe`. The `Firefight` scope is never written:
 the editor does not edit the game directory, and `export` writes only under `to=`. A project
 is written only by `set`, `undo` and `redo` with `--write`, and only inside the project
-directory (§4.1, §4.2). The local config `.ff-editor.local.toml` (keys `firefight`, `mod`,
+directory (§4.1, §4.2). The local config `Setting.toml` (keys `firefight`, `mod`,
 `workspace`) is read from the nearest ancestor directory and belongs in `.gitignore`.
 
 ## 3. Paths and selectors
@@ -65,11 +65,11 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
 | `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
-| `init` | | create a project: `mod.toml` and an empty `Mod/Data`; needs `--write` (§4.9) |
+| `init` | | create a project: `ModInformation.toml` and an empty `Data/`; needs `--write` (§4.9) |
 | `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
 | `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
-| `index` | | write `.editor/index.toml` and `.editor/refs.toml`; needs `--write` (§4.6) |
-| `settings` | | translate between the project's stock `Mod/mod.txt` and `mod_setting.toml`; needs `--write` (§4.7) |
+| `index` | | write `EditorCache/index.toml` and `EditorCache/refs.toml`; needs `--write` (§4.6) |
+| `settings` | | translate between the project's stock `mod.txt` and `ModSetting.toml`; needs `--write` (§4.7) |
 | `pack` | | build `<name>-<version>.zip` from the project; needs `--write` (§4.8) |
 | `convert` | | turn the selection into project working files under `to=<dir>`; needs `--write` (§4.3) |
 | `log` | | the log segments and the records inside them, with filters; read-only (§4.2) |
@@ -126,17 +126,17 @@ python -m core.cli Mod set <document> field=<array>.<n> op=delete --write [--dry
   the edited leaf survives too.
 * Atomic: the new bytes go to a sibling temporary file and `os.replace` moves them over the
   original, so no half-written document is observable.
-* Locked: the write holds `.editor/lock` for its duration. A lock another writer holds
+* Locked: the write holds `EditorCache/lock` for its duration. A lock another writer holds
   refuses the second writer instead of interleaving, is never removed by a process that did
   not create it, and a stale lock is reported rather than stolen.
 * Guarded: a document that changed on disk after the change was staged is refused instead of
   overwritten.
-* Refusals are final — nothing is retried, and the file, the lock and `.editor/` stay as they
+* Refusals are final — nothing is retried, and the file, the lock and `EditorCache/` stay as they
   were. `set` without `--write`, a write aimed at the `Firefight` scope, an unknown field, a
   value of the wrong type and a held lock all exit with code 2; a value the document encoding
   cannot hold exits with code 1.
 * `--dry-run` computes and reports the whole result without writing anything, not even
-  `.editor/` itself.
+  `EditorCache/` itself.
 * `op=append` adds one entry to an array of tables named by `field=`; `from=<n>` copies the
   leaves of the existing entry `n` into the new one instead of writing empty values.
   `op=delete` removes the entry named by the index segment. Both work on the source lines, so
@@ -151,8 +151,8 @@ python -m core.cli Mod undo [count] --write [--dry-run] [--json]
 python -m core.cli Mod redo [count] --write [--dry-run] [--json]
 ```
 
-* Every write appends one record to `.editor/log/<segment start local time>.jsonl` and stores
-  the bytes it replaced and the bytes it left under `.editor/baseline/<sha256>`. The record
+* Every write appends one record to `EditorCache/log/<segment start local time>.jsonl` and stores
+  the bytes it replaced and the bytes it left under `EditorCache/baseline/<sha256>`. The record
   names the change (`id`, `segment`, `timestamp`, `actor`, `result`, `target`, `document`,
   `entity`, `field`, `before`, `after`, `digest_before`, `digest_after`, `bytes_before`,
   `bytes_after`, `dry_run`); `result` is `set`, `add`, `remove`, `undo` or `redo`, and the field
@@ -175,10 +175,10 @@ python -m core.cli Mod redo [count] --write [--dry-run] [--json]
   the log and a log with nothing to revert are all refused with code 2, and no part of the
   invocation is written. Recorded bytes that are gone or no longer hash to their name are a
   hard failure with code 1.
-* `undo` and `redo` need `--write`, hold the same `.editor/lock` as `set`, refuse the
+* `undo` and `redo` need `--write`, hold the same `EditorCache/lock` as `set`, refuse the
   `Firefight` scope, and are confined to the project directory. A refusal is final and nothing
   is retried. `--dry-run` reports the restores without holding the lock, without touching
-  `.editor/` and without writing a document.
+  `EditorCache/` and without writing a document.
 * A new `set` discards what could be redone, as a fresh edit does in an editor.
 
 ### 4.3 Turning stock files into project working files
@@ -187,16 +187,16 @@ python -m core.cli Mod redo [count] --write [--dry-run] [--json]
 python -m core.cli Firefight convert to=<project> --write [--dry-run] [assets=1] [type=<category>] [--json]
 ```
 
-* The selection is read from the scope and written under `<project>/Mod/<relative path>` with
+* The selection is read from the scope and written under `<project>/<relative path>` with
   the suffix replaced by `.toml`. A destination whose own last segment is already `Mod` is
   used as it stands. Missing directories are created, so `convert` is the one command that
-  establishes a project directory out of the game data; no `mod.toml` is written, because the
+  establishes a project directory out of the game data; no `ModInformation.toml` is written, because the
   metadata of a project is the author's to fill in (docs/project-layout.md §3).
 * A file that is already there is skipped and counted; `overwrite=1` replaces it. Files that
   are not entities are skipped and counted too. The plain-text tables are the ones the
-  project's settings name: `<equipment>` and `<surnames>` in `Mod/mod.txt`, or the same keys
-  in `mod_setting.toml` when that file is the one the project carries. A name declared there
-  is a table whatever the file holds (`Mod/Data/news_main.txt` is one). A scope that declares
+  project's settings name: `<equipment>` and `<surnames>` in `mod.txt`, or the same keys
+  in `ModSetting.toml` when that file is the one the project carries. A name declared there
+  is a table whatever the file holds (`Data/news_main.txt` is one). A scope that declares
   nothing — the stock scope has no `mod.txt` — falls back to the name conventions
   (`equipment_*`, `surnames_*`), and a `.txt` with no root element is a table by its content.
 * Output is UTF-8 without BOM with CRLF line endings, the canonical layout of the TOML writer,
@@ -204,14 +204,14 @@ python -m core.cli Firefight convert to=<project> --write [--dry-run] [assets=1]
   reproduction is what `export` is for, not `convert`.
 * Without `--write` the command is a usage error (code 2). `--dry-run` reports the same plan
   and writes nothing, not even the destination directory.
-* `assets=1` also copies the scope's `Images/` and `Sounds/` trees into `<project>/Mod/`,
+* `assets=1` also copies the scope's `Images/` and `Sounds/` trees into `<project>/`,
   byte for byte, under the same skip rule (`overwrite=1` replaces). Off by default, because
   the stock scope's two trees are the game's own artwork and sound: a mod that ships
   replacements should name the scope that holds them (a project scope) or pass `assets=1`
   deliberately. The pack of §4.8 then carries them like any other unmanaged file.
 * The exit code is 1 when at least one file failed to convert, 0 otherwise.
 * `convert` writes documents that have no recorded version yet, so it appends no event-log
-  record and takes no `.editor/lock`; `.editor/` is not created either. Two gaps follow: the
+  record and takes no `EditorCache/lock`; `EditorCache/` is not created either. Two gaps follow: the
   files it writes cannot be reverted with `undo`, and a concurrent `set` is not excluded.
 
 ### 4.4 The web UI and the running-instance record
@@ -224,7 +224,7 @@ python -m core.cli Mod web [port=<n>] [token=<text>] [pagesize=<n>] [browser=1]
   that still answers is reused: its address is printed, its page is opened when the caller
   asked for a browser, and the process returns at once, so a second backend never starts by
   accident. Otherwise the first free port at or above 8765 is taken.
-* The running instance is recorded in `<editor folder>/.editor/web.json`, or under the project
+* The running instance is recorded in `<editor folder>/EditorCache/web.json`, or under the project
   directory when no editor folder is recognised: `pid`, `host`, `port`, `url`, `scope`, `token`
   and `started`. A clean stop removes the record. A record left behind by a killed process is
   stale, and the probe of its address decides, so a crashed UI never keeps the next one from
@@ -263,8 +263,8 @@ python -m core.cli Mod remove <document> --write [--dry-run]
 python -m core.cli Mod index [selector] --write [--dry-run]
 ```
 
-* `index` walks the selection once and writes `.editor/index.toml` (a `[documents]` table
-  mapping each relative document path to its root element) and `.editor/refs.toml` (a
+* `index` walks the selection once and writes `EditorCache/index.toml` (a `[documents]` table
+  mapping each relative document path to its root element) and `EditorCache/refs.toml` (a
   `[by_source]` table mapping each document to the tokens it points at). A `[built]` table in
   both files records when the index was written, the scope, the counts, and one fingerprint of
   the scope.
@@ -278,7 +278,7 @@ python -m core.cli Mod index [selector] --write [--dry-run]
   and the `equipment_*` / `surnames_*` conventions — plus `.txt` files with no root element and
   unreadable files are counted as skipped; they are not errors.
 
-### 4.7 Translating between `Mod/mod.txt` and `mod_setting.toml`
+### 4.7 Translating between `mod.txt` and `ModSetting.toml`
 
 ```
 python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=1]
@@ -286,8 +286,8 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
 
 * The editor carries the project's stock settings file (docs/project-layout.md §4) in two
   forms, and this command moves between them. `op=render`, the default, reads
-  `<project>/Mod/mod.txt` and writes `<project>/mod_setting.toml`. `op=emit` reads
-  `<project>/mod_setting.toml` and writes `<project>/Mod/mod.txt`.
+  `<project>/mod.txt` and writes `<project>/ModSetting.toml`. `op=emit` reads
+  `<project>/ModSetting.toml` and writes `<project>/mod.txt`.
 * `render`: every element becomes its table or key, `<nationality>` blocks become
   `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements become one array
   per nation, the bare `<ranks>` numbers become quoted keys, and the nation names keep the
@@ -302,10 +302,10 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
 * Both directions are pure functions of their source, and both report what they could not
   carry rather than dropping it silently.
 * An existing target is skipped unless `overwrite=1`. The target of `op=render` is the
-  hand-editable `mod_setting.toml`, so `overwrite=1` discards those edits; `op=emit` replaces
+  hand-editable `ModSetting.toml`, so `overwrite=1` discards those edits; `op=emit` replaces
   the stock file the game reads, so the same flag there is the one that reaches a release
   package. The shipped WW3 project shows the scale of `render`: its hand-written
-  `mod_setting.toml` holds 79 lines and one nation, while the renderer produces 333 lines and
+  `ModSetting.toml` holds 79 lines and one nation, while the renderer produces 333 lines and
   all twelve from the same `mod.txt`, with no warnings.
 * The stock scope `Firefight` is refused, since both targets live in a project. `op` must be
   `render` or `emit`; a missing source is refused (`nothing to <op> from: <path> is not
@@ -321,7 +321,7 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
   `README.md` and `LICENSE`, taken from the project directory. The default destination is
   `<name>-<version>.zip` in the project directory; `to=<directory>` names another directory.
 * Inside `Mod/`, a document that exists as TOML is written back as stock XML. `Mod/mod.txt`
-  is rendered from `mod_setting.toml` when that file is there. Everything else, including
+  is rendered from `ModSetting.toml` when that file is there. Everything else, including
   `Images/` and `Sounds/`, is copied byte for byte: a file placed by hand arrives unchanged,
   and a document with only a TOML twin is emitted in canonical form (tabs, CRLF, UTF-8).
 * Every pack runs the check of §4.3 first and the payload carries its counts
@@ -338,7 +338,7 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
   sits on neither the undo nor the redo stack, so nothing reverts it (docs/project-layout.md
   section 8). A `--dry-run`, a refused pack and one that skipped an existing archive leave
   no record.
-* `pack` does refuse an on-disk `Mod/mod.txt` that disagrees with `mod_setting.toml`, because
+* `pack` does refuse an on-disk `mod.txt` that disagrees with `ModSetting.toml`, because
   replacing that file would otherwise drop content the shorter of the two does not carry. Run
   `Mod settings op=render overwrite=1 --write` first when the TOML side is the newer one.
 * The stock scope `Firefight` is refused. `overwrite=1` replaces an archive that is already
@@ -353,13 +353,13 @@ python -m core.cli Mod init --write [--dry-run] [name=<text>]
 * `init` is the one command whose scope need not exist yet: `root=` or `workspace=` names the
   directory to create the project in, the working directory otherwise, and the directory is
   created when it is missing. Every other command resolves a scope that is already there.
-* It writes `mod.toml` from the schema skeleton (docs/project-layout.md §3) and an empty
-  `Mod/Data/`. `name=` fills the mod name in, the directory name otherwise. The stock scope
+* It writes `ModInformation.toml` from the schema skeleton (docs/project-layout.md §3) and an empty
+  `Data/`. `name=` fills the mod name in, the directory name otherwise. The stock scope
   `Firefight` is refused: that installation is not a project.
-* A directory that already carries a `mod.toml` is refused, so an initialised project is never
+* A directory that already carries a `ModInformation.toml` is refused, so an initialised project is never
   overwritten. Removing a project is a plain directory delete; `init` has no counterpart.
-* The new `mod.toml` is recorded like any other new document, so `Mod undo --write` takes the
-  file away again. The empty `Mod/Data` is a directory rather than a document, and no record
+* The new `ModInformation.toml` is recorded like any other new document, so `Mod undo --write` takes the
+  file away again. The empty `Data/` is a directory rather than a document, and no record
   reverts it.
 * A list-typed leaf such as `authors` is written as `key = []`, which the reader accepts.
 
@@ -431,8 +431,8 @@ and prints the address it bound.
   changes to several documents in one invocation. The log and the baseline are per project,
   and `Firefight` is never written.
 * `pack` builds the mod-zip. The stock-baseline comparison and the APK packaging of
-  docs/project-layout.md §5 are not implemented, and no command creates a project: `mod.toml`
-  is written by hand. `Mod/mod.txt` in the archive comes from `mod_setting.toml` when that
+  docs/project-layout.md §5 are not implemented, and no command creates a project: `ModInformation.toml`
+  is written by hand. `Mod/mod.txt` in the archive comes from `ModSetting.toml` when that
   file is there; without it the existing `Mod/mod.txt` is copied as it stands.
 * `add` writes the schema skeleton of the document root, which leaves arrays out (their empty
   form would not be readable back); a document that needs array entries is created with
@@ -441,9 +441,9 @@ and prints the address it bound.
 * Only the roots the editor declares a schema for can be created and edited: `weapon`, `squad`,
   `aircraft`, `mod` and `mod_setting`. The `vehicle` and `at_gun` folders carry a `squad` root,
   which is covered too.
-* `.editor/index.toml` and `.editor/refs.toml` are now written by `index`; they are a cache
+* `EditorCache/index.toml` and `EditorCache/refs.toml` are now written by `index`; they are a cache
   with a whole-scope fingerprint, so one changed byte sends `refs` and `deps` back to the scan.
-* `settings` translates between the project's stock `Mod/mod.txt` and `mod_setting.toml` in
+* `settings` translates between the project's stock `mod.txt` and `ModSetting.toml` in
   either direction. A project without the source file of the requested direction cannot be
   translated, and a source element the renderer does not know is kept as a plain value rather
   than interpreted. `emit` writes XML by hand, so a value carrying a character the stock form
@@ -457,8 +457,8 @@ and prints the address it bound.
   `Sounds/` are copied when they are already in the project directory; `convert assets=1`
   (§4.3) is what brings them in, and a file that was never imported simply is not in the
   archive. The pack summary does not say what is missing.
-* `init` writes `mod.toml` and an empty `Mod/Data` only. It does not import stock data (`convert`
-  does that, §4.3), does not write `mod_setting.toml` (`settings op=render`, §4.7), and does not
+* `init` writes `ModInformation.toml` and an empty `Data/` only. It does not import stock data (`convert`
+  does that, §4.3), does not write `ModSetting.toml` (`settings op=render`, §4.7), and does not
   read a template from anywhere else.
 * Whether the engine accepts a file we re-emit is verified by an in-game load check, not here.
 * `Maps/`, `Surnames/` and `equipment_*` are out of scope.

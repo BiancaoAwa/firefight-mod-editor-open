@@ -11,14 +11,14 @@ flowchart TD
         A2["Firefight/Images、Sounds<br/>二进制"]
     end
 
-    subgraph project["编辑器工程 Mods/&lt;名称&gt;"]
-        B1["mod.toml<br/>工程元数据"]
-        B2["mod_setting.toml<br/>mod.txt 的 TOML 形式"]
-        B3["Mod/mod.txt<br/>游戏实际读取的文件"]
-        B4["Mod/Data/**/*.toml<br/>工作文件"]
-        B5["Mod/Images、Mod/Sounds"]
-        B6[".editor/log/*.jsonl<br/>.editor/baseline/**"]
-        B7[".editor/index.toml<br/>.editor/refs.toml"]
+    subgraph project["编辑器工程 Mod/&lt;名称&gt;"]
+        B1["ModInformation.toml<br/>工程元数据"]
+        B2["ModSetting.toml<br/>mod.txt 的 TOML 形式"]
+        B3["mod.txt<br/>游戏实际读取的文件"]
+        B4["Data/**/*.toml<br/>工作文件"]
+        B5["Images/、Sounds/"]
+        B6["EditorCache/log/*.jsonl<br/>EditorCache/baseline/**"]
+        B7["EditorCache/index.toml<br/>EditorCache/refs.toml"]
     end
 
     subgraph layer["命令层"]
@@ -58,8 +58,8 @@ flowchart TD
     D4 --> D1
 ```
 
-每次写入都经过 `core/edit.py`：暂存新字节、持有 `.editor/lock`、把新旧字节存进
-`.editor/baseline/`，再向日志追加一条记录。`undo` 与 `redo` 写回记录里的字节，因此日志是
+每次写入都经过 `core/edit.py`：暂存新字节、持有 `EditorCache/lock`、把新旧字节存进
+`EditorCache/baseline/`，再向日志追加一条记录。`undo` 与 `redo` 写回记录里的字节，因此日志是
 唯一的事实来源（见 docs/project-layout.md 第 8 节）。
 
 ## 仓库文件
@@ -74,11 +74,11 @@ flowchart TD
 | `core/convert.py` | XML 与 TOML 双向转换，含保布局写入器 |
 | `core/schema.py` | 各根元素的形状与类型，以及两个工程文件 |
 | `core/refs.py` | 引用规则与语料上的引用图 |
-| `core/index.py` | 写出与读回 `.editor/index.toml` 与 `.editor/refs.toml` |
+| `core/index.py` | 写出与读回 `EditorCache/index.toml` 与 `EditorCache/refs.toml` |
 | `core/edit.py` | 字段写入、整文档增删、数组项、加锁、原子替换 |
 | `core/journal.py` | 日志分段、基线、锁 |
 | `core/history.py` | 规划并执行 `undo` 与 `redo` |
-| `core/settings.py` | `Mod/mod.txt` 与 `mod_setting.toml` 的双向渲染 |
+| `core/settings.py` | `mod.txt` 与 `ModSetting.toml` 的双向渲染 |
 | `core/pack.py` | 生成模组 zip |
 | `core/textio.py` | 解码、换行、导出编码 |
 | `core/enums.py`、`core/errors.py` | 枚举表与错误模型 |
@@ -97,8 +97,8 @@ flowchart TD
 
 | 产物 | 产生方式 | 内容 |
 | --- | --- | --- |
-| 编辑器文件夹 | 把 `core/`、`docs/`、`tools/launcher/` 复制到启动器入口旁 | 同一份源码，另加 `Firefight/`、`Mods/` 与 `.ff-editor.local.toml` |
-| `&lt;名称&gt;-&lt;版本&gt;.zip` | `pack` | `Mod/`、`README.md`、`LICENSE`；`Mod/mod.txt` 由 `mod_setting.toml` 渲染，`Mod/Data/**` 的文档回写为原版 XML，其余逐字节复制 |
+| 编辑器文件夹 | 把 `core/`、`docs/`、`launcher/` 复制到入口旁 | 同一份源码，另加 `Firefight/`、`Mod/` 与 `Setting.toml` |
+| `&lt;名称&gt;-&lt;版本&gt;.zip` | `pack` | `Mod/`、`README.md`、`LICENSE`；`Mod/mod.txt` 由 `ModSetting.toml` 渲染，`Mod/Data/**` 的文档回写为原版 XML，其余逐字节复制 |
 
 `pack` 以固定时间戳写入成员，因此同一工程两次打包得到相同字节，用例可以直接比较压缩包。
 
@@ -112,7 +112,7 @@ flowchart TD
 
 以下尚无标记：
 
-* `init` 只写出 `mod.toml` 与空的 `Mod/Data`，不读模板、不导入原版数据。
+* `init` 只写出 `ModInformation.toml` 与空的 `Data/`，不读模板、不导入原版数据。
 * `Images/` 与 `Sounds/` 只在 `convert` 带 `assets=1` 时导入；指向它们的引用在导入或手工放置文件前一直是悬空引用。
 * `Maps/`、`Surnames/` 与 `equipment_*` 清单不在 schema 范围内。
 * 在某一个作用域内解析不到的引用不会再向原版语料回退；该回退已测量（某个真实工程

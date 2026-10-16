@@ -12,14 +12,14 @@ flowchart TD
         A2["Firefight/Images, Sounds<br/>binaries"]
     end
 
-    subgraph project["Editor project, Mods/&lt;name&gt;"]
-        B1["mod.toml<br/>the project's metadata"]
-        B2["mod_setting.toml<br/>the TOML form of mod.txt"]
-        B3["Mod/mod.txt<br/>the file the game reads"]
-        B4["Mod/Data/**/*.toml<br/>working files"]
-        B5["Mod/Images, Mod/Sounds"]
-        B6[".editor/log/*.jsonl<br/>.editor/baseline/**"]
-        B7[".editor/index.toml<br/>.editor/refs.toml"]
+    subgraph project["Editor project, Mod/&lt;name&gt;"]
+        B1["ModInformation.toml<br/>the project's metadata"]
+        B2["ModSetting.toml<br/>the TOML form of mod.txt"]
+        B3["mod.txt<br/>the file the game reads"]
+        B4["Data/**/*.toml<br/>working files"]
+        B5["Images/, Sounds/"]
+        B6["EditorCache/log/*.jsonl<br/>EditorCache/baseline/**"]
+        B7["EditorCache/index.toml<br/>EditorCache/refs.toml"]
     end
 
     subgraph layer["The command layer"]
@@ -60,8 +60,8 @@ flowchart TD
     D4 --> D1
 ```
 
-Every write goes through `core/edit.py`, which stages the new bytes, holds `.editor/lock`,
-stores the old and new blobs under `.editor/baseline/`, and appends one record to the log.
+Every write goes through `core/edit.py`, which stages the new bytes, holds `EditorCache/lock`,
+stores the old and new blobs under `EditorCache/baseline/`, and appends one record to the log.
 `undo` and `redo` write recorded bytes back, so the log is the only source of truth
 (docs/project-layout.md section 8).
 
@@ -77,11 +77,11 @@ stores the old and new blobs under `.editor/baseline/`, and appends one record t
 | `core/convert.py` | XML to TOML and back, including the layout-preserving writer |
 | `core/schema.py` | shapes and types per root, plus the two project files |
 | `core/refs.py` | reference rules and the graph over a corpus |
-| `core/index.py` | writes and reads `.editor/index.toml` and `.editor/refs.toml` |
+| `core/index.py` | writes and reads `EditorCache/index.toml` and `EditorCache/refs.toml` |
 | `core/edit.py` | field writes, whole documents, array entries, locking, atomic replace |
 | `core/journal.py` | log segments, baselines, the lock |
 | `core/history.py` | plans and applies `undo` and `redo` |
-| `core/settings.py` | renders `Mod/mod.txt` to `mod_setting.toml` and back |
+| `core/settings.py` | renders `mod.txt` to `ModSetting.toml` and back |
 | `core/pack.py` | builds the mod-zip |
 | `core/textio.py` | decoding, newlines, the export encoding |
 | `core/enums.py`, `core/errors.py` | enum tables, the error model |
@@ -101,8 +101,8 @@ Two artifacts exist, both produced outside a build system:
 
 | Artifact | Produced by | Contents |
 | --- | --- | --- |
-| The editor folder | copying `core/`, `docs/` and `tools/launcher/` next to the launcher entry points | the same source plus `Firefight/`, `Mods/` and `.ff-editor.local.toml` |
-| `&lt;name&gt;-&lt;version&gt;.zip` | `pack` | `Mod/`, `README.md`, `LICENSE`; `Mod/mod.txt` is rendered from `mod_setting.toml`, `Mod/Data/**` documents are written back as stock XML, everything else is copied byte for byte |
+| The editor folder | copying `core/`, `docs/` and `launcher/` next to the entry points | the same source plus `Firefight/`, `Mod/` and `Setting.toml` |
+| `&lt;name&gt;-&lt;version&gt;.zip` | `pack` | `Mod/`, `README.md`, `LICENSE`; `Mod/mod.txt` is rendered from `ModSetting.toml`, `Mod/Data/**` documents are written back as stock XML, everything else is copied byte for byte |
 
 `pack` writes members with a fixed timestamp, so the same project packs to the same bytes
 and the tests can compare archives.
@@ -117,7 +117,7 @@ and the tests can compare archives.
 
 These have no marker yet:
 
-* `init` writes `mod.toml` and an empty `Mod/Data` and nothing else; it reads no template and
+* `init` writes `ModInformation.toml` and an empty `Data/` and nothing else; it reads no template and
   imports no stock data.
 * `Images/` and `Sounds/` are imported only when `convert` is asked for them with `assets=1`;
   references to them stay dangling until the files are imported or placed by hand.

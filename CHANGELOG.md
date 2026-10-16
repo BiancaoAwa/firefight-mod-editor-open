@@ -15,23 +15,27 @@ semantic and is written down in one place, `core/__init__.py`.
   `redo`, `version`, `web`. Each accepts `--json`.
 * A Web UI bound to the loopback address, in Chinese and English with a
   language switch, offering the same commands behind the same gates
-  (docs/web.md).
+  (docs/web.md). Three pages carry the writing side: `/edit` lists every field
+  of a document with one input box each, `/ops` offers each of the eleven
+  writing commands as a form and runs it with `--write --dry-run` before
+  offering the write, and `/log` shows the event log with the undo and redo
+  forms.
 * An MCP server for two protocol families, exposing 19 tools of which 8 are
   read-only; the writing tools are registered only under `--write`
   (docs/mcp.md).
 * `pack` builds an installable mod archive: `<name>-<version>.zip` holding a
   `Mod/` prefix, project documents rendered back to the stock XML, the
-  project's `mod_setting.toml` rendered into `Mod/mod.txt`, and neither
-  `.editor/` nor `EditorCache/` in the archive. Member timestamps are fixed,
+  project's `ModSetting.toml` rendered into `Mod/mod.txt`, and no
+  `EditorCache/` in the archive. Member timestamps are fixed,
   so two runs over the same project produce identical bytes. A document that
   cannot be rendered is reported and left out; `strict=1` refuses instead.
-* `init` creates a project from nothing: `mod.toml` and an empty `Mod/Data`.
+* `init` creates a project from nothing: `ModInformation.toml` and an empty `Data/`.
 * `convert` turns the stock `.txt` documents of a scope into working `.toml`
   files under a destination project; `assets=1` also copies the scope's
   `Images/` and `Sounds/` trees byte for byte.
-* `settings` translates between `Mod/mod.txt` and `mod_setting.toml` in both
+* `settings` translates between the project's `mod.txt` and `ModSetting.toml` in both
   directions (`op=render`, `op=emit`).
-* `index` caches the document list and the reference table under `.editor/`;
+* `index` caches the document list and the reference table under `EditorCache/`;
   `refs` and `deps` read the cache while its fingerprint is current and walk
   the documents again when it is not.
 * An undo journal: every write appends a record holding the bytes before and
@@ -44,7 +48,7 @@ semantic and is written down in one place, `core/__init__.py`.
 ### Changed
 
 * User-visible text is English throughout. The Web UI carries a Chinese
-  translation of all 187 templates and a `lang=zh|en` switch.
+  translation of all 268 templates and a `lang=zh|en` switch.
 * `export` replaces a file that is already there unless `overwrite=0` is
   given; `convert` and `settings` skip an existing destination unless
   `overwrite=1` is given.
@@ -56,7 +60,7 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Known limitations
 
-* `pack` carries everything under the project's `Mod/` directory as it stands, plus the
+* `pack` carries the project directory as it stands, plus the
   project's `README.md` and `LICENSE`; `Images/` and `Sounds/` reach the archive only when
   they are already in the project directory (docs/cli.md section 4.8).
 * Dangling references are reported by `check` and counted by `pack`, but

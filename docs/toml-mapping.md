@@ -90,9 +90,9 @@ Consequence for editing: a value change keeps the whole file's layout; a structu
 
 | Case | Treatment |
 |---|---|
-| `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); optionally collected into `.editor/notes.toml` on first import for human inspection |
+| `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); optionally collected into `EditorCache/notes.toml` on first import for human inspection |
 | Bare `&` (16 stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
-| Numeric tags `<1>` in `mod.txt` | See §2.1; `mod_setting.toml` is implemented separately |
+| Numeric tags `<1>` in `mod.txt` | See §2.1; `ModSetting.toml` is implemented separately |
 | Line endings | Normalised on import; **export keeps the newline style of the source file** (revised 2026-10-11). Stock is CRLF in 1824 of 1840 files and LF in the other 16, and all 1840 now come back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
 | Indentation | Export keeps the source indentation (tabs, depth equal to element nesting depth); an element without captured layout falls back to tabs at its nesting depth |
 | Blank lines | Authored grouping, captured per element as part of its `prefix` (§4.1) and reproduced as-is |

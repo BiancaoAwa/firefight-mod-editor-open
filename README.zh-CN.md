@@ -6,12 +6,14 @@
 
 当前状态：数据内核、XML/TOML 往返、引用图、命令行、本地 Web 界面、编辑闭环——`set` 修改一个工程文档的一个
 字段、增删数组项，文件其余部分逐字节不变；`add` 与 `remove` 新建与删除整个文档；`log`、`undo` 与 `redo` 记录每一
-次写入，并依据 `.editor/` 下保存的字节回退与重做（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2、§4.5）——一键把原版数据
-导入为工程文档（`convert`）、引用索引（`.editor/index.toml` 与 `.editor/refs.toml`，[cli.md](docs/cli.zh-CN.md) §4.6）、
-原版 `Mod/mod.txt` 与 `mod_setting.toml` 的双向转换（[cli.md](docs/cli.zh-CN.md) §4.7）、模组 zip 生成器
+次写入，并依据 `EditorCache/` 下保存的字节回退与重做（[cli.md](docs/cli.zh-CN.md) §4.1、§4.2、§4.5）——一键把原版数据
+导入为工程文档（`convert`）、引用索引（`EditorCache/index.toml` 与 `EditorCache/refs.toml`，[cli.md](docs/cli.zh-CN.md) §4.6）、
+原版 `mod.txt` 与 `ModSetting.toml` 的双向转换（[cli.md](docs/cli.zh-CN.md) §4.7）、模组 zip 生成器
 `pack`（[cli.md](docs/cli.zh-CN.md) §4.8）、MCP 服务
 `python -m core.mcp`（它把命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批命令
-（含写入类）的中英双语 Web 界面。`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
+（含写入类）的中英双语 Web 界面（[web.md](docs/web.zh-CN.md)）：`/edit` 列出一个文档的全部字段并给每行一个输入框，
+`/ops` 把每条写入命令做成表单并以 `--write --dry-run` 先跑一遍再给写入链接，`/log` 显示事件日志并带撤销与重做表单。
+`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
 （见 `tools/export_fidelity.py`）。`init` 在空目录里创建工程（[cli.md](docs/cli.zh-CN.md) §4.9）。各部分如何衔接见
 [flow.md](docs/flow.zh-CN.md)。尚无批量编辑。
 
@@ -29,8 +31,8 @@ python -m core.cli Firefight web  "root=<游戏目录>"   # 页面开在 127.0.0
 ```
 
 `<游戏目录>` 指含 `Data/`、`Images/`、`Sounds/` 的目录，也就是安装版里放 `Firefight.exe` 的那一层。
-`Mod` 指当前目录所属的工程（向上最近的含 `mod.toml` 的目录）。`Firefight` 也可以由环境变量
-`FIREFIGHT_DATA` 或本地的 `.ff-editor.local.toml` 解析；见 [cli.md](docs/cli.zh-CN.md) §2。
+`Mod` 指当前目录所属的工程（向上最近的含 `ModInformation.toml` 的目录）。`Firefight` 也可以由环境变量
+`FIREFIGHT_DATA` 或本地的 `Setting.toml` 解析；见 [cli.md](docs/cli.zh-CN.md) §2。
 
 退出码：`0` 成功，`1` 已执行但报告失败（JSON 载荷通常仍然有效），`2` 用法错误，`130` 被中断。
 
@@ -41,14 +43,15 @@ core/     代码：core/cli（命令行）、core/mcp（stdio MCP 服务）、co
 docs/     规范：编辑器做什么、如何构建
 tests/    测试套件（不需要游戏安装、不联网）
 tools/    辅助工具：往返与保真度脚本、FirefightModPackager、
-          launcher/（发行版 ff-web.cmd / ff-ai.cmd 背后的实现）
+          launcher/（发行版 StartWebUI.cmd /
+          StartWebUI(Basic).cmd 背后的实现）
 ```
 
 命令行以 `python -m core.cli` 启动，`core/cli/__main__.py` 是模块入口，因此根目录不再有需要导入或包装的
 `ff.py`。
 
 发行版随附的**编辑器文件夹**——启动器、`skills/`、`docs/`、`core/`、`launcher/`、内置的 `Firefight/`
-数据副本与 `Mods/`——见 [project-layout.md](docs/project-layout.zh-CN.md) §10；上面的仓库是源码树，形状有意不同。
+数据副本与 `Mod/`——见 [project-layout.md](docs/project-layout.zh-CN.md) §10；上面的仓库是源码树，形状有意不同。
 
 ## 测试
 
@@ -79,8 +82,8 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 
 ## 制作模组
 
-工程是含 `mod.toml`、`mod_setting.toml` 与 `Mod/`（模组自己的 `Data/`、`Images/`、`Sounds/`）的目录，另有
-`.editor/` 存日志与基线；模组是部分覆写，未携带的内容从原版作用域读取。编辑器在工程作用域下读 `.toml`、
+工程是含 `ModInformation.toml`、`ModSetting.toml` 与各数据目录（模组自己的 `Data/`、`Images/`、`Sounds/`）的目录，另有
+`EditorCache/` 存日志与基线；模组是部分覆写，未携带的内容从原版作用域读取。编辑器在工程作用域下读 `.toml`、
 在原版作用域下读 `.txt`。`convert` 逐个文件把原版数据转为工程文档（`to=<工程目录> --write`，已存在的目标
 默认跳过；`assets=1` 另把作用域的 `Images/` 与 `Sounds/` 两棵树一并复制）。`export` 把选定内容写回原版 XML（`to=<目录>`），并保留来自磁盘的
 文件的原始排版。任何作用域都不会被写入：游戏安装目录永不被修改。

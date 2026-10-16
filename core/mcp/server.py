@@ -31,7 +31,7 @@ Speaks MCP over stdin and stdout: tool calls, resources and prompts (docs/mcp.md
 
 Options
   --write            expose the writing tools; without it the server is read-only
-  workspace=<dir>    directory holding Mods/, as the default for every tool call
+  workspace=<dir>    directory holding Mod/, as the default for every tool call
   root=<dir>         scope root override, as the default for every tool call
   firefight=<dir>    stock game directory, as the default for the Firefight scope
   --version          print the server version and exit

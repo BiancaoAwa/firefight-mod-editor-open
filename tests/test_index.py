@@ -73,13 +73,13 @@ class IndexTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
-        write(PROJECT / "mod.toml", 'name = "Index Fixture"\n')
+        write(PROJECT / "ModInformation.toml", 'name = "Index Fixture"\n')
         document = xml.parse(WEAPON_XML, "fixture")
         table = convert.xml_to_toml(document, schema.schema_for("weapon"))
-        write(PROJECT / "Mod/Data/Weapons/WEAPON_TEST_GUN.toml", toml.render(table))
-        write(PROJECT / "Mod/Data/Infantry/American-Rifle Squad.txt", SQUAD_XML)
-        write(PROJECT / "Mod/Data/equipment_fixture.txt", EQUIPMENT_LIST)
-        write(PROJECT / "Mod/Data/Manufacturers/notes.txt", PLAIN_TEXT)
+        write(PROJECT / "Data/Weapons/WEAPON_TEST_GUN.toml", toml.render(table))
+        write(PROJECT / "Data/Infantry/American-Rifle Squad.txt", SQUAD_XML)
+        write(PROJECT / "Data/equipment_fixture.txt", EQUIPMENT_LIST)
+        write(PROJECT / "Data/Manufacturers/notes.txt", PLAIN_TEXT)
 
     def tearDown(self) -> None:
         shutil.rmtree(SCRATCH, ignore_errors=True)
@@ -91,7 +91,7 @@ class IndexTestCase(unittest.TestCase):
 
     def test_index_refuses_the_stock_scope(self) -> None:
         # The scope only has to resolve; the command refuses before it reads anything.
-        code, _, err = run("Firefight", "index", f"root={PROJECT / 'Mod'}", "--write", cwd=PROJECT)
+        code, _, err = run("Firefight", "index", f"root={PROJECT}", "--write", cwd=PROJECT)
         self.assertEqual(code, 2)
         self.assertIn("read-only", err)
 
@@ -103,7 +103,7 @@ class IndexTestCase(unittest.TestCase):
         self.assertEqual(payload["skipped"], 2)
         self.assertEqual(payload["errors"], [])
         self.assertFalse(payload["dry_run"])
-        editor = PROJECT / ".editor"
+        editor = PROJECT / "EditorCache"
         self.assertTrue((editor / "index.toml").is_file())
         self.assertTrue((editor / "refs.toml").is_file())
         self.assertEqual(sorted(Path(item).name for item in payload["written"]), ["index.toml", "refs.toml"])
@@ -113,7 +113,7 @@ class IndexTestCase(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(payload["dry_run"])
         self.assertEqual(payload["written"], [])
-        self.assertFalse((PROJECT / ".editor").exists())
+        self.assertFalse((PROJECT / "EditorCache").exists())
 
     def test_refs_read_the_stored_table(self) -> None:
         _, scanned, _ = run_json("Mod", "refs", cwd=PROJECT)
@@ -139,7 +139,7 @@ class IndexTestCase(unittest.TestCase):
 
     def test_a_changed_document_makes_the_table_stale(self) -> None:
         self.assertEqual(run_json("Mod", "index", "--write", cwd=PROJECT)[0], 0)
-        write(PROJECT / "Mod/Data/Infantry/Second Squad.txt", SQUAD_XML)
+        write(PROJECT / "Data/Infantry/Second Squad.txt", SQUAD_XML)
         code, payload, _ = run_json("Mod", "refs", cwd=PROJECT)
         self.assertEqual(code, 0)
         self.assertEqual(payload["origin"], "scan")
@@ -147,7 +147,7 @@ class IndexTestCase(unittest.TestCase):
 
     def test_refs_fall_back_when_the_tables_are_gone(self) -> None:
         self.assertEqual(run_json("Mod", "index", "--write", cwd=PROJECT)[0], 0)
-        (PROJECT / ".editor/refs.toml").unlink()
+        (PROJECT / "EditorCache/refs.toml").unlink()
         code, payload, _ = run_json("Mod", "refs", cwd=PROJECT)
         self.assertEqual(code, 0)
         self.assertEqual(payload["origin"], "scan")

@@ -117,11 +117,11 @@ class ConvertCommandTest(unittest.TestCase):
         self.assertEqual(payload["written"], 3)
         self.assertEqual(payload["skipped"], 1)
         self.assertEqual(payload["errors"], [])
-        self.assertEqual(payload["data_root"], str(OUT / "Mod"))
+        self.assertEqual(payload["data_root"], str(OUT))
         self.assertEqual(len(payload["files"]), 3)
         for relative in ("Data/Weapons/WEAPON_A.toml", "Data/Weapons/WEAPON_B.toml", "Data/Infantry/SQUAD_A.toml"):
-            self.assertTrue((OUT / "Mod" / relative).is_file(), relative)
-        self.assertFalse((OUT / "Mod" / "Data" / "equipment_german.toml").exists())
+            self.assertTrue((OUT / relative).is_file(), relative)
+        self.assertFalse((OUT / "Data" / "equipment_german.toml").exists())
         self.assertEqual([item["reason"] for item in payload["skipped_files"]], ["list file"])
 
     def test_c2_a_converted_document_carries_the_same_fields(self) -> None:
@@ -131,18 +131,18 @@ class ConvertCommandTest(unittest.TestCase):
             folder = "Weapons" if name.startswith("WEAPON") else "Infantry"
             source = fields_of(STOCK / "Data" / folder / f"{name}.txt", f"Data/{folder}/{name}.txt")
             relative = f"Data/{folder}/{name}.toml"
-            target = fields_of(OUT / "Mod" / relative, relative)
+            target = fields_of(OUT / relative, relative)
             self.assertEqual(target, source, name)
         # The reader calls a pure-ASCII file encoding-neutral; non-ASCII decides.
-        weapon = load_document(OUT / "Mod" / "Data" / "Weapons" / "WEAPON_A.toml", "Data/Weapons/WEAPON_A.toml")
-        squad = load_document(OUT / "Mod" / "Data" / "Infantry" / "SQUAD_A.toml", "Data/Infantry/SQUAD_A.toml")
+        weapon = load_document(OUT / "Data" / "Weapons" / "WEAPON_A.toml", "Data/Weapons/WEAPON_A.toml")
+        squad = load_document(OUT / "Data" / "Infantry" / "SQUAD_A.toml", "Data/Infantry/SQUAD_A.toml")
         self.assertEqual(weapon.encoding, "utf-8")
         self.assertEqual(squad.encoding, "cp1252")
 
     def test_c5_the_working_file_is_utf8_without_bom_and_crlf(self) -> None:
         code, _, err = self.convert("type=weapon")
         self.assertEqual((code, err), (0, ""))
-        data = (OUT / "Mod" / "Data" / "Weapons" / "WEAPON_A.toml").read_bytes()
+        data = (OUT / "Data" / "Weapons" / "WEAPON_A.toml").read_bytes()
         self.assertFalse(data.startswith(b"\xef\xbb\xbf"))
         self.assertIn(b"\r\n", data)
         self.assertNotIn(b"\n", data.replace(b"\r\n", b""))
@@ -159,7 +159,7 @@ class ConvertCommandTest(unittest.TestCase):
             sorted(item["path"] for item in payload["files"]),
             ["Data/Weapons/WEAPON_A.txt", "Data/Weapons/WEAPON_B.txt"],
         )
-        self.assertFalse((OUT / "Mod" / "Data" / "Infantry").exists())
+        self.assertFalse((OUT / "Data" / "Infantry").exists())
         shutil.rmtree(OUT)
         code, payload, err = self.convert("type=infantry")
         self.assertEqual((code, err), (0, ""))
@@ -167,18 +167,18 @@ class ConvertCommandTest(unittest.TestCase):
 
     def test_a_destination_that_is_already_a_mod_folder_is_used_as_it_is(self) -> None:
         code, payload, _ = run_json(
-            "Firefight", "convert", f"to={OUT / 'Mod'}", f"root={STOCK}", "--write", "type=weapon"
+            "Firefight", "convert", f"to={OUT}", f"root={STOCK}", "--write", "type=weapon"
         )
         self.assertEqual(code, 0)
-        self.assertEqual(payload["data_root"], str(OUT / "Mod"))
-        self.assertTrue((OUT / "Mod" / "Data" / "Weapons" / "WEAPON_A.toml").is_file())
+        self.assertEqual(payload["data_root"], str(OUT))
+        self.assertTrue((OUT / "Data" / "Weapons" / "WEAPON_A.toml").is_file())
 
     # --- skip, overwrite and dry run ----------------------------------------
 
     def test_c3_an_existing_file_is_skipped_unless_overwritten(self) -> None:
         code, _, _ = self.convert()
         self.assertEqual(code, 0)
-        target = OUT / "Mod" / "Data" / "Weapons" / "WEAPON_A.toml"
+        target = OUT / "Data" / "Weapons" / "WEAPON_A.toml"
         target.write_text("# edited by hand\n", encoding="utf-8")
         code, payload, err = self.convert()
         self.assertEqual((code, err), (0, ""))
@@ -216,14 +216,14 @@ class ConvertCommandTest(unittest.TestCase):
         self.assertEqual(payload["written"], 1)
         self.assertEqual(len(payload["errors"]), 1)
         self.assertEqual(payload["errors"][0]["path"], "Data/Weapons/WEAPON_D.toml")
-        self.assertTrue((OUT / "Mod" / "Data" / "Weapons" / "WEAPON_C.toml").is_file())
+        self.assertTrue((OUT / "Data" / "Weapons" / "WEAPON_C.toml").is_file())
 
     def test_c4_a_txt_without_an_xml_root_is_skipped_as_a_list_file(self) -> None:
         """A plain-text table carries no root element, so it is data and not a document."""
         code, payload, err = run_json("Firefight", "convert", f"to={OUT}", f"root={BROKEN}", "--write")
         self.assertEqual((code, err), (1, ""))
         self.assertIn({"path": "Data/Weapons/PLAIN.txt", "reason": "list file"}, payload["skipped_files"])
-        self.assertFalse((OUT / "Mod" / "Data" / "Weapons" / "PLAIN.toml").exists())
+        self.assertFalse((OUT / "Data" / "Weapons" / "PLAIN.toml").exists())
 
     # --- assets --------------------------------------------------------------
 
@@ -231,8 +231,8 @@ class ConvertCommandTest(unittest.TestCase):
         code, payload, err = self.convert()
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(payload["assets"], 0)
-        self.assertFalse((OUT / "Mod" / "Images").exists())
-        self.assertFalse((OUT / "Mod" / "Sounds").exists())
+        self.assertFalse((OUT / "Images").exists())
+        self.assertFalse((OUT / "Sounds").exists())
 
     def test_c6_assets_1_copies_the_images_and_sounds_trees(self) -> None:
         code, payload, err = self.convert("assets=1")
@@ -241,12 +241,12 @@ class ConvertCommandTest(unittest.TestCase):
             sorted(item["path"] for item in payload["asset_files"]),
             ["Images/units/rifleman.png", "Sounds/rifle.ogg"],
         )
-        self.assertEqual((OUT / "Mod/Images/units/rifleman.png").read_bytes(), b"\x89PNG\r\n\x1a\nfixture\n")
-        self.assertEqual((OUT / "Mod/Sounds/rifle.ogg").read_bytes(), b"OggS-fixture\n")
+        self.assertEqual((OUT / "Images/units/rifleman.png").read_bytes(), b"\x89PNG\r\n\x1a\nfixture\n")
+        self.assertEqual((OUT / "Sounds/rifle.ogg").read_bytes(), b"OggS-fixture\n")
 
     def test_c6_an_asset_that_is_already_there_is_skipped_unless_overwritten(self) -> None:
         self.convert("assets=1")
-        target = OUT / "Mod" / "Images" / "units" / "rifleman.png"
+        target = OUT / "Images" / "units" / "rifleman.png"
         target.write_bytes(b"edited by hand\n")
         code, payload, err = self.convert("assets=1")
         self.assertEqual((code, err), (0, ""))
