@@ -64,9 +64,14 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `refs` | `graph` | outgoing references of the selection, grouped by kind |
 | `deps` | | incoming references of `value=<token>` (who points at it) |
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
+| `schema` | | the declared fields of one root element, or one enum table; read-only (§4.13) |
+| `verify` | | read every selected document back and report what does not survive; read-only (§4.11) |
+| `diff` | | compare two documents, or two trees lined up by entity path; read-only (§4.10) |
+| `roster` | | read the rosters the settings declare, or check the entries against the documents; `op=` needs `--write` (§4.14) |
 | `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
 | `init` | | create a project: `ModInformation.toml` and an empty `Data/`; needs `--write` (§4.9) |
 | `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
+| `clone` | | copy one entity document under a new token, from this project or from another scope; needs `--write` (§4.12) |
 | `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
 | `index` | | write `EditorCache/index.toml` and `EditorCache/refs.toml`; needs `--write` (§4.6) |
 | `settings` | | translate between the project's stock `mod.txt` and `ModSetting.toml`; needs `--write` (§4.7) |
@@ -80,18 +85,26 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `version` | | editor version, interpreter, resolved scopes |
 
 Options: `root=`, `workspace=`, `to=` (the `export` destination, the project `convert`
-writes into, or the directory `pack` leaves the archive in — §4.8), `as=`, `field=`,
-`type=`, `kind=`, `path=`, `name=` (the mod name `init` writes, §4.9), `op=`, `from=` (an
+writes into, or the directory `pack` leaves the archive in — §4.8), `as=` (the reading form
+for `show`, the entity token for `clone` — §4.12), `into=` (the scope directory an imported
+`clone` writes under, §4.12), `enum=` (`schema` prints the fields that use one enum, §4.13),
+`field=`,
+`type=`, `kind=`, `path=`, `left=`, `right=` (the two sides of `diff`, §4.10), `name=` (the mod name `init` writes, §4.9), `op=`, `from=` (an
 index for `set op=append`, a document path for `add`), `limit=` (default 200 rows; `0` prints
 every row), `document=`, `actor=`, `result=`, `since=`, `until=` (`log` filters, §4.2),
-`lang=zh|en` (the web UI language, §4.4), `strict=1` (`pack` refuses to write while the
+`lang=zh|en` (the web UI language, §4.4), `section=` (the roster entries under one group comment
+or one trailing note, §4.14), `line=` (the physical line a `roster op=` writes at, deletes or
+rewrites, §4.14), `strict=1` (`pack` refuses to write while the
 project has load errors or dangling references, §4.8), `assets=1` (`convert` also copies the
-scope's `Images/` and `Sounds/` trees, §4.3), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
+scope's `Images/` and `Sounds/` trees, §4.3; `check` names the file a missing image or sound
+would have to be, §6), `rosters=1` (`check` also compares the rosters against the documents,
+§4.14), `against=<root>` (`check` answers references this project does not hold from a second
+root — a scope name, `scope:path`, or a directory, §6), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
 `0` leaves it; `export` and `pack` replace by default, `convert` and `settings` skip by
-default), `--json`. `init`, `set`, `add`, `remove`, `index`, `settings`, `convert`, `pack`,
-`undo` and `redo` also take the bare flags `--write` (write the change) and `--dry-run`
-(report it without writing anything, §4.1, §4.3); `undo` and `redo` take an optional count as
-well (§4.2).
+default), `--json`. `init`, `set`, `add`, `clone`, `remove`, `index`, `settings`, `convert`,
+`pack`, `roster`, `undo` and `redo` also take the bare flags `--write` (write the change) and
+`--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take an
+optional count as well (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
@@ -327,6 +340,10 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
 * Every pack runs the check of §4.3 first and the payload carries its counts
   (`check.errors`, `check.dangling`). A document that cannot be rendered is named in
   `errors`, left out of the archive, and the pack goes ahead.
+* Below the member table the output names what was left out and what was reported: one
+  `skipped: <path> (<reason>)` line per file that stayed out of the archive — including a
+  `.txt` that a same-named TOML document covers — and one `warning: <text>` line per warning.
+  The counts in the summary line are not the whole answer.
 * `strict=1` turns both into refusals: the pack writes nothing while the project has a load
   error or a reference that does not resolve, so a package cannot ship either by accident.
   The reference graph is built over the project alone; the stock corpus is not consulted
@@ -339,8 +356,10 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
   section 8). A `--dry-run`, a refused pack and one that skipped an existing archive leave
   no record.
 * `pack` does refuse an on-disk `mod.txt` that disagrees with `ModSetting.toml`, because
-  replacing that file would otherwise drop content the shorter of the two does not carry. Run
-  `Mod settings op=render overwrite=1 --write` first when the TOML side is the newer one.
+  replacing that file would otherwise drop content the shorter of the two does not carry. The
+  message names both sizes and both ways out: `settings op=emit --write overwrite=1` rewrites
+  `mod.txt` from the settings file, which is the destructive one, while
+  `settings op=render --write overwrite=1` rewrites the settings file from `mod.txt`.
 * The stock scope `Firefight` is refused. `overwrite=1` replaces an archive that is already
   there; without it the file is skipped.
 
@@ -363,12 +382,132 @@ python -m core.cli Mod init --write [--dry-run] [name=<text>]
   reverts it.
 * A list-typed leaf such as `authors` is written as `key = []`, which the reader accepts.
 
+### 4.10 Comparing two documents or two trees
+
+```
+python -m core.cli Mod diff left=<scope:path> right=<scope:path> [limit=<rows>]
+```
+
+* `left=` and `right=` name the two sides. The `scope:` prefix is optional and defaults to the
+  scope the command ran with, so `left=Firefight:Data/Weapons/X.txt right=Data/Weapons/X.toml`
+  compares a stock file with the working file converted from it. A one-letter name before the
+  colon is a drive letter, not a scope, so an absolute Windows path stays a path.
+* Both sides are rendered as stock XML before the comparison, so a project `toml` and the stock
+  `txt` it came from compare in the same shape rather than as two different syntaxes (§4.3).
+* Two directories are lined up by entity path with the suffix dropped, so `X.txt` and `X.toml`
+  are the same document; within one entity path the working file wins over the stock file. The
+  report gives the count of identical documents, the ones that differ, and the ones only one
+  side carries.
+* The output is a unified diff of the two stock renderings, capped at `limit=` lines (default
+  200; `limit=0` prints all of them).
+* Exit code 1 means the two sides are not the same, 2 means the command could not compare them
+  (a side that is not there, one file against one directory). A clean exit means every document
+  lined up and matched.
+
+### 4.11 Checking that a document survives being read and written
+
+```
+python -m core.cli Mod verify [selector] [limit=<rows>]
+```
+
+* Every selected document is read and written again, and the result is compared with what is on
+  disk. Line endings are normalised first, so what a run reports is content the editor cannot
+  reproduce rather than a difference in line endings.
+* A stock XML file is compared with the layout the editor writes back, which is the layout the
+  reader captured. A `toml` file is written back as stock XML, read again and compared as TOML,
+  so a file the editor only edits in place is not reported for its layout.
+* A plain-text table named by the project settings is never parsed, so it is reported as copied
+  rather than compared (§4.3).
+* The table lists only the documents that differ, with the first line that differs; `--json`
+  carries `files`, `same`, `differ`, `items`, `shown` and `total`. Exit code 1 means at least one
+  document does not survive the trip, 0 means every document round-trips.
+
+### 4.12 Copying a document under a new token
+
+```
+python -m core.cli Mod clone <document> as=<Token> [into=<scope or directory>] --write [--dry-run]
+```
+
+* The command makes a document that has no source to copy from: it reads one entity document,
+  sets the root table's own `name` to the new token and writes the result as `<Token>.toml` at
+  the same relative path. Only the first table's direct keys are searched — a later `name`
+  belongs to a sub-table or an array entry, and rewriting one of those would change something
+  other than the name the document declares. A source that declares no name is refused rather
+  than copied under the wrong token.
+* `into=` names the destination scope: either a scope name, or a directory, which is read as a
+  project root the same way `root=` is (§4.1). That is how a stock document becomes a project
+  document — `clone Firefight:Data/Weapons/WEAPON_PISTOL_P38.txt as=WEAPON_PISTOL_P38
+  into=<project> --write` reads the stock file, renders it as TOML and writes it into the
+  project. Without `into=` the copy lands in the scope the command already resolved.
+* A plain-text table named by the project settings is refused: `clone` copies an entity document
+  (§4.3). The stock scope is never a destination. A destination that is already there is refused
+  unless `overwrite=1`.
+* `--dry-run` reports the destination and the byte counts without writing. `--json` carries
+  `path`, `scope`, `source` (as `<scope>:<path>`), `into`, `format`, `bytes_before`,
+  `bytes_after`, `existed_before` and `recorded`. The write is recorded as an `add`, so one
+  `undo` removes the copy again (§4.2).
+
+### 4.13 Reading the schema of a root element
+
+```
+python -m core.cli Mod schema <root element> [limit=<rows>]
+python -m core.cli Mod schema enum=<name> [limit=<rows>]
+```
+
+* The first form lists the fields the editor declares for one root element, so a document can be
+  filled in without guessing from a sample. Each row carries the dotted `path`, the `shape`
+  (`leaf`, `table`, `array` or a list), the value `type`, whether the field is `required`, and
+  the enum its values come from with the number of values. Children of an array node carry `[]`
+  in their path (`weapon.ammo.type[].flavour`); the array node itself keeps its plain path.
+* The second form lists one enum table's values, as the editor resolves them for the project —
+  the project's own enum file when it has one, the built-in table otherwise. `--json` carries
+  `enum`, `table` (whether the table was found), `count`, `shown`, `values` and `source`, the
+  file the table came from.
+* `schema` reads the same declaration the writer validates against, so a field it lists is a
+  field `set` accepts (§4.1). It is read-only, and `limit=` caps the rows as everywhere else.
+
+### 4.14 Reading and editing the rosters
+
+```
+python -m core.cli Mod roster [<roster>] [section=<text>] [limit=<rows>]
+python -m core.cli Mod roster check [limit=<rows>]
+python -m core.cli Mod roster <roster> op=add    value=<name> [line=<n>] --write [--dry-run]
+python -m core.cli Mod roster <roster> op=set    line=<n> as=<name>     --write [--dry-run]
+python -m core.cli Mod roster <roster> op=remove value=<name> [line=<n>] --write [--dry-run]
+```
+
+A roster is one of the plain-text tables the project's settings declare (§4.3): one entry per
+line, the entry is the name of a document under `Data/`, and `//` starts a comment — the whole
+line, or a note trailing the entry. A line that is only a comment names the group the entries
+after it belong to, which is why rewriting an entry keeps its note and the note stays the group
+the entry sits in.
+
+* Without a selector, `roster` lists the declared rosters with their entry counts. With one it
+  lists the entries, each with the physical `line` a reader sees in an editor, the `group` from
+  the comment above it and its trailing `note`. The selector may be a relative path, a file name
+  or a file stem; a name the settings do not declare is a usage error.
+* `section=<text>` keeps the entries whose group comment or trailing note is that text, so
+  `section=tanks` finds the entries noted `// tanks` under a `// vehicles` comment.
+* `roster check` compares both directions and exits 1 when either side is not empty. `missing`
+  pairs a roster with an entry no document answers — the game shows that as a missing unit;
+  `orphans` names a unit no roster lists, which is a document the game cannot reach, and carries
+  its `path`. Only units count as orphans: a weapon or an engine sound is pulled in by the
+  document that uses them, so counting those would report every one of them.
+* The three writes are `op=add` (append the entry, or insert it at `line=`), `op=set` (replace
+  the entry on `line=` with `as=<name>`, or replace the one named by `value=`) and `op=remove`
+  (drop the entry named by `value=` or the line given as `line=`). Each is planned and then
+  applied through the same writer as every other change, so it is journalled, `undo` puts the
+  bytes back, and `--dry-run` reports the change without writing. A dry run still needs
+  `--write`, as everywhere else.
+* The file's encoding, byte-order mark and line endings are kept: an entry is written with the
+  ending the file already uses, and the rest of the file is untouched.
+
 ## 5. Exit codes
 
 | Code | Meaning |
 |---|---|
 | 0 | the command ran and found nothing to report |
-| 1 | `check` found load errors, dangling references or warnings; **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2); **or** at least one file failed to convert (§4.3) |
+| 1 | `check` found load errors, dangling references or warnings; **or** `roster check` found an entry with no document or a unit no roster names (§4.14); **or** a parse/IO error aborted the command (the message names the file and, where known, the line); **or** a recorded document version is unreadable (§4.2); **or** at least one file failed to convert (§4.3) |
 | 2 | usage error: unknown scope or command, missing or unknown option, unresolvable path, and every refused write (§4.1, §4.2, §4.3, §4.9) |
 | 130 | interrupted (Ctrl-C) |
 
@@ -378,6 +517,24 @@ Warnings never fail a load, and `check` reports them as counts plus up to 20 sam
 four kinds seen on real data: `//` comments removed, a file decoded as UTF-8 rather than
 cp1252, an unknown element kept as a leaf, and text inside an element that also holds
 children (dropped on export — see the `</data>>` typos in the WW3 project).
+
+`check` prints every sampled warning as its own row in the issue table, so the counts in the
+summary line and the rows below it agree; `warning_samples`, `warnings_shown`, `dangling`,
+`dangling_shown` and `truncated` in the payload say the same for a reader that does not see
+the table. `limit=` (20 by default, `limit=0` for every row) caps how many documents and
+references are listed, and a capped table ends with a row saying how many rows were left out.
+
+Three options widen the check. `assets=1` writes the file a missing image or sound would have
+to be (`missing Images/**/x.png`) in place of the value that did not match, which is what an
+imported project needs to fill in; `assets_missing` counts them in the payload. `rosters=1`
+folds the two-way roster comparison of §4.14 into the same table and the same exit code, and
+the payload carries its three counts under `rosters`. `against=<root>` answers a reference the
+project itself does not hold from a second root — the stock installation for an imported
+project, given as a scope name, `scope:path`, or a directory — so a reference that resolves
+there is not dangling; the payload reports how many were answered that way
+(`dangling_answered_elsewhere`) and which root answered (`against`). Measured on WW3 with the
+stock root as `against=`: 911 dangling references become 29, with 882 answered by the other
+root, and 235 of the 911 want an asset file that is not in the project.
 
 ## 7. Measured on real data (2026-10-10)
 

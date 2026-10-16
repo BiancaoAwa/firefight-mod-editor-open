@@ -145,6 +145,26 @@ class TargetIndex:
             return (path,) if path.is_file() else ()
         raise ValueError(f"unknown reference kind: {kind}")
 
+    def expected(self, kind: str, value: str) -> tuple[str, ...]:
+        """The relative paths a value would need under this root, for a report.
+
+        ``find`` answers where a target is; this answers where it would have to be, so a
+        missing asset can be named as a file rather than as a value that did not match
+        (docs/cli.md section 4.6).
+        """
+        if kind == "weapon":
+            return (f"Data/Weapons/{value}.toml", f"Data/Weapons/{value}.txt")
+        if kind == "sound":
+            return (f"Sounds/{value}.ogg",)
+        if kind == "image":
+            return (f"Images/**/{value}", f"Images/**/{value}.*")
+        if kind == "uniform":
+            return (f"Images/Uniforms/uniform_{value}",)
+        if kind == "engine_sound":
+            relative = ENGINE_SOUND_ALIASES.get(value)
+            return (relative,) if relative else ()
+        raise ValueError(f"unknown reference kind: {kind}")
+
     def _image_index(self) -> tuple[dict[str, tuple[Path, ...]], dict[str, tuple[Path, ...]]]:
         """Exact and casefolded name/stem indexes over ``Images/``, built once.
 

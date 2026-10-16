@@ -56,9 +56,14 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `refs` | `graph` | 选择范围的出向引用，按类别分组 |
 | `deps` | | `value=<令牌>` 的入向引用（谁指向它） |
 | `check` | `lint` | 全量加载；报告加载错误、警告与悬空引用 |
+| `schema` | | 一个根元素的声明字段，或一张枚举表；只读（§4.13） |
+| `verify` | | 把每个选中的文档读回并报告哪些不能原样还原；只读（§4.11） |
+| `diff` | | 比较两个文档，或按实体路径对齐的两棵目录树；只读（§4.10） |
+| `roster` | | 读取工程设置声明的清单，或把清单条目与文档对账；`op=` 需要 `--write`（§4.14） |
 | `set` | | 修改一个字段，或增删数组项；需要 `--write`（§4.1） |
 | `init` | | 新建工程：`ModInformation.toml` 与空的 `Data/`；需要 `--write`（§4.9） |
 | `add` | `new` | 新建一个实体文档，内容取自 schema 骨架或 `from=<路径>`；需要 `--write`（§4.5） |
+| `clone` | | 以新名称复制一个实体文档，来源可以是本工程或其他作用域；需要 `--write`（§4.12） |
 | `remove` | `rm` | 删除一个实体文档；需要 `--write`（§4.5） |
 | `index` | | 写出 `EditorCache/index.toml` 与 `EditorCache/refs.toml`；需要 `--write`（§4.6） |
 | `settings` | | 在工程的原版 `mod.txt` 与 `ModSetting.toml` 之间转换；需要 `--write`（§4.7） |
@@ -72,12 +77,16 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `version` | | 编辑器版本、解释器、已解析的作用域 |
 
 选项：`root=`、`workspace=`、`to=`（`export` 的目标目录、`convert` 写入的工程目录，或 `pack` 放置压缩包的目录，§4.8）、
-`as=`、`field=`、`type=`、`kind=`、`path=`、`name=`（`init` 写入的模组名，§4.9）、`op=`、`from=`（`set op=append`
+`as=`（`show` 的读取形式，或 `clone` 的实体名称，§4.12）、`into=`（导入式 `clone` 写入的作用域目录，§4.12）、
+`enum=`（`schema` 打印使用某张枚举表的字段，§4.13）、`field=`、`type=`、`kind=`、`path=`、`left=`、`right=`（`diff` 的两侧，§4.10）、`name=`（`init` 写入的模组名，§4.9）、`op=`、`from=`（`set op=append`
 用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、`document=`、`actor=`、`result=`、`since=`、`until=`
-（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、`strict=1`（`pack` 在工程存在加载错误或悬空引用时
-拒绝写出，§4.8）、`assets=1`（`convert` 另把作用域的 `Images/` 与 `Sounds/` 两棵树复制进来，§4.3）、
+（`log` 的过滤项，§4.2）、`lang=zh|en`（Web 界面语言，§4.4）、`section=`（清单里某一组注释或某条行末注记下的条目，
+§4.14）、`line=`（`roster op=` 写入、删除或改写所在的行号，§4.14）、`strict=1`（`pack` 在工程存在加载错误或悬空引用时
+拒绝写出，§4.8）、`assets=1`（`convert` 另把作用域的 `Images/` 与 `Sounds/` 两棵树复制进来，§4.3；`check` 则点名
+缺失的图片或声音应该在哪个文件，§6）、`rosters=1`（`check` 同时把清单与文档做双向比对，§4.14）、
+`against=<根目录>`（`check` 把本工程没有的引用拿到第二个根下解析：作用域名、`scope:path` 或目录，§6）、
 `ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
-默认跳过）、`--json`；`init`、`set`、`add`、`remove`、`index`、`settings`、`convert`、`pack`、`undo` 与 `redo`
+默认跳过）、`--json`；`init`、`set`、`add`、`clone`、`remove`、`index`、`settings`、`convert`、`pack`、`roster`、`undo` 与 `redo`
 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个
 可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
@@ -242,6 +251,8 @@ python -m core.cli Mod pack --write [--dry-run] [to=<目录>] [strict=1] [overwr
   以规范形式写出（制表符、CRLF、UTF-8）。
 * 每次打包先跑 §4.3 的检查，载荷里带上它的计数（`check.errors`、`check.dangling`）。无法渲染的文档
   记入 `errors`、不进入压缩包，打包照常继续。
+* 成员表之下会列出被排除与被报告的内容：每个未进包的文件一行 `skipped: <路径>（原因）`——包括被同名
+  TOML 文档覆盖的 `.txt`——以及每条警告一行 `warning: <文本>`。汇总行里的计数不是全部答案。
 * `strict=1` 把两者都变成拒绝：工程存在加载错误或解析不到的引用时不写出任何内容，避免两种问题被无意带进包里。
   引用图只在工程内建立，不查原版语料（见 §9）。
 * 成员使用固定时间戳，因此同一工程两次打包得到相同字节。
@@ -249,7 +260,8 @@ python -m core.cli Mod pack --write [--dry-run] [to=<目录>] [strict=1] [overwr
   该记录不指向任何文档，也不在可撤销或可重做的栈上，因此不会被回滚（见 docs/project-layout.md §8）。
   `--dry-run`、被拒绝的打包、以及跳过已存在压缩包的情况都不留记录。
 * 磁盘上的 `mod.txt` 与 `ModSetting.toml` 不一致时会被拒绝——否则替换该文件会丢掉较短那份没有承载的内容。
-  当 TOML 一侧更新时，先运行 `Mod settings op=render overwrite=1 --write`。
+  消息会同时给出两侧的字节数与两条出路：`settings op=emit --write overwrite=1` 用设置文件重写 `mod.txt`
+  （有破坏性），`settings op=render --write overwrite=1` 用 `mod.txt` 重写设置文件。
 * `Firefight` 原版作用域被拒绝。`overwrite=1` 覆盖已存在的压缩包；不给则跳过。
 
 ### 4.9 新建工程
@@ -267,12 +279,101 @@ python -m core.cli Mod init --write [--dry-run] [name=<文本>]
   是目录而非文档，没有记录可以回滚它。
 * 列表型叶（如 `authors`）写成 `key = []`，读取器接受该写法。
 
+### 4.10 比较两个文档或两棵树
+
+```
+python -m core.cli Mod diff left=<作用域:路径> right=<作用域:路径> [limit=<行数>]
+```
+
+* `left=` 与 `right=` 指定两侧。`作用域:` 前缀可省略，省略时用本次命令的作用域，因此
+  `left=Firefight:Data/Weapons/X.txt right=Data/Weapons/X.toml` 比较的是原版文件与由它转出的工作文件。
+  冒号前只有一个字母时按盘符处理而不是作用域，因此 Windows 绝对路径仍是路径。
+* 比较之前两侧都先渲染成原版 XML，因此工程的 `toml` 与它来自的原版 `txt` 以同一形态相比，而不是两种语法相比（§4.3）。
+* 两侧都是目录时按去掉后缀的实体路径对齐，因此 `X.txt` 与 `X.toml` 是同一份文档；同一实体路径下工作文件优先于原版文件。
+  报告给出完全相同的文档数、有差异的文档，以及只有一侧存在的文档。
+* 输出是两个原版渲染结果的统一 diff，行数受 `limit=` 限制（默认 200；`limit=0` 全部打印）。
+* 退出码 1 表示两侧不相同；2 表示无法比较（某一侧不存在，或一侧是文件另一侧是目录）。退出码 0 表示两侧逐份对齐且相同。
+
+### 4.11 检验文档能否读回后原样还原
+
+```
+python -m core.cli Mod verify [选择器] [limit=<行数>]
+```
+
+* 把每个选中的文档读出再写回一次，并与磁盘上的内容比较。比较前先归一化换行，因此报告出来的是编辑器无法还原的内容，
+  而不是换行风格的差异。
+* 原版 XML 文件与编辑器写回的形态相比，而写回用的是读取时捕获的版式。`toml` 文件先写成原版 XML、再读回来，以 TOML
+  形态比较，因此编辑器只做过就地编辑的文件不会因为版式被报为有损。
+* 工程设置声明的纯文本表从不解析，因此按“原样复制”报告而不是参与比较（§4.3）。
+* 表格只列出有差异的文档及其第一处不同的行；`--json` 给出 `files`、`same`、`differ`、`items`、`shown` 与 `total`。
+  退出码 1 表示至少有一份文档不能原样还原，0 表示全部都能。
+
+### 4.12 以新名称复制一份文档
+
+```
+python -m core.cli Mod clone <文档> as=<名称> [into=<作用域或目录>] --write [--dry-run]
+```
+
+* 该命令用于制作一份「没有来源可复制」的文档：读入一个实体文档，把根表自身的 `name` 改成新名称，并按同一相对
+  路径写成 `<名称>.toml`。只搜索**第一张表**的直接键——后面的 `name` 属于子表或数组条目，改写它们会改动文档
+  声明之外的东西。来源若没有声明名称，命令拒绝执行，而不是用错误的名称复制一份。
+* `into=` 指定目标作用域：可以是作用域名，也可以是一个目录（按 `root=` 的同一规则当作工程根解析，§4.1）。这正是
+  「把原版文档变成工程文档」的路径——`clone Firefight:Data/Weapons/WEAPON_PISTOL_P38.txt
+  as=WEAPON_PISTOL_P38 into=<工程> --write` 读原版文件、渲染成 TOML 并写入工程。不给 `into=` 时写入命令已解析
+  出的那个作用域。
+* 工程设置声明的纯文本表会被拒绝：`clone` 复制的是实体文档（§4.3）。原版作用域永远不能作为目标。目标已存在时
+  除非给 `overwrite=1` 否则拒绝。
+* `--dry-run` 只报告目标与字节数，不写。`--json` 给出 `path`、`scope`、`source`（形如 `<作用域>:<路径>`）、`into`、
+  `format`、`bytes_before`、`bytes_after`、`existed_before` 与 `recorded`。这次写入记为一条 `add`，因此一次
+  `undo` 即可删除副本（§4.2）。
+
+### 4.13 读取根元素的声明
+
+```
+python -m core.cli Mod schema <根元素> [limit=<行数>]
+python -m core.cli Mod schema enum=<名称> [limit=<行数>]
+```
+
+* 第一种形式列出编辑器为一个根元素声明的全部字段，无需从样例推断即可填文档。每行给出点分 `path`、`shape`
+  （`leaf`、`table`、`array` 或列表）、值 `type`、是否 `required`，以及取值所用的枚举与其值个数。数组节点的子节点
+  在路径里带 `[]`（`weapon.ammo.type[].flavour`），数组节点本身的路径不带。
+* 第二种形式列出一张枚举表的取值，按编辑器为该工程解析的结果——工程自带枚举文件时用工程文件，否则用内置表。
+  `--json` 给出 `enum`、`table`（是否找到该表）、`count`、`shown`、`values` 与 `source`（表的来源文件）。
+* `schema` 读的是写入侧校验所用的同一份声明，因此它列出的字段就是 `set` 接受的字段（§4.1）。该命令只读；`limit=`
+  与其他命令一样限制行数。
+
+### 4.14 读取与编辑清单
+
+```
+python -m core.cli Mod roster [<清单>] [section=<文本>] [limit=<行数>]
+python -m core.cli Mod roster check [limit=<行数>]
+python -m core.cli Mod roster <清单> op=add    value=<名称> [line=<n>] --write [--dry-run]
+python -m core.cli Mod roster <清单> op=set    line=<n> as=<名称>     --write [--dry-run]
+python -m core.cli Mod roster <清单> op=remove value=<名称> [line=<n>] --write [--dry-run]
+```
+
+清单是工程设置在纯文本表里声明的一种（§4.3）：一行一个条目，条目是 `Data/` 下某个文档的名称；`//` 起注释——整行注释，
+或跟在条目后面的注记。只有注释的一行给其后条目定组名，因此改写条目时注记会被保留，条目仍留在原组里。
+
+* 不给选择项时，`roster` 列出设置声明的清单与其条目数。给出选择项时列出条目，每行给出编辑器里可见的物理 `line`、
+  上方注释带来的 `group` 与行末 `note`。选择项可以是相对路径、文件名或文件名主干；设置未声明的名称是用法错误。
+* `section=<文本>` 保留组注释或行末注记等于该文本的条目，因此 `section=tanks` 能找到 `// vehicles` 注释下注记为
+  `// tanks` 的条目。
+* `roster check` 双向对账，任一侧非空即退出码 1。`missing` 给出一条清单里没有任何文档应答的条目——游戏里表现为
+  缺失单位；`orphans` 给出没有任何清单登记的 unit，即游戏够不到的文档，并带其 `path`。只有 unit 计入孤儿：武器与
+  引擎音效由使用它们的文档引入，若一并计入会把它们全部报成未登记。
+* 三个写操作是 `op=add`（追加条目，或用 `line=` 插到指定行）、`op=set`（把 `line=` 那一行改写成 `as=<名称>`，
+  或改写 `value=` 指定的条目）与 `op=remove`（删除 `value=` 指定的条目，或 `line=` 指定的行）。每个写入都先计划、
+  再经与其他改动相同的写入器应用，因此会记账、`undo` 能把字节放回，`--dry-run` 只报告不写。与其他命令一样，
+  试运行同样需要 `--write`。
+* 文件的编码、BOM 与换行保持不变：条目按文件既有的行尾写入，其余部分原样不动。
+
 ## 5. 退出码
 
 | 码 | 含义 |
 |---|---|
 | 0 | 命令执行完成，没有需要报告的内容 |
-| 1 | `check` 发现加载错误、悬空引用或警告；**或**解析/IO 错误导致命令中止（消息会指出文件，已知时给出行号）；**或**已记录的文档版本无法读取（§4.2）；**或**至少一个文件转换失败（§4.3） |
+| 1 | `check` 发现加载错误、悬空引用或警告；**或** `roster check` 发现条目没有对应文档、或有 unit 未被任何清单登记（§4.14）；**或**解析/IO 错误导致命令中止（消息会指出文件，已知时给出行号）；**或**已记录的文档版本无法读取（§4.2）；**或**至少一个文件转换失败（§4.3） |
 | 2 | 用法错误：未知作用域或命令、缺少或未知选项、路径无法解析，以及所有被拒绝的写入（§4.1、§4.2、§4.3、§4.9） |
 | 130 | 被中断（Ctrl-C） |
 
@@ -281,6 +382,18 @@ python -m core.cli Mod init --write [--dry-run] [name=<文本>]
 警告不会让加载失败，`check` 以计数加最多 20 条样例报告。真实数据上见到的四类：删除了 `//` 注释、文件按 UTF-8
 而非 cp1252 解码、未知元素被保留为叶子、元素内同时有文本与子元素（导出时丢弃文本——见 WW3 工程里的
 `</data>>` 笔误）。
+
+`check` 把每条取样到的警告都作为 issue 表里的一行打印出来，因此汇总行的计数与表下的行一致；不看表的一方
+可从载荷里的 `warning_samples`、`warnings_shown`、`dangling`、`dangling_shown`、`truncated` 得到同样的信息。
+`limit=`（默认 20，`limit=0` 为全部）限制列出多少文档与引用，被截断的表以一行说明省略了多少行。
+
+三个选项把检查放宽。`assets=1` 把缺失的图片或声音应该在的文件写出来（`missing Images/**/x.png`），
+取代原先那个匹配不上的值，导入而来的工程正是靠它补齐；载荷里的 `assets_missing` 给出计数。`rosters=1`
+把 §4.14 的双向清单比对并进同一张表与同一个退出码，载荷在 `rosters` 下给出三个计数。`against=<根目录>`
+把本工程没有的引用拿到第二个根下解析——导入的工程就是拿原版安装目录当第二个根，写法可以是作用域名、
+`scope:path` 或目录——在那里解析到的引用不算悬空；载荷报告有多少条这样被解答
+（`dangling_answered_elsewhere`）以及是哪个根（`against`）。WW3 实测（以原版根为 `against=`）：911 条悬空
+变成 29 条，其中 882 条被另一个根解答；911 条里有 235 条要找的资源文件不在工程里。
 
 ## 7. 真实数据实测（2026-10-10）
 

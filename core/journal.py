@@ -26,6 +26,9 @@ SEGMENT_SUFFIX = ".jsonl"
 SEGMENT_IDLE_SECONDS = 300
 LOCK_STALE_SECONDS = 1800
 RESULTS = ("set", "add", "remove", "pack", "undo", "redo")
+# Who recorded a change. ``web`` is the page layer, which runs the same command handlers as
+# the command line (docs/project-layout.md section 8).
+ACTORS = ("cli", "mcp", "web")
 
 CLOCK: Callable[[], float] = time.time
 

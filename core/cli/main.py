@@ -29,9 +29,13 @@ Commands
   refs   (graph)   outgoing references of the selection
   deps             incoming references of value=<token>
   check  (lint)    load every entity, report errors, warnings and dangling references
+  schema           list the declared fields of one root element, or enum=<name>
+  roster           read the rosters the project declares, edit one entry, or check both
+                   directions between the entries and the documents (docs/cli.md section 4.14)
   index            build the cross-reference tables under EditorCache/ (needs --write)
   init             create a project: ModInformation.toml and an empty Data/ (needs --write)
   add              create one entity document (needs --write)
+  clone            copy one entity document under a new token (needs --write)
   remove  (rm)     delete one entity document (needs --write)
   settings         translate between the stock mod.txt and ModSetting.toml (needs --write)
   set              change one field of one document (needs --write)
@@ -41,6 +45,8 @@ Commands
   redo             re-apply what the last undo reverted (needs --write)
   export (emit)    render stock XML under to=<directory>
   pack             build the installable mod-zip (needs --write)
+  diff             compare two documents, or two trees lined up by entity path
+  verify           read every selected document back and report what does not survive
   version          editor, interpreter and resolvable scopes
   web    (serve)   serve the web UI on 127.0.0.1 (blocks until Ctrl-C)
 
@@ -57,19 +63,30 @@ Options
   name=<text>      init: the mod name the new ModInformation.toml carries (default: the directory name)
   limit=<n>        cap the rows printed (default 200; 0 prints every row)
   ignore_case=1    case-insensitive find
+  left=<scope:path>   diff: one side, the scope name optional (default: this scope)
+  right=<scope:path>  diff: the other side
   from=<path>      add: copy this document instead of writing the schema skeleton
+  as=<token>       clone: the name the copy declares
+  into=<scope>     clone: the scope the copy lands in (default: this scope)
+  enum=<name>      schema: list the values of this enum table
+  section=<text>   roster: only the entries whose group comment is this text
+  line=<number>    roster op=add|remove|set: the physical line to write at, delete or rewrite
+  as=<token>       roster op=set: the name that replaces the entry on the line
   op=<name>        set: set (default), append or delete one array-of-tables entry;
                    settings: render (default, stock mod.txt to TOML) or emit (TOML to mod.txt)
   from=<n>         set op=append: copy this array entry instead of an empty one
   overwrite=1      convert: replace a working file that is already there
   assets=1         convert: also copy the scope's Images/ and Sounds/ trees as they are
+  assets=1         check: name the file a missing image or a missing sound would have to be
+  rosters=1        check: also compare the rosters against the documents
+  against=<root>   check: a second root that answers references this project does not hold
   overwrite=0      export: leave a file that is already there untouched
   overwrite=1      settings: replace an existing ModSetting.toml, or an existing mod.txt
   overwrite=0      pack: leave an archive that is already there untouched
   strict=1         pack: refuse to write while the project has load errors or dangling
                    references; without it both are reported and the pack goes ahead
   document=<text>  log: keep records whose document contains this text
-  actor=cli|mcp    log: keep records written by this actor
+  actor=cli|mcp|web  log: keep records written by this actor
   result=<name>    log: keep set, undo or redo records
   since=<stamp>    log: keep records at or after this timestamp text
   until=<stamp>    log: keep records at or before this timestamp text
