@@ -5,6 +5,8 @@ command, and the command's own gate (`--write`, project confinement, the stock-s
 is what decides (docs/web.md).
 """
 
+import difflib
+import hashlib
 import json
 import os
 import shlex
@@ -687,11 +689,28 @@ def operations() -> tuple:
             ),
         ),
         Operation(
+            "batch",
+            tr("批量修改"),
+            tr("补丁文件"),
+            tr("按补丁文件一次改多份文档；任一条被拒则整批不写。"),
+            (),
+        ),
+        Operation(
             "add",
             tr("新建文档"),
             tr("新文档路径"),
             tr("按 schema 建一份骨架；填「复制来源」则复制那份文档。"),
             (("from", tr("复制来源"), "text", ""),),
+        ),
+        Operation(
+            "clone",
+            tr("复制文档"),
+            tr("源文档"),
+            tr("以新 token 复制一份文档；源可写成 作用域:路径 借原版数据。"),
+            (
+                ("as", tr("新 token"), "text", ""),
+                ("into", tr("目标作用域或目录"), "text", ""),
+            ),
         ),
         Operation("remove", tr("删除文档"), tr("文档"), tr("把一份文档从工程里删掉；撤销会把它放回。"), ()),
         Operation("index", tr("建索引"), "", tr("重建 EditorCache/index.toml 与 refs.toml。"), ()),
@@ -718,6 +737,19 @@ def operations() -> tuple:
             ),
         ),
         Operation(
+            "roster",
+            tr("清单"),
+            tr("清单文件"),
+            tr("列出工程声明的清单；给「清单动作」则增、改或删条目。"),
+            (
+                ("op", tr("清单动作"), "select:|add|set|remove", ""),
+                ("section", tr("组或注记"), "text", ""),
+                ("value", tr("条目"), "text", ""),
+                ("line", tr("行号"), "text", ""),
+                ("as", tr("新条目"), "text", ""),
+            ),
+        ),
+        Operation(
             "export",
             tr("导出文档"),
             "",
@@ -739,8 +771,18 @@ def operations() -> tuple:
             ),
         ),
         Operation("init", tr("新建工程"), "", tr("把当前目录建成一个模组工程。"), (("name", tr("工程名"), "text", ""),)),
-        Operation("undo", tr("撤销"), "", tr("把最近几次写入换回原来的字节。"), (("count", tr("条数"), "text", "1"),)),
-        Operation("redo", tr("重做"), "", tr("重新应用最近撤销掉的写入。"), (("count", tr("条数"), "text", "1"),)),
+        Operation(
+            "import",
+            tr("导入工程"),
+            tr("来源目录或 zip"),
+            tr("由既有模组建成工程；素材与 mod.txt 一并带入，目标已有工程时需覆盖。"),
+            (
+                ("to", tr("目标目录"), "text", ""),
+                ("overwrite", tr("覆盖已有工程"), "check", ""),
+            ),
+        ),
+        Operation("undo", tr("撤销"), tr("条数"), tr("把最近几次写入换回原来的字节；条数是文档参数，不是选项。"), ()),
+        Operation("redo", tr("重做"), tr("条数"), tr("重新应用最近撤销掉的写入；条数是文档参数，不是选项。"), ()),
     )
 
 
@@ -796,6 +838,106 @@ HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 RESERVED = ("scope", "t", "command", "selector", "page", "lang", "pane", "q")
 
+# A conflict digest is carried between the check step and the write step of a page.
+EXPECT_LENGTH = 32
+
+
+def payload_documents(payload: dict) -> list[str]:
+    """The documents a command payload names, in the order it names them.
+
+    A plan is only as good as the bytes it was computed from, so the check step records
+    which files it looked at; the write step compares them again (docs/web.md section 2.1).
+    """
+    found: list[str] = []
+
+    def remember(value) -> None:
+        if isinstance(value, str) and value and value not in found:
+            found.append(value)
+
+    remember(payload.get("document"))
+    remember(payload.get("path"))
+    for item in payload.get("rows") or ():
+        if isinstance(item, dict):
+            remember(item.get("document"))
+    # ``documents`` is a list of paths in one payload and a count in another, so only a list
+    # of strings is read here; a bare integer is a tally, not a document.
+    if isinstance(payload.get("documents"), (list, tuple)):
+        for item in payload["documents"]:
+            remember(item)
+    return found
+
+
+def state_digest(root: Path, relatives: list[str]) -> str:
+    """One short digest over the bytes of the named documents; empty when nothing is named."""
+    if not relatives:
+        return ""
+    digest = hashlib.sha256()
+    for relative in relatives:
+        digest.update(relative.encode("utf-8"))
+        try:
+            digest.update((root / relative).read_bytes())
+        except OSError:
+            digest.update(b"<missing>")
+    return digest.hexdigest()[:EXPECT_LENGTH]
+
+
+def _before_after_cell(value) -> str:
+    text = "" if value is None else str(value)
+    return mono(text) if text else note(tr("（空）"))
+
+
+def diff_table(payload: dict) -> str:
+    """The before/after table of a dry run, or an empty string when the payload has none.
+
+    A batch payload is one row per edit; a single-document payload is one row for the field
+    it touches. The table is the semantic part of a write: what changes, not just that
+    something would.
+    """
+    document = str(payload.get("document") or payload.get("path") or "")
+    edits = [
+        item
+        for item in payload.get("rows") or ()
+        if isinstance(item, dict) and ("before" in item or "after" in item)
+    ]
+    if edits:
+        rows = [
+            [
+                mono(str(item.get("document") or document)),
+                mono(str(item.get("field") or "")),
+                esc(str(item.get("op") or "set")),
+                _before_after_cell(item.get("before")),
+                _before_after_cell(item.get("after")),
+            ]
+            for item in edits
+        ]
+        return table([tr("文档"), tr("字段"), tr("操作"), tr("现在"), tr("操作后")], rows)
+    if "before" in payload or "after" in payload:
+        label = tr("字段") if payload.get("field") is not None else tr("条目")
+        row = [
+            mono(document),
+            mono(str(payload.get("field") or "")),
+            _before_after_cell(payload.get("before")),
+            _before_after_cell(payload.get("after")),
+        ]
+        return table([tr("文档"), label, tr("现在"), tr("操作后")], [row])
+    return ""
+
+
+def text_diff(before: str, after: str, limit: int) -> str:
+    """A unified diff of two texts, capped at ``limit`` lines."""
+    lines = list(
+        difflib.unified_diff(
+            before.split("\n"), after.split("\n"), lineterm="", n=2, fromfile=tr("现在"), tofile=tr("操作后")
+        )
+    )
+    if not lines:
+        return ""
+    body, hidden = lines[:limit], max(0, len(lines) - limit)
+    text = "\n".join(body)
+    if hidden:
+        text += "\n" + tr("… 还有 {} 行未显示。", hidden)
+    return pre(text)
+
 # The route of the request being answered, so the language switch can stay on the page.
 _ROUTE = contextvars.ContextVar("web_route", default="index")
 
@@ -830,6 +972,7 @@ CHECK_SECONDS = 20.0
 SOURCE_SUFFIXES = (".xml", ".toml", ".txt")
 SOURCE_BYTES = 16_000
 SOURCE_ROWS = 24
+SOURCE_DIFF_ROWS = 120
 
 # The project folders the asset page walks; both hold files the game loads as they are.
 ASSET_FOLDERS = ("Images", "Sounds")
@@ -1988,7 +2131,16 @@ class Handler(BaseHTTPRequestHandler):
         text = query.get("text", "")
         if textio.normalize_newlines(text) == source.text:
             return note(tr("内容没有变化，因此没有可写入的东西。"))
-        body = h3(tr("只检查不写入"))
+        digest = state_digest(scope.root, [relative])
+        if query.get("write") == "1" and query.get("expect") and query["expect"] != digest:
+            body = bad(tr("检查之后这份文档已经改变，因此这次写入被拒绝：写入会覆盖别人刚做的改动。"))
+            body += note_html(tr("重新载入：") + link(url("source", path=relative), tr("源码")))
+            return body
+        body = h3(tr("差异"))
+        body += text_diff(source.text, textio.normalize_newlines(text), SOURCE_DIFF_ROWS) or note(
+            tr("（只有编码或行尾的差别。）")
+        )
+        body += h3(tr("只检查不写入"))
         try:
             dry = self.source_write(scope.project, source, relative, text, dry_run=True)
         except (UsageError, FfError) as error:
@@ -2000,8 +2152,12 @@ class Handler(BaseHTTPRequestHandler):
         )
         if query.get("write") != "1":
             body += warn(tr("尚未写入。核对上面的差别，确认无误后再按「写入」。"))
+            body += note(tr("写入之前会再核对一次这份文档的字节；其间有人改过就拒绝写入，请重新载入。"))
             body += note_html(
-                link(url("source", path=relative, text=text, confirm="1", write="1"), tr("写入"))
+                link(
+                    url("source", path=relative, text=text, confirm="1", write="1", expect=digest),
+                    tr("写入"),
+                )
             )
             return body
         written = self.source_write(scope.project, source, relative, text, dry_run=False)
@@ -2149,6 +2305,11 @@ class Handler(BaseHTTPRequestHandler):
         if changed == lines:
             body += note(tr("内容没有变化，因此没有可写入的东西。"))
             return body
+        digest = state_digest(scope.root, [relative])
+        if query.get("write") == "1" and query.get("expect") and query["expect"] != digest:
+            body += bad(tr("检查之后这份文档已经改变，因此这次写入被拒绝：写入会覆盖别人刚做的改动。"))
+            body += note_html(tr("重新载入：") + link(url("tables", path=relative), tr("表格")))
+            return body
         body += h3(tr("只检查不写入"))
         try:
             dry = self.table_write(scope.project, path, relative, changed, encoding, bom, dry_run=True)
@@ -2161,9 +2322,19 @@ class Handler(BaseHTTPRequestHandler):
         )
         if query.get("write") != "1":
             body += warn(tr("尚未写入。核对上面的差别，确认无误后再按「写入」。"))
+            body += note(tr("写入之前会再核对一次这份文档的字节；其间有人改过就拒绝写入，请重新载入。"))
             body += note_html(
                 link(
-                    url("tables", path=relative, op=op, line=str(number), value=value, confirm="1", write="1"),
+                    url(
+                        "tables",
+                        path=relative,
+                        op=op,
+                        line=str(number),
+                        value=value,
+                        confirm="1",
+                        write="1",
+                        expect=digest,
+                    ),
                     tr("写入"),
                 )
             )
@@ -2306,15 +2477,33 @@ class Handler(BaseHTTPRequestHandler):
         body += pre(shell_line(scope.name, operation.command, selector, check))
         body += h3(tr("只检查不写入"))
         refused = ""
+        expect = ""
+        checked: list[str] = []
         try:
             dry = self.app.call(operation.command, scope, selector, **check)
         except (UsageError, FfError) as error:
             refused = str(error)
             body += bad(refused)
         else:
+            difference = diff_table(dry.payload)
+            if difference:
+                body += difference
             body += pre(dry.text or tr("（这条命令没有文本输出，看载荷）"))
             if dry.code != 0:
                 body += warn(tr("退出码 {}：命令报了失败项，写入前先看上面的输出。", dry.code))
+            # The plan above was computed from these bytes; the write step checks them again.
+            checked = payload_documents(dry.payload)
+            expect = state_digest(scope.root, checked)
+        if not refused and query.get("write") == "1" and query.get("expect") and query["expect"] != expect:
+            body += bad(tr("检查之后这些文档已经改变，因此这次写入被拒绝：写入会覆盖别人刚做的改动。"))
+            body += note_html(
+                tr("重新检查：")
+                + link(
+                    url("ops", command=operation.command, confirm="1", selector=selector, **options),
+                    tr("检查"),
+                )
+            )
+            return self.shell(operation.title, body, scope.name)
         if not refused and query.get("write") == "1":
             # The journal records where a write came from; a form is the web surface, so it
             # writes as ``web`` unless the command line names an actor itself.
@@ -2331,7 +2520,21 @@ class Handler(BaseHTTPRequestHandler):
             body += note(tr("命令拒绝了这次检查；写入不会比它更宽容，因此没有写入链接。"))
             return self.shell(operation.title, body, scope.name)
         body += warn(tr("尚未写入。核对上面的结果，确认无误后再按「写入」。"))
-        body += note_html(link(url("ops", command=operation.command, confirm="1", write="1", selector=selector, **options), tr("写入")))
+        body += note(tr("写入之前会再核对一次这些文档的字节；其间有人改过就拒绝写入，请重新检查。"))
+        body += note_html(
+            link(
+                url(
+                    "ops",
+                    command=operation.command,
+                    confirm="1",
+                    write="1",
+                    selector=selector,
+                    expect=expect,
+                    **options,
+                ),
+                tr("写入"),
+            )
+        )
         return self.shell(operation.title, body, scope.name)
 
     # --- MCP panel ----------------------------------------------------------

@@ -34,11 +34,13 @@ Commands
                    directions between the entries and the documents (docs/cli.md section 4.14)
   index            build the cross-reference tables under EditorCache/ (needs --write)
   init             create a project: ModInformation.toml and an empty Data/ (needs --write)
+  import           create a project from a mod that already exists, directory or zip (needs --write)
   add              create one entity document (needs --write)
   clone            copy one entity document under a new token (needs --write)
   remove  (rm)     delete one entity document (needs --write)
   settings         translate between the stock mod.txt and ModSetting.toml (needs --write)
   set              change one field of one document (needs --write)
+  batch            apply the edits of a patch file to many documents (needs --write)
   convert          turn the selection into project working files under to= (needs --write)
   log              log segments and the newest records inside them
   undo             put back what the last writes replaced (needs --write)
@@ -53,8 +55,9 @@ Commands
 Options
   root=<dir>       scope root override
   workspace=<dir>  directory holding Mod/ (default: current directory)
-  to=<dir>         export destination, the project convert writes into, or where pack
-                   leaves the archive (default: the project directory)
+  to=<dir>         export destination, the project convert writes into, where pack
+                   leaves the archive, or the project import creates
+                   (default: the project directory)
   as=raw|toml|xml  how show renders a document
   field=<a.b.c>    field path for get; without it get lists every field
   type=<category>  filter by editor category
@@ -76,10 +79,12 @@ Options
                    settings: render (default, stock mod.txt to TOML) or emit (TOML to mod.txt)
   from=<n>         set op=append: copy this array entry instead of an empty one
   overwrite=1      convert: replace a working file that is already there
+          import: replace a file, or a whole project, that is already there
   assets=1         convert: also copy the scope's Images/ and Sounds/ trees as they are
   assets=1         check: name the file a missing image or a missing sound would have to be
   rosters=1        check: also compare the rosters against the documents
   against=<root>   check: a second root that answers references this project does not hold
+                   (a directory, a scope name, or `stock` for the installation in the setting)
   overwrite=0      export: leave a file that is already there untouched
   overwrite=1      settings: replace an existing ModSetting.toml, or an existing mod.txt
   overwrite=0      pack: leave an archive that is already there untouched
@@ -96,8 +101,10 @@ Options
   pagesize=<n>     web UI rows per page (default 200)
   lang=zh|en       web UI language (default zh); a page can override it with ?lang=
   browser=1        web UI: open the default browser on start
-  --write          set, add, remove, convert, index, settings, pack, undo and redo: write the change
-  --dry-run        set, add, remove, convert, export, index, settings, pack, undo and redo: report it
+  --write          set, batch, add, remove, convert, index, init, import, settings, pack,
+                   undo and redo: write the change
+  --dry-run        set, batch, add, remove, convert, export, index, init, import, settings,
+                   pack, undo and redo: report it
   --json           print the machine payload instead of the text table
 """
 
@@ -162,7 +169,11 @@ def main(argv: list[str] | None = None) -> int:
         selector = " ".join(positionals[2:])
         spec = scope_name if not selector else f"{scope_name}/{selector}"
         _, relative, doc_path = split_spec(spec)
-        scope = init_scope(scope_name, cwd, invocation.options) if command == "init" else resolve_scope(scope_name, invocation.options, cwd)
+        scope = (
+            init_scope(scope_name, cwd, invocation.options, what=command)
+            if command in ("init", "import")
+            else resolve_scope(scope_name, invocation.options, cwd)
+        )
         context = Context(scope=scope, selector=relative, doc_path=doc_path, options=invocation.options, cwd=cwd)
         result = run_command(command, context)
         _emit(_render(result, invocation.json))

@@ -8,12 +8,26 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Added
 
-* The editor command line: 27 commands over two scopes, `Firefight` for the
-  game's own data and any named directory for a mod project. `init`, `list`,
-  `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`, `diff`,
-  `set`, `add`, `remove`, `index`, `convert`, `settings`, `export`, `pack`,
-  `roster`, `clone`, `schema`, `log`, `undo`, `redo`, `version`, `web`. Each
-  accepts `--json`.
+* The editor command line: 29 commands over two scopes, `Firefight` for the
+  game's own data and any named directory for a mod project. `init`, `import`,
+  `list`, `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`,
+  `diff`, `set`, `batch`, `add`, `remove`, `index`, `convert`, `settings`,
+  `export`, `pack`, `roster`, `clone`, `schema`, `log`, `undo`, `redo`,
+  `version`, `web`. Each accepts `--json`.
+* `import` makes a project out of a mod that already exists, given as a
+  directory or a zip. The mod root is found the way the packager looks for it —
+  under `Mod/`, at the top of the source, or one directory of its own above
+  that — and `Data/`, `Images/` and `Sounds/` are copied byte for byte, with
+  `mod.txt`, `README.md`, `LICENSE` and the two project files when the source
+  carries them. `ModSetting.toml` is rendered from the source's `mod.txt` when
+  it is missing, `ModInformation.toml` is written from the schema skeleton, and
+  an existing project is only replaced with `overwrite=1` (docs/cli.md section
+  4.16).
+* `batch` applies a patch file — an array of `[[edit]]` entries in TOML — to as
+  many documents as it names, in order. Every entry is planned before anything
+  is written, later entries to one document are planned against the text the
+  earlier ones would leave, and each document is written once and journalled
+  once, so `undo` puts the whole run back (docs/cli.md section 4.15).
 * `diff` compares two documents or two trees lined up by entity path, rendering
   both sides as stock XML first so a project `toml` and the stock `txt` it came
   from compare in the same shape. `verify` reads every selected document and
@@ -54,9 +68,10 @@ semantic and is written down in one place, `core/__init__.py`.
   and the page offers a new-document form, so the three document-level writes
   are reachable from the list and each still ends on the operation page's check
   step.
-* An MCP server for two protocol families, exposing 19 tools of which 8 are
-  read-only; the writing tools are registered only under `--write`
-  (docs/mcp.md).
+* An MCP server for two protocol families, exposing 26 tools of which 11 are
+  read-only; the writing tools are registered only under `--write`. Every
+  command carries a tool, including the later `batch`, `clone`, `roster`,
+  `schema`, `diff`, `verify` and `import` (docs/mcp.md).
 * `pack` builds an installable mod archive: `<name>-<version>.zip` holding a
   `Mod/` prefix, project documents rendered back to the stock XML, the
   project's `ModSetting.toml` rendered into `Mod/mod.txt`, and no
@@ -81,6 +96,13 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Changed
 
+* `check` accepts `against=stock` for the installation named in the editor setting, and when
+  more than one kind of reference is dangling the summary and `dangling_kinds` name the counts
+  per kind, so an imported project's missing assets are told apart from its broken references.
+* The entries of a declared unit roster join the reference graph, so `refs` lists them,
+  `deps <unit>` names the roster and the line that lists it, and `check` reports a unit no
+  document answers as a dangling reference of kind `roster` instead of leaving it invisible
+  until `rosters=1` is given. A surname list contributes nothing (docs/refs.md section 1).
 * Every page is now a workbench: a menu bar, a tool bar, a project tree, the document in the
   middle, a property pane, an output pane carrying the tail of the event log, and a status bar.
   The panes resize by dragging and fold from the tool bar; that state and the language are the
@@ -111,6 +133,14 @@ semantic and is written down in one place, `core/__init__.py`.
   it while the session moves to other pages, above the tail of the event log. A write reached
   through a page is recorded as `web`, and the JSON link a page offers carries a dry run whenever
   the line it came from writes, so following it cannot change the project twice.
+* A check step shows what it would change before it offers the write: `/ops` prints the field, the
+  value now and the value after, `/tables` prints the row as it is and as it would be, and
+  `/source` prints a line diff. The write link carries the digest the check read, so a write whose
+  documents changed in the meantime is refused and the other writer's bytes are left in place.
+* `/ops` carries every writing command, the later `batch`, `clone`, `roster` and `import` included,
+  and `undo` and `redo` name their count in the document field because that count is the command's
+  positional selector. A payload key that is a count in one command and a list of paths in another
+  no longer makes the check step of `index` fail with a server error.
 * The workbench reads at the density of a desktop tool: a narrow industrial system face
   (`Tahoma`, with `Arial Narrow` and the platform sans behind it) at a 15px base size, with the
   pane widths, controls and thumbnails scaled to match.
@@ -123,7 +153,7 @@ semantic and is written down in one place, `core/__init__.py`.
   a port it cannot take, registers the writing tools only when the form allows them, and answers
   one POSTed JSON-RPC message at a time.
 * User-visible text is English throughout. The Web UI carries a Chinese
-  translation of all 415 templates and a `lang=zh|en` switch.
+  translation of all 444 templates and a `lang=zh|en` switch.
 * `export` replaces a file that is already there unless `overwrite=0` is
   given; `convert` and `settings` skip an existing destination unless
   `overwrite=1` is given.

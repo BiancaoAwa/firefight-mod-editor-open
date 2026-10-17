@@ -81,13 +81,16 @@ def plan_set(
     *,
     enums: Enums | None = None,
     declared: Callable[[], dict[str, set[str]]] | None = None,
+    source: textio.SourceText | None = None,
 ) -> EditPlan:
     """Validate one field change and render the file it would produce.
 
     ``document`` is a loaded ``core.cli.commands.Document``; the file is read
     again so the plan carries the fingerprint of the bytes it was computed from.
     ``declared`` is called only when a value misses the table, so a project scan
-    stays off the path of every other edit.
+    stays off the path of every other edit.  ``source`` overrides that read with
+    text the caller already holds, which is how ``batch`` plans an entry against
+    the text the earlier entries would leave behind (docs/cli.md section 4.15).
     """
     enums = enums if enums is not None else Enums()
     segments = _segments(field)
@@ -101,7 +104,7 @@ def plan_set(
         raise EditRefused(f"{field}: {node.shape} is not a field")
     warnings: list[str] = []
     entity = entity_of(document, document.relative)
-    source = textio.read_source(document.path, warnings)
+    source = source if source is not None else textio.read_source(document.path, warnings)
     if document.format == "toml":
         target = _resolve_toml(root_table(document.table, document.root_tag), segments, field)
         old_raw = target.raw
@@ -120,6 +123,7 @@ def plan_set(
     data = textio.encode_export(text, file=str(document.path), encoding=document.encoding, newline="")
     if source.had_bom:
         data = textio.BOM + data
+    origin = _origin_bytes(source)
     return EditPlan(
         path=document.path,
         relative=document.relative,
@@ -132,8 +136,8 @@ def plan_set(
         encoding=document.encoding,
         newline=newline,
         had_bom=source.had_bom,
-        size_before=document.path.stat().st_size,
-        digest=hashlib.sha256(document.path.read_bytes()).hexdigest(),
+        size_before=len(origin),
+        digest=hashlib.sha256(origin).hexdigest(),
         enum=enum_report,
         warnings=tuple(warnings),
     )
@@ -509,13 +513,17 @@ def _assignment_at(line: str) -> int | None:
 # --- array entries ----------------------------------------------------------
 
 
-def plan_entry(document, field: str, op: str, *, copy_from: int | None = None) -> EditPlan:
+def plan_entry(
+    document, field: str, op: str, *, copy_from: int | None = None, source: textio.SourceText | None = None
+) -> EditPlan:
     """Stage the addition or removal of one array-of-tables entry.
 
     ``op`` is ``append`` or ``delete``.  An append names the array
     (``ammo.type``); a delete names one entry of it (``ammo.type.0``).  Both work
     on the source lines, so every other line, comment and blank line keeps its
-    bytes (docs/cli.md section 4.1).
+    bytes (docs/cli.md section 4.1).  ``source`` overrides the read of the file,
+    which is how ``batch`` plans an entry against the text its earlier entries
+    would leave behind.
     """
     if document.format != "toml":
         raise EditRefused(f"{field}: an array of tables lives in a working document")
@@ -536,7 +544,7 @@ def plan_entry(document, field: str, op: str, *, copy_from: int | None = None) -
         raise EditRefused(f"{field}: {node.shape} is not an array of tables")
     warnings: list[str] = []
     entity = entity_of(document, document.relative)
-    source = textio.read_source(document.path, warnings)
+    source = source if source is not None else textio.read_source(document.path, warnings)
     if "\r" in source.raw.replace("\r\n", ""):
         raise EditRefused(f"{field}: the document uses bare carriage returns; not supported")
     path = _root_prefix(document) + list(segments)
@@ -584,11 +592,23 @@ def plan_entry(document, field: str, op: str, *, copy_from: int | None = None) -
         encoding=document.encoding,
         newline=newline,
         had_bom=source.had_bom,
-        size_before=document.path.stat().st_size,
-        digest=hashlib.sha256(document.path.read_bytes()).hexdigest(),
+        size_before=len(_origin_bytes(source)),
+        digest=hashlib.sha256(_origin_bytes(source)).hexdigest(),
         enum={},
         warnings=tuple(warnings),
     )
+
+
+def _origin_bytes(source: textio.SourceText) -> bytes:
+    """The bytes a source text came from, byte for byte.
+
+    ``read_source`` keeps the decoded text and drops the byte order mark, so
+    re-encoding ``raw`` and putting the mark back reproduces the file the plan is
+    computed from -- which is the file on disk unless a caller passed its own
+    source to chain one edit onto the next.
+    """
+    data = textio.encode_export(source.raw, file=str(source.path), encoding=source.encoding, newline="")
+    return textio.BOM + data if source.had_bom else data
 
 
 def _root_prefix(document) -> list[str]:
