@@ -598,6 +598,13 @@ class ToolTableTest(unittest.TestCase):
                 spec.name,
             )
 
+    def test_every_tool_runs_a_command_the_command_line_knows(self) -> None:
+        """The tool table and the CLI share one surface: a tool cannot name a command the CLI lacks."""
+        from core.cli.commands import COMMANDS
+
+        for tool in specs.TOOLS:
+            self.assertIn(tool.command, COMMANDS, tool.name)
+
     def test_the_arguments_become_the_command_line_call(self) -> None:
         show = specs.tool_named("ff_show")
         self.assertEqual(

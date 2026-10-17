@@ -18,6 +18,7 @@ import secrets
 import socket
 import threading
 import time
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -29,6 +30,8 @@ HOSTS = {"local": "127.0.0.1", "lan": "0.0.0.0"}
 DEFAULT_PORT = 8790
 MAX_BODY = 1_000_000
 TOKEN_HEADER = "X-Ff-Token"
+PUBLIC_SERVICES = ("https://api.ipify.org", "https://ifconfig.me/ip")
+PUBLIC_TIMEOUT = 4.0
 
 
 def bind_address(host: str) -> str:
@@ -70,6 +73,24 @@ def local_addresses(bind: str) -> list[str]:
     if "127.0.0.1" not in found:
         found.append("127.0.0.1")
     return found
+
+
+def public_address(timeout: float = PUBLIC_TIMEOUT) -> str | None:
+    """The address this network presents to the outside, as a remote service reports it.
+
+    The machine's own interfaces only carry the private address, so the public one is read
+    from outside. Offline, or with every service down, this returns None and the page says
+    the address could not be read.
+    """
+    for service in PUBLIC_SERVICES:
+        try:
+            with urllib.request.urlopen(service, timeout=timeout) as answer:
+                text = answer.read(64).decode("ascii", "replace").strip()
+            address = ipaddress.ip_address(text)
+        except (OSError, ValueError):
+            continue
+        return str(address)
+    return None
 
 
 class McpHttpServer(ThreadingHTTPServer):
@@ -142,10 +163,30 @@ class McpService:
         self._server: McpHttpServer | None = None
         self._thread: threading.Thread | None = None
         self._state: dict = {}
+        self._public: str | None = None
+        self._public_checked = False
 
     def state(self) -> dict:
         with self._lock:
-            return dict(self._state)
+            state = dict(self._state)
+            if state:
+                state["public"] = self._public
+                state["public_checked"] = self._public_checked
+            return state
+
+    def refresh_public(self) -> str | None:
+        """Read the outward address again, in the caller's thread, and report it."""
+        found = public_address()
+        with self._lock:
+            self._public = found
+            self._public_checked = True
+        return found
+
+    def _probe_public(self) -> None:
+        found = public_address()
+        with self._lock:
+            self._public = found
+            self._public_checked = True
 
     def running(self) -> bool:
         with self._lock:
@@ -181,7 +222,14 @@ class McpService:
                 "write": write,
                 "at": time.strftime("%H:%M:%S"),
             }
-            return dict(self._state)
+            self._public = None
+            self._public_checked = False
+            threading.Thread(target=self._probe_public, name="mcp-public", daemon=True).start()
+            # The lock above is held here, so ``state()`` would deadlock on a plain Lock.
+            opened = dict(self._state)
+            opened["public"] = self._public
+            opened["public_checked"] = self._public_checked
+            return opened
 
     def stop(self) -> dict:
         with self._lock:
@@ -191,6 +239,8 @@ class McpService:
             self._thread = None
             state = dict(self._state)
             self._state = {}
+            self._public = None
+            self._public_checked = False
         server.shutdown()
         server.server_close()
         return state

@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import tempfile
+import threading
 import time
 from contextlib import contextmanager
 from datetime import datetime
@@ -31,6 +32,21 @@ RESULTS = ("set", "add", "remove", "pack", "undo", "redo")
 ACTORS = ("cli", "mcp", "web")
 
 CLOCK: Callable[[], float] = time.time
+
+# Two writers in one process must not fight over the lock file. On Windows a second open or
+# unlink of a file another thread holds raises a sharing violation instead of failing cleanly,
+# so this process serialises on a per-project thread lock before it touches the file lock. A
+# writer in another process still sees the file and is refused.
+_LOCAL_GUARD = threading.Lock()
+_LOCAL_LOCKS: dict[str, threading.Lock] = {}
+LOCAL_TIMEOUT = 10.0
+
+
+def _local_lock(project_root: Path) -> threading.Lock:
+    """The in-process lock for one project, created on first use."""
+    key = str(project_root.resolve())
+    with _LOCAL_GUARD:
+        return _LOCAL_LOCKS.setdefault(key, threading.Lock())
 
 
 # --- paths and byte-level writes --------------------------------------------
@@ -115,24 +131,30 @@ def _holder(project_root: Path) -> str:
 @contextmanager
 def hold_lock(project_root: Path, *, tool: str) -> Iterator[None]:
     """Hold ``EditorCache/lock`` for one write; a held lock refuses, it is never stolen."""
-    editor = editor_dir(project_root)
-    editor.mkdir(parents=True, exist_ok=True)
-    lock = editor / LOCK_NAME
-    payload = {
-        "pid": os.getpid(),
-        "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "tool": tool,
-    }
+    local = _local_lock(project_root)
+    if not local.acquire(timeout=LOCAL_TIMEOUT):
+        raise EditRefused(f"{EDITOR_DIR}/{LOCK_NAME} is held ({_holder(project_root)}); nothing was written")
     try:
-        handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError:
-        raise EditRefused(f"{EDITOR_DIR}/{LOCK_NAME} is held ({_holder(project_root)}); nothing was written") from None
-    try:
-        os.write(handle, json.dumps(payload, ensure_ascii=False).encode("utf-8"))
-        yield
+        editor = editor_dir(project_root)
+        editor.mkdir(parents=True, exist_ok=True)
+        lock = editor / LOCK_NAME
+        payload = {
+            "pid": os.getpid(),
+            "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            "tool": tool,
+        }
+        try:
+            handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            raise EditRefused(f"{EDITOR_DIR}/{LOCK_NAME} is held ({_holder(project_root)}); nothing was written") from None
+        try:
+            os.write(handle, json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+            yield
+        finally:
+            os.close(handle)
+            lock.unlink(missing_ok=True)
     finally:
-        os.close(handle)
-        lock.unlink(missing_ok=True)
+        local.release()
 
 
 # --- baseline ---------------------------------------------------------------

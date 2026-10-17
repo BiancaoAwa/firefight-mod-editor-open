@@ -1,13 +1,22 @@
 # Changelog
 
-Notable changes are recorded here, newest first. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version is
-semantic and is written down in one place, `core/__init__.py`.
-
-## [0.1.0] — unreleased
+## [Unreleased]
 
 ### Added
 
+* The `/help` page carries a command index: every command the CLI knows, with
+  one line of purpose taken from that command's own docstring, so a command
+  added to the CLI shows up without a second list to edit.
+* The `/cmd` line input suggests those command names and prints the purpose of
+  the first word typed, read from the same index; the Chinese page takes that
+  line from `core/web/i18n.py`, the English page from the docstring.
+* The front page reports a `Setting.toml` key that names a directory this
+  machine does not have, instead of failing later with an unexplained scope
+  error.
+* The status bar counts are stored in `EditorCache/check.json` and read from
+  there by a later process while it recomputes in the background; a write made
+  from a page schedules the same recomputation, so the counts move on without a
+  page waiting for a scan.
 * The editor command line: 34 commands over two scopes, `Firefight` for the
   game's own data and any named directory for a mod project. `init`, `import`,
   `list`, `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`,
@@ -56,18 +65,25 @@ semantic and is written down in one place, `core/__init__.py`.
   them want an asset file the project does not have (docs/cli.md section 6).
 * A Web UI bound to the loopback address, in Chinese and English with a
   language switch, offering the same commands behind the same gates
-  (docs/web.md). Three pages carry the writing side: `/edit` lists every field
-  of a document with one input box each, `/ops` offers each of the eleven
-  writing commands as a form and runs it with `--write --dry-run` before
-  offering the write, and `/log` shows the event log with the undo and redo
-  forms. `/assets` draws the project's pictures and sounds from the files
-  themselves, through a read-only route that serves a file's own bytes with its
-  content type and an `ETag` and refuses any path outside the project; the
-  property pane uses the same route to preview a field that names a picture or
-  a sound. `/list` is the entity grid: each row carries edit, copy and delete,
-  and the page offers a new-document form, so the three document-level writes
-  are reachable from the list and each still ends on the operation page's check
-  step.
+  (docs/web.md). One document has two modes: `/edit` edits its whole text —
+  TOML, XML and plain text alike, including a file the editor cannot parse —
+  and `/show` reads it, with the other mode one link away in the document bar.
+  `/cmd` is a command line that prints exactly what the CLI prints, and it
+  carries each of the nineteen writing commands as a form that runs the command
+  with `--write --dry-run` before offering the write; `/mcp` and `/help` are the
+  same page seen from two further angles — the MCP tool table and the reference
+  text — and the explanation of the three entrances is written once, on
+  `/help`. `/log` shows the event log with the undo and redo forms. Pictures and
+  sounds open from the file tree on `/show`,
+  through a read-only route that serves a file's own bytes with its content type
+  and an `ETag` and refuses any path outside the project; the property pane uses
+  the same route to preview a field that names a picture or a sound. `/list` is
+  the entity grid: each row carries edit, copy and delete, the page offers a
+  new-document form, and it also lists the declared plain-text tables, each
+  opening their row editor, so the document-level writes are reachable from the
+  list and each still ends on the check step. A plain-text twin that still
+  matches the document rendering it byte for byte can be deleted from `/twin`,
+  and the page offers that link only while the two agree.
 * `build`, `audit`, `adopt`, `unpack` and `run` turn the multi-step workflows and any list of
   steps into one command each: index then check then pack, verify then check with both gates,
   import then index, export alone. A failing step stops the run and the summary names it.
@@ -106,13 +122,36 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Changed
 
+* `清单文件` is called `单位表` throughout the UI and the docs, and the section
+  sits above the entity table.
+* The menu bar links `/mcp` next to the exit link, and the listener section puts
+  the external addresses and their copy boxes first.
+* The project tree opens `Data` and leaves the other top-level folders folded;
+  the tree search counts what it kept and hides a folder the search emptied.
+* `/edit` edits one document as its whole text rather than one field per row: TOML and XML are
+  treated as what they are, plain text, and a file the editor cannot parse opens and saves the same
+  way, so a broken document can be repaired from the page. The structured field controls are gone,
+  and so is the separate `/source` mode they sat beside; the document bar now carries the two modes
+  of an open document, 查看 and 编辑. The tab strip keeps the four scope-level sections — home,
+  entity list, log and command line.
+* `/assets` is gone: the tree lists every file of the project already, and a picture or a sound
+  opens from there on `/show`, which draws the media itself and links the raw bytes through
+  `/asset?path=`. The read-only route and the field preview keep their behaviour.
+* The entity list carries the plain-text tables the project settings declare, under 清单文件, each
+  name opening its row editor `/equipment?path=`, so the equipment table is reached from the list
+  rather than from a section of its own.
+* `/cmd`, `/mcp` and `/help` are the three modes of one page with one bar between them — the
+  command line with its writing forms, the MCP tool table, the reference text; the rules shared by
+  the form, the command line and MCP are written once, on `/help`.
 * The workbench shell is two files rather than two blocks copied into every page: `/shell.css` and
   `/shell.js` are served once, with a one-hour cache header and an `ETag`, so walking through the
   pages fetches them a single time and a page that cannot load them still reads.
-* The tool bar offers a dark theme and a second face (the mono stack at 14px); both are CSS
-  variables on the root element, so one attribute repaints the page, and the choice joins the
-  panel widths in `localStorage`. The menu bar and the tool bar are shorter, and the scope origin
-  in the property pane reads as a sentence instead of the log wording.
+* The workbench face is the monospace system stack (`Consolas` first) at a 14px base size, so the
+  editor reads at the density of a desktop tool; there is no second face and no control for one.
+  A dark theme, a set of CSS variables on the root element, is offered by one button in the tool
+  bar, so one attribute repaints the page, and the choice joins the panel widths in `localStorage`.
+  The menu bar and the tool bar are shorter, and the scope origin in the property pane reads as a
+  sentence instead of the log wording.
 * The tree lists every file of the project — the readme and the settings beside the documents,
   and the pictures and the sounds — while leaving `EditorCache/` out. A `.txt` that a `.toml` of
   the same name renders is drawn dimmed instead of being hidden, and when the copy still matches
@@ -136,16 +175,10 @@ semantic and is written down in one place, `core/__init__.py`.
 * The tree pane lists the project's documents by folder, from the same payload `list` returns,
   and the property pane shows the fields of the document the request names, from the same
   payload `get` returns.
-* The asset pages serve the project's pictures and sounds: `/assets` draws the files themselves,
-  and `/asset?path=` hands back one file's own bytes with its content type and an `ETag`. The
-  route reads only inside the project, and a field that names a picture gets a preview beside it.
 * `/equipment` edits the plain-text tables the commands skip: every line with its own box, a delete
   and an append, comments and blank lines shown as markers. The write goes through
   `core.edit` — plan, then apply — so it lands in the event log and `undo` restores it; `web` joins
   `cli` and `mcp` as an actor, which is what `log actor=web` filters on.
-* `/source` opens one document as its whole text and saves it back as a whole. The file's own
-  encoding, BOM and line ending are kept, the write goes through `core.edit` like every other
-  write, and `check` runs on the document before and after it without blocking the save.
 * `/mcp` shows the tools the MCP server registers — the names, the commands and the arguments a
   client receives — prints the command line and the client configuration block that attach a
   client to this workspace, and runs one `tools/call` in process to print the JSON-RPC answer as
@@ -158,35 +191,33 @@ semantic and is written down in one place, `core/__init__.py`.
   it while the session moves to other pages, above the tail of the event log. A write reached
   through a page is recorded as `web`, and the JSON link a page offers carries a dry run whenever
   the line it came from writes, so following it cannot change the project twice.
-* A check step shows what it would change before it offers the write: `/ops` prints the field, the
+* A check step shows what it would change before it offers the write: `/cmd` prints the field, the
   value now and the value after, `/equipment` prints the row as it is and as it would be, and
-  `/source` prints a line diff. The write link carries the digest the check read, so a write whose
+  `/edit` prints a line diff. The write link carries the digest the check read, so a write whose
   documents changed in the meantime is refused and the other writer's bytes are left in place.
-* `/ops` carries every writing command, the later `batch`, `clone`, `roster` and `import` included,
+* `/cmd` carries every writing command, the later `batch`, `clone`, `roster` and `import` included,
   and `undo` and `redo` name their count in the document field because that count is the command's
   positional selector. A payload key that is a count in one command and a list of paths in another
   no longer makes the check step of `index` fail with a server error.
-* `/edit` draws the control each field's schema calls for: a checkbox for a boolean, a drop-down for
-  a leaf whose values come from an enum table, and a row table for an array. A field outside the
-  schema keeps its text box, and only a working TOML document carries the `添加` and `删除` forms
-  that add or delete an array entry, because that is the shape `set` can append to.
 * The web server reads `EditorCache/index.toml` and `refs.toml` at start-up and rebuilds them in a
   background thread when their fingerprint no longer matches the files; the rebuild replaces both
   tables atomically, a failure is printed as `web: index rebuild skipped`, and the reference pages
   fall back to walking the documents.
-* The workbench reads at the density of a desktop tool: a narrow industrial system face
-  (`Tahoma`, with `Arial Narrow` and the platform sans behind it) at a 15px base size, with the
-  pane widths, controls and thumbnails scaled to match.
+* The workbench reads at the density of a desktop tool: the monospace system face
+  (`Consolas`, with `Courier New` and the platform mono behind it) at a 14px base size.
 * The tree pane carries a search box. Typing filters the files the tree already holds by their
   path without a round trip; pressing enter asks the server the same question, so `?q=` alone
   filters the page for a browser without scripting, and a search that finds nothing offers the
   same query on the list page.
 * The MCP panel can open one more socket for clients that speak MCP over HTTP. It is off until
-  asked for, binds either this machine or the local network, carries a token of its own, refuses
-  a port it cannot take, registers the writing tools only when the form allows them, and answers
-  one POSTed JSON-RPC message at a time.
+  asked for, binds this machine, the local network or any interface, carries a token of its own,
+  refuses a port it cannot take, registers the writing tools only when the form allows them, and
+  answers one POSTed JSON-RPC message at a time. The panel names the address it bound, the LAN
+  address and the public address, each with a copyable `ip:port`.
+* The web server preloads the entity tree of every scope it can reach at start-up, so the first
+  visit to a scope does not pay for the scan the tree pane would otherwise trigger.
 * User-visible text is English throughout. The Web UI carries a Chinese
-  translation of all 482 templates and a `lang=zh|en` switch.
+  translation of all 465 templates and a `lang=zh|en` switch.
 * `export` replaces a file that is already there unless `overwrite=0` is
   given; `convert` and `settings` skip an existing destination unless
   `overwrite=1` is given.
@@ -208,12 +239,13 @@ semantic and is written down in one place, `core/__init__.py`.
   both sizes and both ways out, including the non-destructive one
   (`settings op=render`).
 
-### Known limitations
+### Fixed
 
-* `pack` carries the project directory as it stands, plus the
-  project's `README.md` and `LICENSE`; `Images/` and `Sounds/` reach the archive only when
-  they are already in the project directory (docs/cli.md section 4.8).
-* Dangling references are reported by `check` and counted by `pack`, but
-  nothing resolves them.
+* `/list` paginates past the command's 200-row cap, so every entity of a large
+  project is reachable; the page slices the rows itself.
+* `is_plain_text` decides from the first non-blank character before it parses a
+  file, which keeps a long `list` from parsing every document.
+* A journal write from the same process no longer fails with `WinError 32` on Windows: the file
+  lock is now taken behind an in-process lock, so two threads of one server do not race for the
+  same lock file.
 
-[0.1.0]: https://github.com/BiancaoAwa/firefight-mod-editor-open

@@ -16,9 +16,11 @@ and `ModSetting.toml` in both directions ([cli.md](docs/cli.md) §4.7), the mod-
 `pack` ([cli.md](docs/cli.md) §4.8), the MCP server `python -m core.mcp`,
 which offers the commands as tools, resources and prompts ([mcp.md](docs/mcp.md)), and a web UI
 that runs the same commands, writing ones included, in Chinese or English ([web.md](docs/web.md)):
-`/edit` lists every field of a document with its own input box, `/ops` offers each writing command
-as a form and runs it with `--write --dry-run` before offering the write, and `/log` shows the
-event log with the undo and redo forms. `init` creates a
+`/edit` edits a whole document as text — TOML, XML and plain text through the same box, with the
+encoding, the BOM and the newlines shown and the difference printed before the write; `/list`
+holds the entities together with the equipment table and the manifest files; `/log` shows the
+event log with the undo and redo forms; `/cmd` is a command line plus the writing commands as
+forms, with the MCP tool table and the reference text as its other two modes. `init` creates a
 project in an empty directory ([cli.md](docs/cli.md) §4.9), and `import` makes one out of a mod
 that already exists, a directory or a zip ([cli.md](docs/cli.md) §4.16). `export` reproduces a stock file
 byte for byte, layout included — 1840 of 1840 files on the installed game

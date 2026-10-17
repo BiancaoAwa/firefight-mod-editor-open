@@ -545,7 +545,9 @@ class CliTestCase(unittest.TestCase):
     def test_version_without_a_scope(self) -> None:
         code, out, _ = run("version", self.stock())
         self.assertEqual(code, 0)
-        self.assertIn("editor: 0.1.0", out)
+        from core import __version__
+
+        self.assertIn(f"editor: {__version__}", out)
 
     def test_json_flag_before_the_scope(self) -> None:
         code, out, _ = run("--json", "Firefight", "list", "Weapons", self.stock())
