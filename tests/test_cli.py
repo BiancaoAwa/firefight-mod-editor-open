@@ -706,6 +706,23 @@ class CliTestCase(unittest.TestCase):
         finally:
             target.unlink(missing_ok=True)
 
+    def test_clone_copies_a_project_file_from_another_project(self) -> None:
+        second = SCRATCH / "clone-project-file"
+        shutil.rmtree(second, ignore_errors=True)
+        (second / "Data").mkdir(parents=True)
+        write(second / "ModInformation.toml", '[mod]\n\tname = "Other Mod"\n\tversion_name = "0.0.1"\n')
+        try:
+            code, payload, _ = run_json(
+                "Mod", "clone", "ModInformation.toml", f"into={second}", f"root={PROJECT}",
+                "--write",
+            )
+            self.assertEqual(code, 0, payload)
+            self.assertEqual(payload["path"], "ModInformation.toml")
+            text = (second / "ModInformation.toml").read_text(encoding="utf-8")
+            self.assertIn("Fixture Mod", text)
+        finally:
+            shutil.rmtree(second, ignore_errors=True)
+
     def test_clone_borrows_a_document_from_the_stock_scope(self) -> None:
         target = PROJECT / "Data/Weapons/WEAPON_BORROWED.toml"
         try:

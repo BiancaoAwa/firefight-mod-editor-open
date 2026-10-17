@@ -12,8 +12,10 @@ streaming, no session ids beyond what the protocol itself carries, no file servi
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import secrets
+import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -27,6 +29,47 @@ HOSTS = {"local": "127.0.0.1", "lan": "0.0.0.0"}
 DEFAULT_PORT = 8790
 MAX_BODY = 1_000_000
 TOKEN_HEADER = "X-Ff-Token"
+
+
+def bind_address(host: str) -> str:
+    """The address to bind: a named choice, or the IP address the caller gave."""
+    if host in HOSTS:
+        return HOSTS[host]
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        raise UsageError(tr("监听地址是 local、lan 或一个 IP 地址，不是 {}。", host)) from None
+    return host
+
+
+def local_addresses(bind: str) -> list[str]:
+    """The addresses a client can dial through a socket listening on ``bind``.
+
+    A socket on ``0.0.0.0`` has no single address to show, so the list names the interfaces
+    this machine holds. The outbound one comes first because that is the address a remote
+    client can actually reach.
+    """
+    if bind not in ("0.0.0.0", "::"):
+        return [bind]
+    found: list[str] = []
+    probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        probe.connect(("8.8.8.8", 53))
+        found.append(probe.getsockname()[0])
+    except OSError:
+        pass
+    finally:
+        probe.close()
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            address = info[4][0]
+            if address not in found:
+                found.append(address)
+    except OSError:
+        pass
+    if "127.0.0.1" not in found:
+        found.append("127.0.0.1")
+    return found
 
 
 class McpHttpServer(ThreadingHTTPServer):
@@ -110,8 +153,7 @@ class McpService:
 
     def start(self, *, host: str, port: int, write: bool, defaults: dict, cwd: Path) -> dict:
         """Open the listener, or raise UsageError with the reason it cannot open."""
-        if host not in HOSTS:
-            raise UsageError(tr("监听地址是 local 或 lan，不是 {}。", host))
+        bind = bind_address(host)
         if not 1 <= port <= 65535:
             raise UsageError(tr("端口要在 1 到 65535 之间，不是 {}。", port))
         with self._lock:
@@ -119,19 +161,22 @@ class McpService:
                 raise UsageError(tr("已经有一个监听在 {} 上。", self._state.get("url", "")))
             token = secrets.token_urlsafe(18)
             try:
-                server = McpHttpServer((HOSTS[host], port), write=write, defaults=defaults,
+                server = McpHttpServer((bind, port), write=write, defaults=defaults,
                                        cwd=cwd, token=token)
             except OSError as error:
-                raise UsageError(tr("监听打不开 {}:{}：{}", HOSTS[host], port, error)) from None
+                raise UsageError(tr("监听打不开 {}:{}：{}", bind, port, error)) from None
             thread = threading.Thread(target=server.serve_forever, name="mcp-listener", daemon=True)
             thread.start()
             self._server = server
             self._thread = thread
+            chosen = server.server_address[1]
+            addresses = [f"http://{address}:{chosen}/" for address in local_addresses(bind)]
             self._state = {
                 "host": host,
-                "bind": HOSTS[host],
-                "port": server.server_address[1],
-                "url": f"http://{HOSTS[host]}:{server.server_address[1]}/",
+                "bind": bind,
+                "port": chosen,
+                "url": addresses[0],
+                "addresses": addresses,
                 "token": token,
                 "write": write,
                 "at": time.strftime("%H:%M:%S"),

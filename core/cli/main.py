@@ -49,6 +49,11 @@ Commands
   pack             build the installable mod-zip (needs --write)
   diff             compare two documents, or two trees lined up by entity path
   verify           read every selected document back and report what does not survive
+  build            index, check and pack in one run (needs to= and --write)
+  audit            verify every document, then check with both gates on
+  adopt            import a tree or a zip as a project, then index it
+  unpack           write the project back out as the original XML and text
+  run              run the steps a TOML file lists, in order
   version          editor, interpreter and resolvable scopes
   web    (serve)   serve the web UI on 127.0.0.1 (blocks until Ctrl-C)
 
@@ -171,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
         _, relative, doc_path = split_spec(spec)
         scope = (
             init_scope(scope_name, cwd, invocation.options, what=command)
-            if command in ("init", "import")
+            if command in ("init", "import", "adopt")
             else resolve_scope(scope_name, invocation.options, cwd)
         )
         context = Context(scope=scope, selector=relative, doc_path=doc_path, options=invocation.options, cwd=cwd)

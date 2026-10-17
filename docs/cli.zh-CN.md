@@ -58,6 +58,11 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `check` | `lint` | 全量加载；报告加载错误、警告与悬空引用 |
 | `schema` | | 一个根元素的声明字段，或一张枚举表；只读（§4.13） |
 | `verify` | | 把每个选中的文档读回并报告哪些不能原样还原；只读（§4.11） |
+| `build` | `to=` | 一次跑完索引、检查、打包；哪一步失败就停在哪一步（§4.17） |
+| `audit` | | 逐份文档往返校验，再带两个门禁跑一次检查；只读（§4.17） |
+| `adopt` | `<目录或 zip>` `to=` | 由既有模组建成工程并建索引（§4.17） |
+| `unpack` | `to=` | 把工程写回原版 XML 与文本（§4.17） |
+| `run` | `<steps.toml>` | 按文件列出的顺序逐条运行（§4.17） |
 | `diff` | | 比较两个文档，或按实体路径对齐的两棵目录树；只读（§4.10） |
 | `roster` | | 读取工程设置声明的清单，或把清单条目与文档对账；`op=` 需要 `--write`（§4.14） |
 | `set` | | 修改一个字段，或增删数组项；需要 `--write`（§4.1） |
@@ -218,6 +223,7 @@ python -m core.cli Mod index [选择器] --write [--dry-run]
   （`origin` 为 `index` 或 `scan`），两张表只是某一次查询的缓存，不是第二个事实源。
 * 纯文本表格——工程在 `<equipment>`、`<surnames>` 下点名的名字，以及 `equipment_*`、`surnames_*` 命名约定——与没有根元素的 `.txt`、读不了的文件都计入跳过，不算错误。
 * 被声明的**单位清单**（`equipment_*` 列表）的条目是类别为 `roster` 的引用，因此这些表会把它们与 XML 文档里的引用并列存放，`deps <单位>` 也能从索引作答。姓氏清单不贡献任何引用：它点名的是人名而不是文件（docs/refs.md §1）。
+* Web 服务在启动时读这两张表，指纹不再吻合时在后台线程里重建；命令本身不变，重建失败时页面退回遍历文件（[web.zh-CN.md](web.zh-CN.md) §1）。
 
 ### 4.7 在原版 `mod.txt` 与 `ModSetting.toml` 之间转换
 
@@ -331,6 +337,9 @@ python -m core.cli Mod clone <文档> as=<名称> [into=<作用域或目录>] --
   `format`、`bytes_before`、`bytes_after`、`existed_before` 与 `recorded`。这次写入记为一条 `add`，因此一次
   `undo` 即可删除副本（§4.2）。
 
+工程文件用同样的方式复制，但不给 `as=`：来源写 `ModInformation.toml` 或
+`ModSetting.toml`，`into=` 指定接收它的工程。
+
 ### 4.13 读取根元素的声明
 
 ```
@@ -428,6 +437,41 @@ python -m core.cli Mod import <目录或 zip> to=<目录> --write [--dry-run] [-
   `ModSetting.toml` 与写出的 `ModInformation.toml` 与其他写入一样走 `core.edit` 并记账。
 * 载荷键：`source`、`root`（来源里装着模组的前缀）、`to`、`overwrite`、`dry_run`、`count`、
   `shown`（`path`、`bytes`）、`files`（来源提供的文件数）、`has_settings`、`skipped`、`errors`。
+
+### 4.17 `build`、`audit`、`adopt`、`unpack` 与 `run` — 一条命令跑完一串
+
+原本要几次调用的四个流程各有一条命令，第五条按文件跑任意步骤串：
+
+```
+ff Mod build to=<目录> --write [--dry-run]
+ff Mod audit [--json]
+ff Mod adopt <目录或 zip> to=<目录> --write [--dry-run] [overwrite=1]
+ff Mod unpack to=<目录> --write [--dry-run] [overwrite=1]
+ff Mod run <steps.toml> --write [--dry-run] [--json]
+```
+
+`build` 依次跑 `index`、`check`、`pack`。`audit` 先 `verify`，再带 `assets=1 rosters=1` 跑
+`check`。`adopt` 先 `import`，再给它刚写出的工程建索引。`unpack` 跑 `export`，工程带
+`mod.txt` 时先跑一次 `settings op=render --write`。
+
+每一步都是一次普通的命令调用，因此照常记账、照常受门禁约束、照常可撤销。某一步报失败就
+停在那一步并在摘要里点名；它之前的步骤已经发生，用 `undo` 可以退回去。`--dry-run` 把每一步
+换成它自己的 dry run，什么也不写。
+
+`run` 接受一个 TOML 文件：
+
+```toml
+[[step]]
+command = "set"
+selector = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+with = ["field=name", "value=P38 Carbine"]
+
+[[step]]
+command = "check"
+```
+
+`command` 必须是上面列出的命令之一；`selector` 是该步作用的文档或元素；`with` 是一串
+`key=value` 选项。规则相同：哪一步失败就停在哪一步。
 
 ## 5. 退出码
 

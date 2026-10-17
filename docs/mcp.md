@@ -66,6 +66,7 @@ the table below lists the names this server answers to.
 | `mcp_ff_schema` | `scope`, `element`, `enum`, `limit`, `root`, `workspace` | no | always |
 | `mcp_ff_diff` | `scope`, `left`, `right`, `limit`, `root`, `workspace` | no | always |
 | `mcp_ff_verify` | `scope`, `selector`, `limit`, `root`, `workspace` | no | always |
+| `mcp_ff_audit` | `scope`, `root`, `workspace` | no | always |
 | `mcp_ff_export` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_set` | `scope`, `selector`, `field`, `value`, `op`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
@@ -81,6 +82,10 @@ the table below lists the names this server answers to.
 | `mcp_ff_clone` | `scope`, `source`, `as`, `into`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_roster` | `scope`, `roster`, `op`, `section`, `value`, `line`, `as`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_import` | `scope`, `source`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_build` | `scope`, `to`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_adopt` | `scope`, `source`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_unpack` | `scope`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_run` | `scope`, `steps`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
 Every tool whose command writes files is registered only with `--write`, `mcp_ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server

@@ -21,7 +21,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from core import edit, journal, textio
+from core import edit, enums as enums_core, index as index_core, journal, schema as schema_core, textio
 from core.errors import FfError
 from core.journal import EDITOR_DIR
 from core.web import mcp_listener, tables
@@ -34,8 +34,10 @@ from core.cli.commands import (
     Context,
     command_names,
     declared_lists,
+    is_entity,
     is_list_file,
     run_command,
+    scope_items,
 )
 from core.cli import specs
 from core.cli.main import parse_argv
@@ -49,11 +51,24 @@ from urllib.parse import parse_qsl, urlencode
 
 
 STYLE = """
-:root { --tree: 290px; --props: 350px; --output: 180px; --line: #a8a8a8; --face: #e6e6e6;
+:root { --tree: 290px; --props: 350px; --output: 180px;
         --font: Tahoma, "Arial Narrow", "Microsoft YaHei UI", "Segoe UI", Arial, sans-serif;
-        --mono: Consolas, "Courier New", monospace; --size: 15px; }
+        --mono: Consolas, "Courier New", monospace; --size: 15px;
+        --bg: #efefef; --paper: #ffffff; --ink: #000000; --muted: #444444; --faint: #666666;
+        --face: #e6e6e6; --bar: #f4f4f4; --line: #a8a8a8; --edge: #c8c8c8; --grid: #999999;
+        --link: #0000cc; --link-visited: #660099; --input: #f7f7f7; --hover: #c0c0c0;
+        --gutter: #dcdcdc; --head: #dddddd; --dim: #8a8a8a; --mark: #a05a00;
+        --warn-bg: #fff8d0; --warn-edge: #c8b45a; --bad-bg: #ffd9d9; --bad-edge: #c86a6a;
+        --ok-bg: #dff5df; --ok-edge: #6ac86a; color-scheme: light; }
+:root[data-theme="dark"] { --bg: #202020; --paper: #2a2a2a; --ink: #e8e8e8; --muted: #c0c0c0;
+        --faint: #a8a8a8; --face: #333333; --bar: #2d2d2d; --line: #4a4a4a; --edge: #4a4a4a;
+        --grid: #555555; --link: #8ab4ff; --link-visited: #c9a0ff; --input: #303030;
+        --hover: #4a4a4a; --gutter: #3a3a3a; --head: #3d3d3d; --dim: #7a7a7a; --mark: #e0a050;
+        --warn-bg: #4a4426; --warn-edge: #8a7a3a; --bad-bg: #4a2a2a; --bad-edge: #a05a5a;
+        --ok-bg: #26442a; --ok-edge: #4a8a5a; color-scheme: dark; }
+body.mono-font { --font: var(--mono); --size: 14px; }
 * { box-sizing: border-box; }
-body { background: #efefef; color: #000; font-family: var(--font);
+body { background: var(--bg); color: var(--ink); font-family: var(--font);
        font-size: var(--size); margin: 0; height: 100vh; overflow: hidden; display: grid;
        grid-template-columns: var(--tree) 5px minmax(0, 1fr) 5px var(--props);
        grid-template-rows: auto auto minmax(0, 1fr) 5px var(--output) auto;
@@ -70,86 +85,91 @@ body.folded-tree .pane-tree, body.folded-tree [data-gutter="tree"],
 body.folded-props .pane-props, body.folded-props [data-gutter="props"],
 body.folded-output .pane-output, body.folded-output [data-gutter="output"] { display: none; }
 h1 { font-size: 18px; margin: 0 0 3px 0; }
-h2 { font-size: 16px; margin: 16px 0 7px 0; border-bottom: 1px solid #999; padding-bottom: 3px; }
+h2 { font-size: 16px; margin: 16px 0 7px 0; border-bottom: 1px solid var(--grid); padding-bottom: 3px; }
 h3 { font-size: 15px; margin: 14px 0 5px 0; }
-a { color: #0000cc; }
-a:visited { color: #660099; }
+a { color: var(--link); }
+a:visited { color: var(--link-visited); }
 .head { margin-bottom: 8px; }
-.sub { color: #444; }
+.sub { color: var(--muted); }
 .nav a { margin-right: 10px; }
-hr { border: 0; border-top: 1px solid #bbb; margin: 12px 0; }
-table { border-collapse: collapse; background: #fff; margin: 8px 0; }
-th, td { border: 1px solid #999; padding: 3px 8px; text-align: left; vertical-align: top; }
-th { background: #ddd; font-weight: bold; }
+hr { border: 0; border-top: 1px solid var(--edge); margin: 12px 0; }
+table { border-collapse: collapse; background: var(--paper); margin: 8px 0; }
+th, td { border: 1px solid var(--grid); padding: 3px 8px; text-align: left; vertical-align: top; }
+th { background: var(--head); font-weight: bold; }
 td.num, th.num { text-align: right; }
-pre { background: #fff; border: 1px solid #999; padding: 8px; margin: 8px 0;
+pre { background: var(--paper); border: 1px solid var(--grid); padding: 8px; margin: 8px 0;
       font-family: var(--mono); font-size: 13px;
       white-space: pre; overflow-x: auto; }
-code { font-family: var(--mono); font-size: 13px; background: #e6e6e6;
+code { font-family: var(--mono); font-size: 13px; background: var(--face);
        padding: 0 3px; }
-form { background: #f7f7f7; border: 1px solid #bbb; padding: 8px; margin: 8px 0; }
+form { background: var(--input); border: 1px solid var(--edge); padding: 8px; margin: 8px 0; }
 label { margin-right: 12px; }
-input[type=text] { border: 1px solid #888; font-family: inherit; font-size: var(--size);
-                   padding: 2px 5px; }
+input[type=text] { border: 1px solid var(--edge); font-family: inherit; font-size: var(--size);
+                   padding: 2px 5px; background: var(--paper); color: var(--ink); }
 input[type=submit] { font-family: inherit; font-size: var(--size); padding: 2px 10px; }
 select { font-family: inherit; font-size: var(--size); }
-.note { color: #444; }
-.warn { background: #fff8d0; border: 1px solid #c8b45a; padding: 8px; margin: 8px 0; }
-.bad { background: #ffd9d9; border: 1px solid #c86a6a; padding: 8px; margin: 8px 0; }
-.ok { background: #dff5df; border: 1px solid #6ac86a; padding: 8px; margin: 8px 0; }
-.empty { color: #666; }
-.foot { color: #666; font-size: 14px; }
-.crumbs { margin-bottom: 8px; color: #444; }
+.note { color: var(--muted); }
+.warn { background: var(--warn-bg); border: 1px solid var(--warn-edge); padding: 8px; margin: 8px 0; }
+.bad { background: var(--bad-bg); border: 1px solid var(--bad-edge); padding: 8px; margin: 8px 0; }
+.ok { background: var(--ok-bg); border: 1px solid var(--ok-edge); padding: 8px; margin: 8px 0; }
+.empty { color: var(--faint); }
+.foot { color: var(--faint); font-size: 14px; }
+.crumbs { margin-bottom: 8px; color: var(--muted); }
 /* workbench: menu bar, tool bar, three side panes, status bar */
-.menubar { grid-area: menu; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-           background: var(--face); border-bottom: 1px solid var(--line); padding: 4px 10px; }
-.menubar .brand { font-weight: bold; }
-.menubar .menu { display: flex; gap: 12px; flex-wrap: wrap; }
-.toolbar { grid-area: tool; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-           background: #f4f4f4; border-bottom: 1px solid #c8c8c8; padding: 4px 10px; }
-.tbtn { border: 1px solid #b0b0b0; background: #fbfbfb; padding: 2px 10px; text-decoration: none;
-        color: #000; font-family: inherit; font-size: 14px; }
-.tbtn[aria-pressed="true"] { background: #d6d6d6; border-color: #808080; }
-.pane { overflow: auto; background: #fff; min-height: 0; }
-.pane-h { position: sticky; top: 0; background: var(--face); border-bottom: 1px solid #c8c8c8;
-          padding: 3px 8px; font-weight: bold; }
+.menubar { grid-area: menu; display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
+           overflow: hidden; background: var(--face); border-bottom: 1px solid var(--line);
+           padding: 0 8px; height: 24px; min-height: 24px; font-size: 14px; }
+.menubar .brand { font-weight: bold; white-space: nowrap; }
+.toolbar { grid-area: tool; display: flex; align-items: center; gap: 4px; flex-wrap: nowrap;
+           overflow: hidden; background: var(--bar); border-bottom: 1px solid var(--edge);
+           padding: 0 8px; height: 26px; min-height: 26px; }
+.tbtn { border: 1px solid var(--line); background: var(--paper); padding: 1px 8px;
+        text-decoration: none; color: var(--ink); font-family: inherit; font-size: 13px;
+        line-height: 18px; }
+.tbtn[aria-pressed="true"] { background: var(--face); border-color: var(--grid); }
+.pane { overflow: auto; background: var(--paper); min-height: 0; }
+.pane-h { position: sticky; top: 0; background: var(--face); border-bottom: 1px solid var(--edge);
+          padding: 2px 8px; font-weight: bold; font-size: 14px; }
 .pane-b { padding: 5px 8px; }
-.pane-tree { grid-area: tree; border-right: 1px solid #c8c8c8; }
-.pane-props { grid-area: props; border-left: 1px solid #c8c8c8; }
-.pane-output { grid-area: out; border-top: 1px solid #c8c8c8;
-               font-family: var(--mono); font-size: 14px; }
-.pane-doc { grid-area: doc; display: flex; flex-direction: column; min-height: 0; background: #efefef; }
+.pane-tree { grid-area: tree; border-right: 1px solid var(--edge); }
+.pane-props { grid-area: props; border-left: 1px solid var(--edge); }
+.pane-output { grid-area: out; border-top: 1px solid var(--edge);
+               font-family: var(--mono); font-size: 13px; }
+.pane-doc { grid-area: doc; display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
 .tabs { display: flex; gap: 3px; padding: 4px 8px 0 8px; background: var(--face);
-        border-bottom: 1px solid #c8c8c8; overflow-x: auto; }
-.tabs a { border: 1px solid #b0b0b0; border-bottom: none; background: #f4f4f4; padding: 3px 12px;
-          text-decoration: none; color: #000; white-space: nowrap; }
-.tabs a[aria-current="true"] { background: #fff; font-weight: bold; }
-.doc-body { overflow: auto; padding: 10px 12px; background: #fff; flex: 1; min-height: 0; }
-.gutter { background: #dcdcdc; }
-.gutter:hover { background: #c0c0c0; }
+        border-bottom: 1px solid var(--edge); overflow-x: auto; }
+.tabs a { border: 1px solid var(--line); border-bottom: none; background: var(--bar);
+          padding: 3px 12px; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.tabs a[aria-current="true"] { background: var(--paper); font-weight: bold; }
+.doc-body { overflow: auto; padding: 10px 12px; background: var(--paper); flex: 1; min-height: 0; }
+.gutter { background: var(--gutter); }
+.gutter:hover { background: var(--hover); }
 [data-gutter="tree"] { grid-area: g1; cursor: col-resize; }
 [data-gutter="props"] { grid-area: g2; cursor: col-resize; }
 [data-gutter="output"] { grid-area: g3; cursor: row-resize; }
-.statusbar { grid-area: stat; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-             background: var(--face); border-top: 1px solid var(--line); padding: 3px 10px; }
+.statusbar { grid-area: stat; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+             background: var(--face); border-top: 1px solid var(--line); padding: 2px 8px;
+             font-size: 13px; }
 .tree-dir { margin-top: 5px; font-weight: bold; }
 .tree-file { margin-left: 14px; }
+.tree-file.dim, .tree-file.dim a { color: var(--dim); }
+.tree-file .mark { color: var(--mark); }
 details.tree-dir > summary { cursor: pointer; font-weight: bold; }
 details.tree-dir > details { margin-left: 14px; }
 .tree-search { display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
 .tree-search input[type=text] { flex: 1; min-width: 0; }
 .gallery { display: flex; flex-wrap: wrap; gap: 10px; }
-.tile { margin: 0; width: 160px; background: #fff; border: 1px solid var(--line); padding: 5px; }
+.tile { margin: 0; width: 160px; background: var(--paper); border: 1px solid var(--line); padding: 5px; }
 .tile figcaption { font-size: 13px; word-break: break-all; margin-top: 4px; }
 .thumb { display: block; width: 148px; height: 112px; object-fit: contain; background:
-         repeating-conic-gradient(#f4f4f4 0% 25%, #e6e6e6 0% 50%) 50% / 14px 14px; }
+         repeating-conic-gradient(var(--bar) 0% 25%, var(--face) 0% 50%) 50% / 14px 14px; }
 .tile audio { width: 148px; }
 .preview { margin: 8px 0; }
 .preview img { max-width: 100%; max-height: 260px; background:
-               repeating-conic-gradient(#f4f4f4 0% 25%, #e6e6e6 0% 50%) 50% / 14px 14px; }
+               repeating-conic-gradient(var(--bar) 0% 25%, var(--face) 0% 50%) 50% / 14px 14px; }
 label.wide { display: block; margin: 8px 0; }
 label.wide textarea { display: block; width: 100%; margin-top: 4px; font-family: var(--mono);
-                      font-size: 13px; white-space: pre; }
+                      font-size: 13px; white-space: pre; background: var(--paper); color: var(--ink); }
 """.strip()
 
 
@@ -159,12 +179,15 @@ SCRIPT = """
   var root = document.documentElement;
   var KEY = "ff.workbench";
   var WIDE = { tree: 290, props: 350, output: 180 };
-  var state = { tree: WIDE.tree, props: WIDE.props, output: WIDE.output };
+  var state = { tree: WIDE.tree, props: WIDE.props, output: WIDE.output,
+                theme: "light", font: "ui" };
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
     for (var key in state) {
       if (typeof saved[key] === "number" && saved[key] >= 0 && saved[key] < 900) state[key] = saved[key];
     }
+    if (saved.theme === "dark") state.theme = "dark";
+    if (saved.font === "mono") state.font = "mono";
   } catch (error) { /* a locked-down browser simply keeps the defaults */ }
 
   function apply() {
@@ -175,6 +198,13 @@ SCRIPT = """
     body.classList.toggle("folded-tree", state.tree < 8);
     body.classList.toggle("folded-props", state.props < 8);
     body.classList.toggle("folded-output", state.output < 8);
+    root.setAttribute("data-theme", state.theme);
+    body.classList.toggle("mono-font", state.font === "mono");
+    var toggles = document.querySelectorAll("[data-toggle]");
+    for (var t = 0; t < toggles.length; t++) {
+      var name = toggles[t].getAttribute("data-toggle");
+      toggles[t].setAttribute("aria-pressed", String(state[name] !== (name === "theme" ? "light" : "ui")));
+    }
     var buttons = document.querySelectorAll("[data-fold]");
     for (var i = 0; i < buttons.length; i++) {
       var name = buttons[i].getAttribute("data-fold");
@@ -242,6 +272,16 @@ SCRIPT = """
       event.preventDefault();
       return;
     }
+    var toggle = event.target.closest ? event.target.closest("[data-toggle]") : null;
+    if (toggle) {
+      var which = toggle.getAttribute("data-toggle");
+      if (which === "theme") state.theme = state.theme === "dark" ? "light" : "dark";
+      if (which === "font") state.font = state.font === "mono" ? "ui" : "mono";
+      apply();
+      remember();
+      event.preventDefault();
+      return;
+    }
     var tab = event.target.closest ? event.target.closest(".tabs a") : null;
     if (!tab || !window.fetch) return;
     var href = tab.getAttribute("href");
@@ -304,6 +344,40 @@ class Url:
         return f"/{path}" + (f"?{encoded}" if encoded else "")
 
 
+def shell_bytes(route: str) -> tuple[bytes, str]:
+    """The one stylesheet or script the shell asks for, with its content type.
+
+    Both are the same for every page and carry no project data, so the URL
+    needs no token and the browser keeps one copy across the session.
+    """
+    if route == "shell.css":
+        return STYLE.encode("utf-8"), "text/css; charset=utf-8"
+    return SCRIPT.encode("utf-8"), "text/javascript; charset=utf-8"
+
+
+def origin_label(origin: str) -> str:
+    """The scope's origin as a reader-facing line, in the language of the page.
+
+    ``Scope.origin`` is written for a log line (``option root=``, ``config <path>``),
+    so the panes translate its head word and keep the path it carries.
+    """
+    head, _space, tail = origin.partition(" ")
+    labels = {
+        "option": tr("命令行 {}"),
+        "environment": tr("环境变量 {}"),
+        "config": tr("设置 {}"),
+        "editor": tr("编辑器自带副本 {}"),
+        "project": tr("工程目录 {}"),
+        "directory": tr("当前目录 {}"),
+        "workspace": tr("工作区 {}"),
+        "init": tr("新建目标 {}"),
+    }
+    if origin == "directory":
+        return tr("当前目录")
+    template = labels.get(head)
+    return template.format(tail) if template else origin
+
+
 def page_head(title: str, subtitle: str = "") -> str:
     """The heading block at the top of the centre pane."""
     html = f'<div class="head"><h1>{esc(title)}</h1>'
@@ -344,6 +418,8 @@ def layout(
     panes: dict[str, str] | None = None,
     status: str = "",
     script: bool = True,
+    css_url: str = "",
+    js_url: str = "",
 ) -> str:
     """One complete page: menu bar, tool bar, panes, centre document, status bar.
 
@@ -367,13 +443,17 @@ def layout(
     return (
         f'<!DOCTYPE html>\n<html lang="{html_lang()}">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        f"<title>{esc(title)}</title>\n<style>\n{STYLE}\n</style>\n</head>\n<body>\n"
+        f"<title>{esc(title)}</title>\n"
+        + (f'<link rel="stylesheet" href="{att(css_url)}">\n' if css_url
+           else f"<style>\n{STYLE}\n</style>\n")
+        + "</head>\n<body>\n"
         + (f'<div class="menubar">{nav}</div>\n' if nav else "")
         + (f'<div class="toolbar">{toolbar}</div>\n' if toolbar else "")
         + middle
         + "\n"
         + (f'<div class="statusbar">{status}</div>\n' if status else "")
-        + (f"<script>\n{SCRIPT}\n</script>\n" if script else "")
+        + (f'<script src="{att(js_url)}"></script>\n' if script and js_url
+           else (f"<script>\n{SCRIPT}\n</script>\n" if script else ""))
         + "</body>\n</html>\n"
     )
 
@@ -385,7 +465,7 @@ def section_links() -> dict[str, str]:
         "list": tr("实体列表"),
         "edit": tr("编辑"),
         "source": tr("源码"),
-        "tables": tr("表格"),
+        "equipment": tr("装备表"),
         "find": tr("查找"),
         "deps": tr("引用查询"),
         "assets": tr("资源"),
@@ -399,11 +479,12 @@ def section_links() -> dict[str, str]:
     }
 
 
-def nav_bar(url: Url, links: dict[str, str] | None = None) -> str:
-    """The menu bar: section links, the current scope, the language and the exit."""
-    links = links or section_links()
-    parts = [f'<a href="{att(url(route))}">{esc(label)}</a>' for route, label in links.items()]
-    menu = " ".join(parts)
+def nav_bar(url: Url) -> str:
+    """The menu bar: brand, the current scope, the language and the exit.
+
+    The sections live on the tab strip alone; repeating them here would put the
+    same list on screen twice.
+    """
     tail = [tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-"))]
     other = "zh" if current() == "en" else "en"
     name = "中文" if other == LANGUAGE_DEFAULT else "English"
@@ -411,7 +492,6 @@ def nav_bar(url: Url, links: dict[str, str] | None = None) -> str:
     tail.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
     return (
         f'<span class="brand">{esc(tr("Firefight 模组编辑器"))}</span>'
-        f'<span class="menu">{" ".join(parts)}</span>'
         f'<span class="sub">{" ".join(tail)}</span>'
     )
 
@@ -470,10 +550,22 @@ def mono(text: str) -> str:
 ROW_CHARS = 120
 
 
+def is_surnames(relative: str) -> bool:
+    """Whether a list file holds surnames, which are original-game data the mod does not edit."""
+    return relative.rsplit("/", 1)[-1].startswith("surnames")
+
+
 def one_line(text: str, limit: int = ROW_CHARS) -> str:
     """One table row's text, tabs widened and the tail cut off past ``limit`` characters."""
     text = text.replace("\t", "    ")
     return text if len(text) <= limit else text[:limit] + "…"
+
+
+def twin_of(relative: str) -> str | None:
+    """The ``.toml`` that renders a ``.txt`` twin, when the name says it is one."""
+    if not relative.lower().endswith(".txt"):
+        return None
+    return relative[:-4] + ".toml"
 
 
 def folder_tree(paths: list[str]) -> dict:
@@ -496,11 +588,11 @@ def count_files(node: dict) -> int:
     return len(node["files"]) + sum(count_files(child) for child in node["folders"].values())
 
 
-def render_tree(node: dict, render_file, *, depth: int = 0, open_depth: int = 2) -> str:
+def render_tree(node: dict, render_file, *, depth: int = 0, open_depth: int = 2, file_class=None) -> str:
     """Folders as ``<details>`` and files as links; opening one needs no script.
 
-    A folder summarises itself and links to its slice of the list page; only the
-    first ``TREE_ROWS`` files of a folder are drawn, so a big project stays cheap.
+    Every file of the folder is drawn, so the tree is the project's whole file
+    list; only the first ``open_depth`` levels start expanded.
     """
     parts = []
     for name in sorted(node["folders"]):
@@ -509,13 +601,13 @@ def render_tree(node: dict, render_file, *, depth: int = 0, open_depth: int = 2)
         parts.append(
             f'<details class="tree-dir"{opened}><summary>{esc(name)} '
             f'<span class="sub">{esc(tr("{} 项", count_files(child)))}</span></summary>'
-            + render_tree(child, render_file, depth=depth + 1, open_depth=open_depth)
+            + render_tree(child, render_file, depth=depth + 1, open_depth=open_depth, file_class=file_class)
             + "</details>"
         )
-    for path in node["files"][:TREE_ROWS]:
-        parts.append(f'<div class="tree-file" data-path="{att(path)}">{render_file(path)}</div>')
-    if len(node["files"]) > TREE_ROWS:
-        parts.append(note(tr("只显示前 {} 项", TREE_ROWS)))
+    for path in node["files"]:
+        extra = file_class(path) if file_class else ""
+        css = f"tree-file {extra}".strip()
+        parts.append(f'<div class="{css}" data-path="{att(path)}">{render_file(path)}</div>')
     return "".join(parts)
 
 
@@ -772,6 +864,34 @@ def operations() -> tuple:
         ),
         Operation("init", tr("新建工程"), "", tr("把当前目录建成一个模组工程。"), (("name", tr("工程名"), "text", ""),)),
         Operation(
+            "build",
+            tr("构建"),
+            "",
+            tr("依次索引、检查、打包，任一步失败即停。"),
+            (("to", tr("打包到目录"), "text", ""),),
+        ),
+        Operation(
+            "adopt",
+            tr("收编"),
+            tr("来源目录或 zip"),
+            tr("由既有模组建成工程并建索引，源目录不改。"),
+            (("to", tr("目标目录"), "text", ""), ("overwrite", tr("覆盖已有工程"), "check", "")),
+        ),
+        Operation(
+            "unpack",
+            tr("还原原版"),
+            "",
+            tr("把工程写回原版 XML 与文本，工程带 mod.txt 时先刷新它。"),
+            (("to", tr("导出到目录"), "text", ""), ("overwrite", tr("覆盖已有文件"), "check", "")),
+        ),
+        Operation(
+            "run",
+            tr("按步运行"),
+            tr("步骤文件"),
+            tr("按文件列出的顺序逐条运行，任一步失败即停。"),
+            (),
+        ),
+        Operation(
             "import",
             tr("导入工程"),
             tr("来源目录或 zip"),
@@ -949,11 +1069,12 @@ _SELECTION = contextvars.ContextVar("web_selection", default="")
 _SEARCH = contextvars.ContextVar("web_search", default="")
 
 # The sections the tab strip offers; every route still works as a plain page load.
-TABS = ("index", "list", "edit", "source", "tables", "assets", "log", "ops", "mcp", "cmd", "help")
+TABS = ("index", "list", "edit", "source", "equipment", "assets", "log", "ops", "mcp", "cmd", "help")
 
 # How much of the project and of the log the side panes show on one page.
-TREE_ROWS = 40
 OUTPUT_ROWS = 12
+# Folders the tree leaves out: the editor's own state, not the project's files.
+TREE_HIDDEN = ("EditorCache", "__pycache__", ".git")
 # How many fields the property pane lists for the selected document.
 PROP_ROWS = 40
 # How many pictures or sounds the asset page draws at once.
@@ -1044,6 +1165,144 @@ def safe_selector(selector: str) -> str:
     return selector
 
 
+def edit_current(raw: str) -> str:
+    """The bare value of a field: a TOML string keeps its quotes in the payload, not in a control."""
+    text = str(raw).strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
+        return text[1:-1]
+    return text
+
+
+def edit_truthy(raw: str) -> bool:
+    """Whether a document value reads as a checked box."""
+    return edit_current(raw).lower() in ("true", "yes", "1", "on")
+
+
+def edit_node(schema, root_tag: str, segments: tuple[str, ...]):
+    """The schema node a field path names, or None when the schema does not know it."""
+    if schema is None or not root_tag:
+        return None
+    return schema.lookup((root_tag, *(part for part in segments if not part.isdigit())))
+
+
+def edit_choice(root_tag: str, item: dict, enums) -> list[str]:
+    """The enum values a field's categories allow, in a stable order."""
+    if enums is None or not root_tag:
+        return []
+    categories = enums_core.categories_of(root_tag, item["segments"])
+    if not categories:
+        return []
+    return sorted(set().union(*(enums.values.get(category, frozenset()) for category in categories)))
+
+
+def edit_input(name: str, label: str, item: dict, node, root_tag: str, enums, size: int = 30) -> str:
+    """The input a field gets: a checkbox for a boolean, a select for an enum, text otherwise.
+
+    The schema decides the shape and the document decides the current value; a field the
+    schema does not know keeps the plain text box (docs/web.md section 2.1).
+    """
+    if node is not None and node.shape == schema_core.LEAF:
+        if node.type == "bool":
+            # A checked box sends value=yes; the hidden field after it sends no when unchecked,
+            # and the server takes the first value it reads.
+            return checkbox(name, tr("是"), edit_truthy(item["value"]), "yes") + hidden(name, "no")
+        choices = edit_choice(root_tag, item, enums)
+        if choices:
+            current = edit_current(item["value"])
+            if current not in choices:
+                choices.insert(0, current)
+            return select_field(name, label, [(choice, choice) for choice in choices], current)
+    return text_field(name, label, "", size)
+
+
+def edit_save(url: "Url", document: str, item: dict, node, root_tag: str, enums) -> str:
+    """The save form of one field: it posts to the existing set operation, never writes itself."""
+    return form(
+        url("ops", command="set"),
+        [hidden("selector", document), hidden("field", item["path"]), edit_input("value", tr("新值"), item, node, root_tag, enums)],
+        tr("保存"),
+    )
+
+
+def edit_rows(values: list[dict]) -> tuple[list[dict], list[tuple[tuple[str, ...], list[dict]]]]:
+    """Split value rows into plain fields and array sections, document order kept.
+
+    Each section pairs an array's path segments with the rows that belong to it; a section
+    starts at every index segment whose predecessor is a name, so a nested array becomes its
+    own section instead of a column of dotted names.
+    """
+    plain: list[dict] = []
+    sections: dict[tuple[str, ...], list[dict]] = {}
+    for item in values:
+        item = dict(item, segments=tuple(item["path"].split(".")))
+        segments = item["segments"]
+        starts = [
+            position
+            for position, part in enumerate(segments)
+            if part.isdigit() and (position == 0 or not segments[position - 1].isdigit())
+        ]
+        if not starts:
+            plain.append(item)
+            continue
+        for position in starts:
+            sections.setdefault(segments[:position], []).append(item)
+    return plain, list(sections.items())
+
+
+def edit_entries(prefix: tuple[str, ...], items: list[dict]) -> dict[str, dict[str, dict]]:
+    """The entries of one array, each as the leaf fields it holds directly.
+
+    A field under a nested array is left to that array's own section, so one value never
+    draws two input boxes.
+    """
+    entries: dict[str, dict[str, dict]] = {}
+    for item in items:
+        segments = item["segments"]
+        if len(segments) <= len(prefix) or not segments[len(prefix)].isdigit():
+            continue
+        cells = entries.setdefault(segments[len(prefix)], {})
+        rest = segments[len(prefix) + 1 :]
+        if rest and not any(part.isdigit() for part in rest):
+            cells[".".join(rest)] = item
+    return entries
+
+
+def index_ready(app: "App", scope_name: str) -> bool:
+    """Whether the stored reference tables still match the files they describe."""
+    scope = app.scope(scope_name)
+    loaded = index_core.load(edit.project_root_of(scope.root))
+    if loaded is None:
+        return False
+    index_tables, _refs = loaded
+    built = index_tables.get("built")
+    return isinstance(built, dict) and built.get("fingerprint") == index_core.fingerprint(scope_items(scope))
+
+
+def rebuild_index(app: "App", scope_name: str) -> bool:
+    """Rebuild the reference cache only when its signature is stale.
+
+    Returns True when the command was run.  A failure is printed and swallowed: the page
+    layer falls back to walking the files, and a cache problem never stops the server
+    (docs/cli.md section 4.6).
+    """
+    try:
+        scope = app.scope(scope_name)
+        if scope.name == "Firefight" or index_ready(app, scope_name):
+            return False
+        app.call("index", scope, write="1")
+        return True
+    except Exception as error:
+        print(f"web: index rebuild skipped: {error}", flush=True)
+        return False
+
+
+def warm_index(app: "App", scope_name: str) -> threading.Thread:
+    """Start the background rebuild that keeps the reference cache current."""
+    thread = threading.Thread(target=rebuild_index, args=(app, scope_name), name="ff-index", daemon=True)
+    thread.start()
+    return thread
+
+
 class App:
     """One web session: the resolved options, the scope and the CLI bridge."""
 
@@ -1107,7 +1366,7 @@ class Handler(BaseHTTPRequestHandler):
     """GET router; every route returns HTML, /json returns the raw payload."""
 
     server_version = f"ff-web/{VERSION}"
-    routes = ("index", "list", "show", "get", "edit", "source", "tables", "find", "refs", "deps", "check", "stats", "log", "ops", "mcp", "mcpstart", "mcpstop", "assets", "asset", "cmd", "json", "help", "quit")
+    routes = ("index", "list", "show", "get", "edit", "source", "equipment", "tables", "twin", "find", "refs", "deps", "check", "stats", "log", "ops", "mcp", "mcpstart", "mcpstop", "assets", "asset", "cmd", "json", "help", "quit")
 
     # --- plumbing -----------------------------------------------------------
 
@@ -1130,6 +1389,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route == "favicon.ico":
             self.respond(204, "", "text/plain; charset=utf-8")
+            return
+        if route in ("shell.css", "shell.js"):
+            self.serve_shell(route, started)
             return
         if route not in self.routes:
             self.respond(404, self._error_page(tr("没有这个页面"), f"/{route}", tr("从上面的导航栏回到首页。")))
@@ -1162,6 +1424,26 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.respond(status, body)
         self.note_request(status, started)
+
+    def serve_shell(self, route: str, started: float) -> None:
+        """Send the shell's stylesheet or script, or a 304 when it is unchanged."""
+        body, content_type = shell_bytes(route)
+        etag = '"' + hashlib.sha256(body).hexdigest()[:16] + '"'
+        if self.headers.get("If-None-Match") == etag:
+            self.send_response(304)
+            self.send_header("ETag", etag)
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers()
+            self.note_request(304, started)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("ETag", etag)
+        self.end_headers()
+        self.wfile.write(body)
+        self.note_request(200, started)
 
     def serve_asset(self, query: dict[str, str], started: float) -> None:
         """Send one project file as its own bytes, or an error page.
@@ -1296,6 +1578,8 @@ class Handler(BaseHTTPRequestHandler):
             bad(detail) + note(hint) + note_html(link(url("index"), tr("回到首页"))),
             nav_bar(url),
             tr("作用域 {}", self.app.default_scope),
+            css_url="/shell.css",
+            js_url="/shell.js",
         )
 
     # --- shared builders ----------------------------------------------------
@@ -1319,6 +1603,8 @@ class Handler(BaseHTTPRequestHandler):
                 "output": panel(tr("输出"), self.pane_output(scope_name), "output"),
             },
             status=self.status_bar(scope_name),
+            css_url="/shell.css",
+            js_url="/shell.js",
         )
 
     def section_tabs(self, url: Url) -> str:
@@ -1341,10 +1627,16 @@ class Handler(BaseHTTPRequestHandler):
             link(url(route), label)
             for route, label in (("find", tr("查找")), ("deps", tr("引用查询")), ("check", tr("体检")), ("stats", tr("统计")))
         )
-        return folds + f'<span class="sub">{links}</span>'
+        toggles = (
+            f'<button class="tbtn" type="button" data-toggle="theme" aria-pressed="false">'
+            f'{esc(tr("主题"))}</button>'
+            f'<button class="tbtn" type="button" data-toggle="font" aria-pressed="false">'
+            f'{esc(tr("字体"))}</button>'
+        )
+        return folds + toggles + f'<span class="sub">{links}</span>'
 
     def pane_tree(self, scope_name: str) -> str:
-        """The project's documents as folders, from the same table the list page shows."""
+        """Every file of the project as folders, with the txt twins marked."""
         try:
             scope = self.app.scope(scope_name)
         except (UsageError, FfError) as error:
@@ -1360,31 +1652,108 @@ class Handler(BaseHTTPRequestHandler):
             + f'<div class="tree-dir">{link(url("index"), esc(scope.project.name))}</div>'
         )
         try:
-            payload = self.app.call("list", scope, "all", limit="0").payload
-        except (UsageError, FfError) as error:
+            paths = self.project_files(scope)
+        except (UsageError, FfError, OSError) as error:
             return bad(esc(str(error)))
-        entities = payload.get("entities", [])
+        total = len(paths)
         if search:
             wanted = search.lower()
-            entities = [item for item in entities if wanted in item["path"].lower()]
+            paths = [item for item in paths if wanted in item.lower()]
         assets = "".join(
             f'<div class="tree-file" data-path="{att(folder)}">'
             f'{link(url("assets", folder=folder), esc(tr("{} 目录", folder)))}</div>'
             for folder in ASSET_FOLDERS
             if (scope.project / folder).is_dir()
         )
-        if not entities:
+        if not paths:
             if search:
                 return head + assets + note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
-            return head + assets + note(tr("这个工程还没有实体文件。"))
+            return head + assets + note(tr("这个工程还没有文件。"))
         body = render_tree(
-            folder_tree([item["path"] for item in entities]),
-            lambda path: link(url("show", path=path), esc(path.rsplit("/", 1)[-1])),
+            folder_tree(paths),
+            lambda path: self.tree_link(url, scope, path),
+            file_class=lambda path: self.tree_class(scope, path),
+            open_depth=1,
         )
         if search:
-            counted = note(tr("{} 个文件里有 {} 个匹配 {}。", payload.get("count", 0), len(entities), search))
+            counted = note(tr("{} 个文件里有 {} 个匹配 {}。", total, len(paths), search))
             return head + body + counted + self.tree_search_link(url, search) + assets
-        return head + body + note(tr("{} 个文件", payload.get("count", len(entities)))) + assets
+        return head + body + note(tr("{} 个文件", total)) + assets
+
+    def project_files(self, scope) -> list[str]:
+        """Every file under the project root, minus the editor's own state."""
+        root = scope.project
+        found = []
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(root).as_posix()
+            if relative.split("/", 1)[0] in TREE_HIDDEN:
+                continue
+            found.append(relative)
+        return sorted(found)
+
+    def twin_pair(self, scope, relative: str) -> str | None:
+        """The .toml twin, when this is a twin inside a project rather than in the original."""
+        twin = twin_of(relative)
+        if twin is None:
+            return None
+        root = self.stock_root()
+        if root is not None and root.resolve() == scope.project.resolve():
+            return None
+        return twin if (scope.project / twin).is_file() else None
+
+    def tree_link(self, url: Url, scope, relative: str) -> str:
+        """The page that opens one file, plus the mark a txt twin carries."""
+        name = esc(relative.rsplit("/", 1)[-1])
+        if is_previewable(relative):
+            anchor = link(url("asset", path=relative), name)
+        else:
+            try:
+                declared = declared_lists(scope)
+            except (UsageError, FfError):
+                declared = set()
+            if is_list_file(relative, declared, scope.project / relative):
+                anchor = link(url("equipment", path=relative), name)
+            elif is_entity(relative):
+                anchor = link(url("show", path=relative), name)
+            elif Path(relative).suffix.lower() in SOURCE_SUFFIXES:
+                anchor = link(url("source", path=relative), name)
+            else:
+                anchor = link(url("asset", path=relative), name)
+        twin = self.twin_pair(scope, relative)
+        if twin is None:
+            return anchor
+        if self.twin_is_equivalent(scope, relative):
+            return anchor + " " + link(url("twin", path=relative), tr("删除"))
+        return anchor + ' <span class="mark">≠</span> ' + link(
+            url("cmd", line=f"diff left=Firefight:{relative} right={relative}"), tr("差异")
+        )
+
+    def tree_class(self, scope, relative: str) -> str:
+        """``dim`` for a txt twin, so the rendered copy reads as the secondary one."""
+        return "dim" if self.twin_pair(scope, relative) else ""
+
+    def stock_root(self):
+        """The original data root, when the editor setting names one that exists."""
+        try:
+            return resolve_scope("Firefight", self.app.options, self.app.cwd).root
+        except (UsageError, FfError):
+            return None
+
+    def twin_is_equivalent(self, scope, relative: str) -> bool:
+        """True when the txt twin is byte for byte the file the original ships."""
+        if self.twin_pair(scope, relative) is None:
+            return False
+        root = self.stock_root()
+        if root is None:
+            return False
+        source = root / relative
+        here = scope.project / relative
+        try:
+            return source.is_file() and here.is_file() and source.read_bytes() == here.read_bytes()
+        except OSError:
+            return False
 
     def tree_search_link(self, url: Url, search: str) -> str:
         """The same search on the list page, where the selector filter is the command's own."""
@@ -1401,7 +1770,7 @@ class Handler(BaseHTTPRequestHandler):
             [
                 (tr("名字"), esc(scope.name)),
                 (tr("根目录"), esc(str(scope.root))),
-                (tr("来源"), esc(scope.origin)),
+                (tr("来源"), esc(origin_label(scope.origin))),
             ]
         )
         path = _SELECTION.get()
@@ -1576,7 +1945,7 @@ class Handler(BaseHTTPRequestHandler):
                     link(here("check"), tr("体检")),
                 ]
             )
-            rows.append([link(here("index"), name), esc(str(found.root)), esc(found.origin), links])
+            rows.append([link(here("index"), name), esc(str(found.root)), esc(origin_label(found.origin)), links])
         body = h2(tr("可用的作用域"))
         body += table([tr("作用域"), tr("根目录"), tr("来源"), tr("操作")], rows)
         if not rows:
@@ -1592,7 +1961,7 @@ class Handler(BaseHTTPRequestHandler):
             [
                 (tr("根目录"), esc(payload["root"])),
                 (tr("实体文件"), esc(payload["count"])),
-                (tr("来源"), esc(scope.origin)),
+                (tr("来源"), esc(origin_label(scope.origin))),
             ]
         )
         category_rows = [
@@ -1710,7 +2079,7 @@ class Handler(BaseHTTPRequestHandler):
             links.append(link(url("show", path=payload["path"], **{"as": name}), f"[{label}]" if name != view else f"[{label} ←]"))
         links.append(link(url("refs", path=payload["path"]), tr("[本文件指向谁]")))
         if payload.get("format") == "list":
-            links.append(link(url("tables", path=payload["path"]), tr("[行编辑]")))
+            links.append(link(url("equipment", path=payload["path"]), tr("[行编辑]")))
         if Path(payload["path"]).suffix.lower() in SOURCE_SUFFIXES:
             links.append(link(url("source", path=payload["path"]), tr("[源码]")))
         links.append(self.json_link(scope.name, "show", selector=payload["path"], **{"as": view}))
@@ -1986,7 +2355,7 @@ class Handler(BaseHTTPRequestHandler):
         return json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
     def page_edit(self, query: dict[str, str]) -> str:
-        """Every field of one document with its own input box."""
+        """Every field of one document with the input its schema and enum table call for."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         selector = query.get("path", "").strip()
@@ -2001,18 +2370,71 @@ class Handler(BaseHTTPRequestHandler):
             body += note(tr("这个文档没有可列出的字段。"))
             return self.shell(tr("编辑文档"), body, scope.name)
         document = payload["path"]
+        root_tag = str(payload.get("root") or "")
+        is_toml = payload.get("format") == "toml"
+        schema = schema_core.schema_for(root_tag) if root_tag else None
+        enums = enums_core.load_enums(edit.project_root_of(scope.root))
+        plain, sections = edit_rows(values)
         body += crumbs([(url("index"), tr("首页")), (url("show", path=document), document), ("", tr("编辑"))])
-        rows = []
-        for item in values:
-            actions = form(
-                url("ops", command="set"),
-                [hidden("selector", document), hidden("field", item["path"]), text_field("value", tr("新值"), "", 30)],
-                tr("保存"),
-            )
-            rows.append([esc(item["path"]), pre(item["value"]), actions])
-        body += table([tr("字段"), tr("当前值"), tr("改为")], rows)
+        if plain:
+            rows = [
+                [
+                    esc(item["path"]),
+                    pre(item["value"]),
+                    edit_save(url, document, item, edit_node(schema, root_tag, item["segments"]), root_tag, enums),
+                ]
+                for item in plain
+            ]
+            body += table([tr("字段"), tr("当前值"), tr("改为")], rows)
+        for prefix, items in sections:
+            body += self.edit_section(url, document, prefix, items, root_tag, schema, enums, is_toml)
         body += note_html(tr("也可以用{}一次给多个参数，或到{}看事件日志。", link(url("ops", command="set"), tr("操作页")), link(url("log"), tr("事件日志"))))
         return self.shell(tr("编辑文档"), body, scope.name)
+
+    def edit_section(self, url: Url, document: str, prefix: tuple[str, ...], items: list[dict], root_tag: str, schema, enums, is_toml: bool) -> str:
+        """One array as a table of entries; add and delete only where the format supports them."""
+        path = ".".join(prefix)
+        body = h3(tr("数组") + " " + path)
+        entries = edit_entries(prefix, items)
+        columns = sorted({name for cells in entries.values() for name in cells})
+        headers = [tr("条目")] + [esc(name) for name in columns] + ([tr("操作")] if is_toml else [])
+        rows = []
+        for index in sorted(entries, key=int):
+            cells = entries[index]
+            row = [esc(index)]
+            for name in columns:
+                item = cells.get(name)
+                row.append(
+                    ""
+                    if item is None
+                    else edit_save(url, document, item, edit_node(schema, root_tag, item["segments"]), root_tag, enums)
+                )
+            if is_toml:
+                row.append(
+                    form(
+                        url("ops", command="set", op="delete"),
+                        [hidden("selector", document), hidden("field", f"{path}.{index}")],
+                        tr("删除"),
+                    )
+                )
+            rows.append(row)
+        body += table(headers, rows)
+        if is_toml:
+            fields = [hidden("selector", document), hidden("field", path)]
+            if entries:
+                fields.append(
+                    select_field(
+                        "from",
+                        tr("复制自"),
+                        [(index, tr("条目") + " " + index) for index in sorted(entries, key=int)],
+                        "",
+                    )
+                )
+            fields.append(hidden("op", "append"))
+            body += form(url("ops", command="set"), fields, tr("添加"))
+        else:
+            body += note(tr("条目只能在工程文档里增删；零售文档只能改已有条目的字段。"))
+        return body
 
     def source_path(self, scope, relative: str) -> Path:
         """The file behind a source path, or a UsageError naming the problem.
@@ -2216,60 +2638,78 @@ class Handler(BaseHTTPRequestHandler):
         )
         return edit.apply_document(plan, project, dry_run=dry_run, actor="web")
 
-    def page_tables(self, query: dict[str, str]) -> str:
-        """The plain-text tables of the project, one row per line.
+    def page_equipment(self, query: dict[str, str]) -> str:
+        """The equipment tables of the project, one row per line.
 
         A list file is one entry per line, so the page is a row list: every row has its own
         input box and its own delete link, and the bottom of the page appends a row.  The
         write follows the same two steps as the operations page -- a check that touches
         nothing, then the write (docs/web.md section 2.2).
+
+        A surnames file is an original-game table: the mod does not edit it, so it is listed
+        and shown read-only while still being indexed for ``mod.txt`` (docs/refs.md).
         """
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         wanted = query.get("path", "").strip()
-        body = h2(tr("表格"))
+        body = h2(tr("装备表"))
         body += note(tr("工程设置的清单文件是一行一条。改哪一行就改哪一行的输入框，按该行的「保存」；写入与命令行一样先记账，可用日志页撤销。"))
         found = self.list_files(scope)
-        body += form(url("tables"), [text_field("path", tr("清单文件"), wanted, 60)], tr("读取"))
+        body += form(url("equipment"), [text_field("path", tr("清单文件"), wanted, 60)], tr("读取"))
         if found:
-            body += note_html(
-                tr("本工程声明的表格：")
-                + " ".join(link(url("tables", path=item), item.rsplit("/", 1)[-1]) for item in found)
-            )
+            links = []
+            for item in found:
+                name = item.rsplit("/", 1)[-1]
+                if is_surnames(item):
+                    links.append(esc(name) + " " + esc(tr("（只读）")))
+                else:
+                    links.append(link(url("equipment", path=item), name))
+            body += note_html(tr("本工程声明的表格：") + " ".join(links))
         if not wanted:
             if not found:
                 body += note(tr("这个工程没有声明任何清单文件。"))
-            return self.shell(tr("表格"), body, scope.name)
+            return self.shell(tr("装备表"), body, scope.name)
         path = self.list_path(scope, wanted)
         relative = journal.confine(path, scope.project)
         content = path.read_bytes()
         lines, encoding, newline = tables.read_rows(path)
         bom = content.startswith(textio.BOM)
-        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("表格"))])
+        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("装备表"))])
         body += note(tr("{} 行，{} 编码，{} 换行。", len(lines), encoding, "CRLF" if newline == "\r\n" else "LF"))
+        read_only = is_surnames(relative)
         op = query.get("op", "")
         line = query.get("line", "")
-        if op:
+        if read_only:
+            body += note(tr("姓氏清单是原版内容，模组不支持修改；它仍然进引用图，供 mod.txt 的 surnames 解析。"))
+        if op and not read_only:
             body += self.table_change(scope, path, relative, lines, encoding, bom, op, line, query)
-            return self.shell(tr("表格"), body, scope.name)
+            return self.shell(tr("装备表"), body, scope.name)
         rows = []
         for row in tables.rows(lines, TABLE_ROWS):
             mark = tr("注释") if row["comment"] else (tr("空行") if row["blank"] else "")
-            actions = form(
-                url("tables", path=relative, op="set", line=str(row["line"]), confirm="1"),
-                [text_field("value", tr("改为"), row["text"], 30)],
-                tr("保存"),
-            )
-            actions += " " + link(
-                url("tables", path=relative, op="delete", line=str(row["line"]), confirm="1"), tr("删除")
-            )
+            if read_only:
+                actions = ""
+            else:
+                actions = form(
+                    url("equipment", path=relative, op="set", line=str(row["line"]), confirm="1"),
+                    [text_field("value", tr("改为"), row["text"], 30)],
+                    tr("保存"),
+                )
+                actions += " " + link(
+                    url("equipment", path=relative, op="delete", line=str(row["line"]), confirm="1"), tr("删除")
+                )
             rows.append([esc(str(row["line"])), pre(one_line(row["text"])), esc(mark), actions])
         body += table([tr("行"), tr("内容"), tr("标记"), tr("改为")], rows)
         if len(lines) > TABLE_ROWS:
             body += note(tr("只显示前 {} 行，共 {} 行。", TABLE_ROWS, len(lines)))
-        body += h3(tr("追加一行"))
-        body += form(url("tables", path=relative, op="add", confirm="1"), [text_field("value", tr("内容"), "", 40)], tr("追加"))
-        return self.shell(tr("表格"), body, scope.name)
+        if not read_only:
+            body += h3(tr("追加一行"))
+            body += form(url("equipment", path=relative, op="add", confirm="1"), [text_field("value", tr("内容"), "", 40)], tr("追加"))
+        return self.shell(tr("装备表"), body, scope.name)
+
+    def page_tables(self, query: dict[str, str]) -> str:
+        """The old name of the equipment page, so links written before the rename still open."""
+        return self.page_equipment(query)
 
     def table_change(
         self,
@@ -2308,7 +2748,7 @@ class Handler(BaseHTTPRequestHandler):
         digest = state_digest(scope.root, [relative])
         if query.get("write") == "1" and query.get("expect") and query["expect"] != digest:
             body += bad(tr("检查之后这份文档已经改变，因此这次写入被拒绝：写入会覆盖别人刚做的改动。"))
-            body += note_html(tr("重新载入：") + link(url("tables", path=relative), tr("表格")))
+            body += note_html(tr("重新载入：") + link(url("tables", path=relative), tr("装备表")))
             return body
         body += h3(tr("只检查不写入"))
         try:
@@ -2326,7 +2766,7 @@ class Handler(BaseHTTPRequestHandler):
             body += note_html(
                 link(
                     url(
-                        "tables",
+                        "equipment",
                         path=relative,
                         op=op,
                         line=str(number),
@@ -2346,6 +2786,34 @@ class Handler(BaseHTTPRequestHandler):
             tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("ops", command="undo"), tr("撤销")))
         )
         return body
+
+    def page_twin(self, query: dict[str, str]) -> str:
+        """Delete a txt twin that still matches the original byte for byte."""
+        scope = self.app.scope(query.get("scope") or "")
+        url = self.app.url(scope.name)
+        relative = query.get("path") or ""
+        title = tr("删除 txt")
+        path = scope.project / relative if relative else None
+        twin = self.twin_pair(scope, relative) if relative else None
+        if twin is None or path is None or not path.is_file():
+            raise UsageError(tr("{} 不是同主干 .toml 的 txt 副本", relative or tr("空路径")))
+        body = note(tr("同一主干的 .toml 会渲染出这份 txt；只有两份逐字节一致时删除才不丢内容。"))
+        body += kv([(tr("文件"), mono(relative)), (tr("渲染它的文档"), mono(twin))])
+        if not self.twin_is_equivalent(scope, relative):
+            body += bad(tr("这份 txt 与原版不同：删除会丢失改动，因此不提供删除入口。"))
+            body += note_html(
+                link(url("cmd", line=f"diff left=Firefight:{relative} right={relative}"), tr("查看差异"))
+            )
+            return self.shell(title, body, scope.name)
+        if query.get("write") != "1":
+            body += note(tr("检查通过，尚未删除。"))
+            body += note_html(link(url("twin", path=relative, confirm="1", write="1"), tr("删除这份 txt")))
+            return self.shell(title, body, scope.name)
+        plan = edit.plan_remove(path, relative, entity=path.stem)
+        edit.apply_document(plan, scope.project, actor="web")
+        body += good(tr("已删除 {}；可以用 undo 恢复。", relative))
+        body += note_html(link(url("log"), tr("事件日志")))
+        return self.shell(title, body, scope.name)
 
     def page_log(self, query: dict[str, str]) -> str:
         """The event log, with the undo and redo forms beside it."""
@@ -2654,6 +3122,9 @@ class Handler(BaseHTTPRequestHandler):
                 (tr("开始于"), mono(state["at"])),
             ]
             body += kv(rows)
+            if len(state.get("addresses") or []) > 1:
+                body += note(tr("绑定到所有接口时，这台机器每个地址都能连；下面这些是本机枚举到的。"))
+                body += pre("\n".join(state["addresses"]))
             body += pre(json.dumps(
                 {"mcpServers": {"firefight-mod-editor": {
                     "url": state["url"],
@@ -2667,17 +3138,13 @@ class Handler(BaseHTTPRequestHandler):
         body += form(
             url("mcpstart"),
             [
-                select_field(
-                    "host",
-                    tr("监听地址"),
-                    [("local", tr("127.0.0.1（仅本机）")), ("lan", tr("0.0.0.0（局域网）"))],
-                    query.get("host", "local"),
-                ),
+                text_field("host", tr("监听地址"), query.get("host", "local"), 24),
                 text_field("port", tr("端口"), query.get("port", str(mcp_listener.DEFAULT_PORT)), 8),
                 checkbox("write", tr("允许写入（默认只读）"), False),
             ],
             tr("打开监听"),
         )
+        body += note(tr("监听地址填 local（127.0.0.1，仅本机）、lan（0.0.0.0，所有接口），或这台机器上某个 IP。绑到所有接口后，页面会列出枚举到的每个地址，公网能连到哪一个取决于路由器与防火墙。"))
         body += note(tr("默认只读：不带写入开关时，写入类工具与不带 --write 的命令行服务器一样不会被登记。"))
         return body
 
@@ -2816,7 +3283,7 @@ class Handler(BaseHTTPRequestHandler):
             [link(url("get", path=""), "/get"), tr("某个字段的取值、文档路径与行号"), mono(tr("ff {} get <路径> field=<字段>", scope.name))],
             [link(url("edit"), "/edit"), tr("一个文档的全部字段，每行一个输入框"), mono(tr("ff {} get <路径>", scope.name))],
             [link(url("source"), "/source"), tr("一份文档的整段文本，可直接改 TOML 或 XML 后保存"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
-            [link(url("tables"), "/tables"), tr("工程设置的清单文件，一行一条，可改可删可追加"), mono(tr("ff {} show <路径>", scope.name))],
+            [link(url("equipment"), "/equipment"), tr("工程设置的清单文件，一行一条，可改可删可追加"), mono(tr("ff {} show <路径>", scope.name))],
             [link(url("log"), "/log"), tr("事件日志，以及撤销与重做的入口"), mono(f"ff {scope.name} log")],
             [link(url("assets"), "/assets"), tr("工程里的图片与声音；缩略图就是文件本身"), mono(tr("ff {} convert <选择器> to=<目录> assets=1", scope.name))],
             [link(url("ops"), "/ops"), tr("11 条写入命令的表单；先检查，确认后才写入"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
@@ -3046,6 +3513,9 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     }
     write_instance(root, record)
+    # The reference cache is read first and rebuilt in the background; a failure only prints,
+    # so the page layer keeps working from the files themselves (docs/cli.md section 4.6).
+    warm_index(app, scope_name)
     print(tr("Firefight 模组编辑器 Web UI · 作用域 {}", scope_name), flush=True)
     print(tr("  根目录   {}", app.scope(scope_name).root), flush=True)
     print(tr("  地址     {}", address), flush=True)

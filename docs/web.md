@@ -6,10 +6,10 @@ Status: **browsing, editing and the command line**. The UI renders the same resu
 and a page may run a writing command: the command's own gate (`--write`, project confinement,
 the stock-scope rule) decides whether the write happens, so a refusal reads exactly as it does
 in a shell ([cli.md](cli.md) §4.1–§4.3). Three pages cover the writing side: `/edit` lists every
-field of one document with its own input box, `/ops` offers every writing command as a form with
-a check step before the write, and `/log` shows the event log with the undo and redo forms
-(§2.1). What is still missing is a semantic diff before the write, conflict detection and a
-permission indicator.
+field of one document with the control the schema and the enum tables call for, `/ops` offers
+every writing command as a form with a check step before the write, and `/log` shows the event log
+with the undo and redo forms (§2.1). What is still missing is a semantic diff before the write,
+conflict detection and a permission indicator.
 
 The whole UI is served by the Python standard library — no new dependency, no build step,
 no external asset, no cookie. Every page is server-rendered HTML, so the first slice works in
@@ -23,10 +23,10 @@ pane along the bottom and a status bar under it.
 
 | Region | What it holds | Where it is filled |
 |---|---|---|
-| Menu bar | every section, the current scope, the language switch, the exit link | `nav_bar` |
+| Menu bar | the brand, the current scope, the language switch, the exit link (the sections live on the tab strip only) | `nav_bar` |
 | Tool bar | one button per pane that folds it, plus the sections the tabs do not carry | `Handler.tool_bar` |
 | Tab strip | the open sections; the script swaps the centre pane without a page load | `Handler.section_tabs` |
-| Tree pane | the project's documents as folders, with a file count per folder and a search box over the paths; plain-text tables are listed beside the entities | `Handler.pane_tree` |
+| Tree pane | every file of the project as folders, with a file count per folder and a search box over the paths; a `.txt` that a `.toml` of the same name renders is dimmed | `Handler.pane_tree` |
 | Centre | the section that is open | the `page_*` methods |
 | Property pane | the scope, and the fields of the document the request names, each with the way into the editor | `Handler.pane_props` |
 | Output pane | the last command of this session with its output, then the tail of the event log | `Handler.pane_output` |
@@ -38,18 +38,29 @@ widths, folded panes and the language are the only things kept in the browser, u
 produced by the script, so a browser that refuses it sees a slightly plainer workbench, not a
 broken one.
 
-A page carries exactly one inline `<script>`, the shell itself (§3). There is no external file
-to fetch, and `tests/test_web.py` asserts both facts on every route.
+A page carries two links to the shell — one stylesheet and one script — and nothing else. Both
+are served by the same process at `/shell.css` and `/shell.js`, need no token, carry a one-hour
+cache header and an `ETag`, so walking through the pages fetches them once (§3). A page that
+cannot load them still reads: the content is server-rendered HTML, and the script only moves the
+panes around.
 
 The tree and the property pane read the payloads the `list` and `get` commands return, so what
 they show is what those commands print. The property pane follows the document the request
 names in `path=` or `selector=`; a page that names none leaves it at the scope summary. The tree
-opens its top two levels with `<details>`, draws at most 40 files per folder, and folds without
-any script. Above the tree sits one search box: typing in it filters the drawn files by their
-path without a round trip, and pressing enter asks the server the same question, so `?q=` alone
-filters the page for a browser without scripting (`?q=` never reaches a command; it is a page
-parameter). A search that finds nothing says so and offers the same query on the list page,
-where the command's own selector filter answers it.
+draws every file under the project root — documents, the manifest, the settings, the readme, the
+pictures and the sounds — and hides only the editor's own state (`EditorCache/`). It opens the
+top level with `<details>` and folds without any script. Above the tree sits one search box:
+typing in it filters the drawn files by their path without a round trip, and pressing enter asks
+the server the same question, so `?q=` alone filters the page for a browser without scripting
+(`?q=` never reaches a command; it is a page parameter). A search that finds nothing says so and
+offers the same query on the list page, where the command's own selector filter answers it.
+
+A `.txt` beside a `.toml` of the same name is the rendered copy of that document, so the tree
+dims it instead of hiding it. When the copy still matches the original byte for byte, the entry
+carries a delete link (`/twin`): the page compares the two files, offers the write only after
+that check, and the removal goes through `core.edit` and the event log, so `undo` brings the file
+back. When the copy differs, the entry carries `≠` and a link that shows the difference; no
+delete link is offered, because deleting the file would lose the change.
 
 The status bar is fed by one `check` run per scope per page load, held in memory for
 `CHECK_SECONDS` so that walking through the pages does not rescan the project. It carries the
@@ -176,6 +187,15 @@ that answers the port — command-line matching was measured unreliable (`Get-Ci
 refused in a restricted session), and a wrong verdict there left a server running with no
 window and reported a port that was in fact its own.
 
+Start-up reads the reference cache before any page is served: `EditorCache/index.toml` and
+`refs.toml` are the tables `index --write` produces, and the server accepts them only when their
+recorded fingerprint still matches the files on disk (SHA-256 over the relative path, size and
+mtime of every indexed document). When the fingerprint does not match, a daemon thread runs
+`index --write` and replaces both tables atomically, so a page that arrives during the rebuild
+still reads whatever was there before. The rebuild is best effort: a failure is printed as
+`web: index rebuild skipped: <error>` and the reference pages fall back to walking the files,
+which is slower but gives the same answers. A stock scope is skipped because `index` refuses it.
+
 ## 2. Pages
 
 | Page | Route | Shows |
@@ -189,19 +209,19 @@ window and reported a port that was in fact its own.
 | 反查 | `/deps` | who points at `value=<token>`; shows what the token resolved to |
 | 体检 | `/check` | load errors, warnings and dangling references; `selector=` narrows the scope |
 | 统计 | `/stats` | counts by category, root element and storage format |
-| 编辑 | `/edit` | every field of `path=<document>` with its own input box (§2.1) |
+| 编辑 | `/edit` | every field of `path=<document>` with the control its schema calls for (§2.1) |
 | 源码 | `/source` | one document as its whole text, TOML or XML, saved as a whole (§2.5) |
 | 日志 | `/log` | the event log, filtered by `document=`, `field=`, `actor=`, `result=`, `since=`, `until=`, plus the undo and redo forms |
 | 操作 | `/ops` | every writing command as a form, with a check step before the write (§2.1) |
 | MCP | `/mcp` | the MCP tool table, the connection snippet, one `tools/call` trial in process, and the optional HTTP listener (§2.6) |
 | 资源 | `/assets` | the pictures and sounds of the project, drawn from the files themselves (§2.2) |
-| 表格 | `/tables` | the plain-text tables the project settings declare, one row per line, with edit, delete and append (§2.4) |
+| 装备表 | `/equipment` | the equipment tables the project settings declare, one row per line, with edit, delete and append; surnames files are listed read-only (§2.4) |
 | 命令行 | `/cmd` | one command line, run as typed, printed as the CLI prints it (`line=`, `json=1`) |
 | 帮助 | `/help` | the CLI reference and the page list |
 | 退出 | `/quit` | ask first, then stop the server (`/quit?do=1`) |
 | `/json?command=<cmd>&selector=<sel>&…` | | the raw `--json` payload, `text/plain` |
 | `/asset?path=<file>` | | one project file as its own bytes, with its content type and an `ETag` (§2.2) |
-| `/tables?path=<file>` | | the rows of one declared table, with its edit forms (§2.4) |
+| `/equipment?path=<file>` | | the rows of one declared table, with its edit forms (§2.4) |
 
 Every result page also prints the equivalent command (`python -m core.cli Firefight list all
 --json`) and links to its own JSON, so what is on screen can always be reproduced from a shell.
@@ -225,16 +245,23 @@ game installation are untouched, and only the local serving process ends.
 
 ### 2.1 The writing pages
 
-`/edit` takes `path=<document>` and lists every field of that document, one row per field, each
-with its own input box and its own `保存` button. The field path is the one `get` prints
-(`ammo.type.0.name`), so a path copied from this page works on the command line unchanged. A row
-does not write anything itself: its form posts to `/ops` with `command=set`, the document, the
-field path and the new value, so a save from this page passes the same check step as any other
-write. The page also links to `/ops` for a change that needs more than one option, and to `/log`.
+`/edit` takes `path=<document>` and lists every field of that document, one row per field. The
+control is driven by the schema of the document's root element and by the enum tables the `set`
+command checks against ([cli.md](cli.md) §4.1, §4.13): a boolean leaf gets a checkbox, a leaf whose
+value comes from an enum table gets a drop-down of that table, and a leaf outside the schema keeps
+a plain text box. An array becomes a row table, one row per entry, each cell editable in place; on
+a working (TOML) document the table also carries an `添加` form with `from=` to copy an entry and a
+`删除` form per row, because that is the only shape where `set` can add or delete an array entry.
+A retail XML document has no array of tables to append to, so its row table only edits the fields
+that are already there. The field path is the one `get` prints (`ammo.type.0.name`), so a path
+copied from this page works on the command line unchanged. A row does not write anything itself:
+its form posts to `/ops` with `command=set`, the document, the field path and the new value, so a
+save from this page passes the same check step as any other write. The page also links to `/ops`
+for a change that needs more than one option, and to `/log`.
 
 `/ops` is the whole writing side as a form: `set`, `batch`, `add`, `clone`, `remove`, `index`,
 `convert`, `settings`, `roster`, `export`, `pack`, `init`, `import`, `undo` and `redo` — the
-fifteen commands that can change something. Without `command=` it is a table with one link per
+nineteen commands that can change something. Without `command=` it is a table with one link per
 command, each naming what the
 command does and whether it takes a document. A command argument gives its form; the fields come
 from the command's own options, so a checkbox is a flag (`overwrite=`, `assets=`, `strict=`) and
@@ -314,14 +341,14 @@ one entry, `//` starts a comment, and the file carries neither a root element no
 command line treats them as list files and skips them ([cli.md](cli.md) §4.3), so until now there
 was no way to change one from the editor at all.
 
-`/tables` closes that gap. It reads the project settings — `<工程>/mod.txt` when it is there,
+`/equipment` closes that gap. It reads the project settings — `<工程>/mod.txt` when it is there,
 `ModSetting.toml` otherwise, the same pair `declared_lists` reads — and lists the declared tables
 plus any other list file under `Data/`. Opening one shows every line back in order with a box per
 row, the delete link per row and an append form at the end.
 
 The write does not go through a writing command. There is no command that writes a plain-text
 table, and this page does not invent one: it builds the new document text with
-`core/web/tables.py`, and hands it to `core.edit.plan_render` and `core.edit.apply_document` — the
+`core/web/equipment.py`, and hands it to `core.edit.plan_render` and `core.edit.apply_document` — the
 same plan-then-apply pair every other write uses. The record therefore lands in the event log with
 `actor=web`, the bytes before and after, and the two digests, and `undo` puts the file back
 byte-for-byte. `web` was added to `core.journal.ACTORS` for exactly this: the log says which
@@ -390,17 +417,21 @@ is a refusal before the body is read.
 * **One implementation.** A page calls the same command handler the CLI calls
   (`cli.commands` with a parsed `Context`), in the same process. The UI cannot drift from
   `python -m core.cli --json`; a test asserts the `/json` payload equals what the CLI prints.
-* **One short script, and no more.** Every page carries exactly one inline `<script>`, the
-  workbench shell: it resizes and folds the panes, remembers that in `localStorage`, swaps the
-  centre pane when a tab is clicked, and filters the tree as the search box is typed into. It
-  renders nothing, so a page is complete and readable with scripting disabled; it fetches nothing
-  but this server, so there is no external asset and no CDN. A test walks every route and asserts
-  one `<script`, no `<script src` and no `<link`.
-* **Old, plain HTML.** One inline `style` block, grey background, bordered tables, `<pre>`
+* **One shell, fetched once.** Every page links the same two files: `/shell.css` and
+  `/shell.js`, served by this process. The script resizes and folds the panes, remembers that in
+  `localStorage`, swaps the centre pane when a tab is clicked, filters the tree as the search box
+  is typed into, and switches the theme and the face. It renders nothing, so a page is complete
+  and readable with scripting disabled; it fetches nothing but these two files, so there is no
+  external asset and no CDN. A test walks every route and asserts one stylesheet link and one
+  script link, with neither inline.
+* **Old, plain HTML.** One style sheet, grey background, bordered tables, `<pre>`
   for data. No framework, no downloaded font, no icon, no CDN — a page renders identically
   offline. The face is a system stack — a narrow industrial sans (`Tahoma` first, with
   `Arial Narrow` and the platform sans as fallbacks) — at a 15px base size, so the workbench
-  reads at the density of a desktop tool rather than a web page.
+  reads at the density of a desktop tool rather than a web page. The tool bar offers a second
+  face (`Consolas` and the mono stack, 14px) and a dark theme; both are CSS variables on the root
+  element, so switching one attribute repaints without a round trip, and the choice joins the
+  panel widths in `localStorage["ff.workbench"]`.
 * **GET only.** `POST` answers `501`. The only route that ends the serving process is `/quit`,
   and it does that after a confirmation step. `/cmd` and `/json` refuse `web` and its alias
   `serve`, because it would try to bind a second port inside a request; every other command
@@ -440,7 +471,7 @@ is a refusal before the body is read.
 ## 5. Tests
 
 ```
-python -m unittest tests.test_web          # 150 tests, ~32 s
+python -m unittest tests.test_web          # 170 tests, ~37 s
 python -m unittest discover -s tests -t .  # run the suite
 ```
 
@@ -453,9 +484,11 @@ a quoted path, a scope prefix, an unknown command, and `web`/`serve` refused on 
 `/json` while a writing command is allowed through), a write from a page reaching the
 command's own gate (a `set` without `--write` is refused with `set needs --write`, and the
 document is left alone), and the instance record (an answering instance is reused, a stale one
-is ignored, and a clean stop removes it). The writing pages add their own cases: `/edit` lists
-every field of a document with one input box each and links the save through `/ops`; `/ops`
-lists the fifteen writing commands and answers the check step of every one of them, even when the
+is ignored, and a clean stop removes it). The writing pages add their own cases: `/edit` draws
+the control the schema and the enum tables call for (a checkbox for a boolean, a drop-down for an
+enumerated value, a plain box for a field outside the schema), draws an array as a row table and
+offers the add and delete forms only on a working TOML document, and links the save through `/ops`; `/ops`
+lists the nineteen writing commands and answers the check step of every one of them, even when the
 form is empty; a form names a parameter once; the check step runs `--write --dry-run` and leaves the
 project untouched, prints the equivalent `ff` line, and drops no `write=1` link; a command that
 refuses the check offers no write link and reports the refusal; `write=1` then changes the
@@ -463,7 +496,7 @@ document, appends an event and lets `/log` show it, undo included; `/pack` with 
 project with dangling references is refused and offers no write link; the field editor rejects
 `set` without a field and without a value, and on a table-valued path it asks for the entry
 directly; the forms survive the language switch, so a link that was handed a language keeps it;
-and `/tables` lists the declared plain-text tables with one row per line, marks comments and blank
+and `/equipment` lists the declared plain-text tables with one row per line, marks comments and blank
 lines instead of editing them, adds, edits and deletes a row, reports what the check would write
 before the write link appears, reports a line number outside the file as an error, refuses a path
 outside the project, writes through `core.edit` with `actor=web` (the log names the page, not the
@@ -471,8 +504,11 @@ command line, and undo restores the file); and `/source` opens a document as its
 nothing before a path is given, refuses a suffix it does not edit, refuses a path outside the
 project, refuses a file over the limit with the limit named, reports a check that writes nothing,
 writes a UTF-8 file with a BOM back with its BOM and a CRLF file back with CRLF, offers no write
-link when the text did not change, and logs the change as `actor=web`. The check step now shows the
-change before it is offered: `/ops` prints the field, the value now and the value after, `/tables`
+link when the text did not change, and logs the change as `actor=web`. The reference cache adds
+its own cases: a pair of tables whose fingerprint still matches is reused instead of rebuilt, a
+changed document makes it stale, the start-up rebuild runs in a background thread, and a rebuild
+that raises is only printed so the pages keep answering from the files. The check step now shows the
+change before it is offered: `/ops` prints the field, the value now and the value after, `/equipment`
 prints the row as it is and as it would be, `/source` prints a line diff, and a write link followed
 after the document changed on disk is refused with the other writer's bytes left in place. The MCP panel adds its own
 cases: `/mcp` names every tool of the specification table and prints the command line and the client
@@ -485,7 +521,7 @@ with the token the page printed, the writing tools appear only when the form ask
 port that is taken is refused as a usage error with nothing left open, an address that is neither
 `local` nor `lan` is refused, the socket answers a POST with the listener's token and refuses a
 missing one before reading the body, a `GET` is a refusal, and closing it leaves the port shut. The shell of
-the workbench adds the last group: every page carries one inline script and loads nothing else, a
+the workbench adds the last group: every page links the two shell files and carries neither inline, a
 page can ask for the centre region alone, the status bar carries the file, error and dangling
 counts of a real `check` and dates them, the output pane starts with no command and then keeps
 the last one across pages with its output, exit code, elapsed time and a link that runs it again,
@@ -495,7 +531,15 @@ document and the log untouched. The workbench face and its search box add the la
 base size and the font stack come from the stylesheet, every page carries the search field, the
 tree is drawn with the path of each file on it, `?q=` narrows the tree to the matching paths and
 counts them, a query that matches nothing says so, the search box offers the same query on the
-list page, and the tree form keeps the scope in a hidden input instead of in its action. Measured
+list page, and the tree form keeps the scope in a hidden input instead of in its action. The shell files are
+served once with a cache header and a 304 on the second request, the style sheet carries the dark
+theme and the mono face as variables, the tool bar carries both toggles, and the property pane
+reads the scope origin as a sentence instead of the log wording. The tree
+also lists a readme and the settings beside the documents while leaving `EditorCache/` out, dims a
+`.txt` that a `.toml` renders, offers the delete link only while the copy still matches the
+original, and marks a copy that differs with `≠`; the delete page compares the files, writes only
+after that check, and the removal appears in the log as `web`. The menu bar carries no section
+links and both top bars declare a fixed height. Measured
 against the stock installation, the first
 slice answers every page in about two seconds (a cold `/stats` over the whole 1840-file stock
 scope was the slowest measured) and serves the 1204 references of
@@ -505,7 +549,7 @@ value=WEAPON_PISTOL_P38` and a quoted `show` the same way.
 ## 6. Next
 
 Editing now has a front end: `/edit` lists the fields of a document, `/ops` offers every writing
-command with a check step before the write, `/tables` edits the plain-text tables the commands
+command with a check step before the write, `/equipment` edits the plain-text tables the commands
 skip, `/source` edits a whole document as text, and `/mcp` shows and trials the tools the AI
 surfaces read. The workbench around them is complete: the tree and the property pane read the
 `list` and `get` payloads, the status bar carries the counts of the last `check`, and the output
@@ -513,7 +557,8 @@ pane keeps the last command beside the tail of the event log. What is still miss
 tool adds on top of that — a semantic diff between the check and the write (the check reports the
 command's output, not a comparison of the before and after bytes), conflict detection when the
 document changed between the two steps, and a permission indicator that says up front whether the
-current scope and options can write at all. The other open piece is the indexer that would let
-`refs` and `deps` answer from `EditorCache/index.toml` instead of rebuilding the graph on each
-run.
+current scope and options can write at all. The reference cache is no longer an open piece: the
+server reads `EditorCache/index.toml` and `refs.toml` at start-up and rebuilds them in a background
+thread when the files no longer match their fingerprint, and `refs` and `deps` read the stored
+tables first, which is the shape the indexer was meant to give them.
 
