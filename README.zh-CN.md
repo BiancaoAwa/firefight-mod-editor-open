@@ -11,8 +11,9 @@
 原版 `mod.txt` 与 `ModSetting.toml` 的双向转换（[cli.md](docs/cli.zh-CN.md) §4.7）、模组 zip 生成器
 `pack`（[cli.md](docs/cli.zh-CN.md) §4.8）、MCP 服务
 `python -m core.mcp`（它把命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批命令
-（含写入类）的中英双语 Web 界面（[web.md](docs/web.zh-CN.md)）：`/edit` 列出一个文档的全部字段并给每行一个输入框，
-`/ops` 把每条写入命令做成表单并以 `--write --dry-run` 先跑一遍再给写入链接，`/log` 显示事件日志并带撤销与重做表单。
+（含写入类）的中英双语 Web 界面（[web.md](docs/web.zh-CN.md)）：`/edit` 把整份文档当文本编辑——TOML、XML 与
+纯文本走同一个文本框，编码、BOM 与换行照实显示，写入前先给出差异；`/list` 的实体表连同装备表与清单文件在同一页；
+`/log` 显示事件日志并带撤销与重做表单；`/cmd` 是一条命令行加写入命令表单，MCP 工具表与参考说明是这一页的另外两个模式。
 `export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
 （见 `tools/export_fidelity.py`）。`init` 在空目录里创建工程（[cli.md](docs/cli.zh-CN.md) §4.9），`import` 则把已存在的
 模组——目录或 zip——变成工程（[cli.md](docs/cli.zh-CN.md) §4.16）。各部分如何衔接见

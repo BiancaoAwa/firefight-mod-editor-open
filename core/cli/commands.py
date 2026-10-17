@@ -343,9 +343,27 @@ def is_plain_text(path: Path) -> bool:
     are named as lists, and the project's ``mod.txt`` names the rest, so this is
     the content rule ``is_list_file`` falls back on (docs/cli.md section 4.3).  A
     file that cannot be decoded counts as a document, so the caller still reports it.
+
+    The first few kilobytes decide the common case: a page that lists a scope asks
+    this once per file, and parsing every document in full cost seconds on a large
+    project.  Anything ambiguous still goes through the parser.
     """
     if path.suffix.lower() != ".txt":
         return False
+    try:
+        head = path.read_bytes()[:4096]
+    except OSError:
+        return False
+    try:
+        text = head.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = ""
+    if text:
+        stripped = text.lstrip()
+        if stripped.startswith("<"):
+            return False
+        if "<" not in text:
+            return True
     try:
         xml.parse(textio.read_source(path).text, str(path))
     except XmlStructureError:

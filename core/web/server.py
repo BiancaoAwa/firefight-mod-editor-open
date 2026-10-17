@@ -25,12 +25,13 @@ from core import edit, enums as enums_core, index as index_core, journal, schema
 from core.errors import FfError
 from core.journal import EDITOR_DIR
 from core.web import mcp_listener, tables
-from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, current, html_lang, tr, use
+from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, command_text, current, html_lang, tr, use
 
 from core.cli.commands import (
     ALIASES,
     DEFAULT_LIMIT,
     VERSION,
+    COMMANDS,
     Context,
     command_names,
     declared_lists,
@@ -44,6 +45,7 @@ from core.cli.main import parse_argv
 from core.cli.scope import UsageError, Scope, resolve_all, resolve_scope, split_spec
 # the two resolvers that recognise a project and an editor folder; using them keeps the
 # rules in one place (docs/project-layout.md section 10.1)
+from core.cli.scope import CONFIG_NAME, PROJECT_FILE, config_value, load_config
 from core.cli.scope import _editor_root, _project_root
 import re
 from html import escape
@@ -52,8 +54,8 @@ from urllib.parse import parse_qsl, urlencode
 
 STYLE = """
 :root { --tree: 290px; --props: 350px; --output: 180px;
-        --font: Tahoma, "Arial Narrow", "Microsoft YaHei UI", "Segoe UI", Arial, sans-serif;
-        --mono: Consolas, "Courier New", monospace; --size: 15px;
+        --font: Consolas, "Courier New", monospace;
+        --mono: Consolas, "Courier New", monospace; --size: 14px;
         --bg: #efefef; --paper: #ffffff; --ink: #000000; --muted: #444444; --faint: #666666;
         --face: #e6e6e6; --bar: #f4f4f4; --line: #a8a8a8; --edge: #c8c8c8; --grid: #999999;
         --link: #0000cc; --link-visited: #660099; --input: #f7f7f7; --hover: #c0c0c0;
@@ -66,7 +68,6 @@ STYLE = """
         --hover: #4a4a4a; --gutter: #3a3a3a; --head: #3d3d3d; --dim: #7a7a7a; --mark: #e0a050;
         --warn-bg: #4a4426; --warn-edge: #8a7a3a; --bad-bg: #4a2a2a; --bad-edge: #a05a5a;
         --ok-bg: #26442a; --ok-edge: #4a8a5a; color-scheme: dark; }
-body.mono-font { --font: var(--mono); --size: 14px; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font);
        font-size: var(--size); margin: 0; height: 100vh; overflow: hidden; display: grid;
@@ -115,6 +116,9 @@ select { font-family: inherit; font-size: var(--size); }
 .empty { color: var(--faint); }
 .foot { color: var(--faint); font-size: 14px; }
 .crumbs { margin-bottom: 8px; color: var(--muted); }
+.doc-bar { margin: 2px 0 10px; color: var(--muted); }
+.doc-bar > * { margin-right: 10px; }
+.doc-bar [aria-current="true"] { font-weight: bold; }
 /* workbench: menu bar, tool bar, three side panes, status bar */
 .menubar { grid-area: menu; display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
            overflow: hidden; background: var(--face); border-bottom: 1px solid var(--line);
@@ -157,14 +161,15 @@ select { font-family: inherit; font-size: var(--size); }
 details.tree-dir > summary { cursor: pointer; font-weight: bold; }
 details.tree-dir > details { margin-left: 14px; }
 .tree-search { display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
+.tree-dir[hidden] { display: none; }
 .tree-search input[type=text] { flex: 1; min-width: 0; }
-.gallery { display: flex; flex-wrap: wrap; gap: 10px; }
-.tile { margin: 0; width: 160px; background: var(--paper); border: 1px solid var(--line); padding: 5px; }
-.tile figcaption { font-size: 13px; word-break: break-all; margin-top: 4px; }
-.thumb { display: block; width: 148px; height: 112px; object-fit: contain; background:
-         repeating-conic-gradient(var(--bar) 0% 25%, var(--face) 0% 50%) 50% / 14px 14px; }
-.tile audio { width: 148px; }
 .preview { margin: 8px 0; }
+.asset-view { margin: 8px 0; }
+.asset-view img { max-width: 100%; background:
+                  repeating-conic-gradient(var(--bar) 0% 25%, var(--face) 0% 50%) 50% / 14px 14px; }
+.asset-view audio { width: 100%; }
+.copy { font-family: var(--mono); font-size: 13px; background: var(--paper); color: var(--ink);
+        border: 1px solid var(--edge); padding: 2px 5px; }
 .preview img { max-width: 100%; max-height: 260px; background:
                repeating-conic-gradient(var(--bar) 0% 25%, var(--face) 0% 50%) 50% / 14px 14px; }
 label.wide { display: block; margin: 8px 0; }
@@ -180,14 +185,13 @@ SCRIPT = """
   var KEY = "ff.workbench";
   var WIDE = { tree: 290, props: 350, output: 180 };
   var state = { tree: WIDE.tree, props: WIDE.props, output: WIDE.output,
-                theme: "light", font: "ui" };
+                theme: "light" };
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
     for (var key in state) {
       if (typeof saved[key] === "number" && saved[key] >= 0 && saved[key] < 900) state[key] = saved[key];
     }
     if (saved.theme === "dark") state.theme = "dark";
-    if (saved.font === "mono") state.font = "mono";
   } catch (error) { /* a locked-down browser simply keeps the defaults */ }
 
   function apply() {
@@ -199,11 +203,9 @@ SCRIPT = """
     body.classList.toggle("folded-props", state.props < 8);
     body.classList.toggle("folded-output", state.output < 8);
     root.setAttribute("data-theme", state.theme);
-    body.classList.toggle("mono-font", state.font === "mono");
     var toggles = document.querySelectorAll("[data-toggle]");
     for (var t = 0; t < toggles.length; t++) {
-      var name = toggles[t].getAttribute("data-toggle");
-      toggles[t].setAttribute("aria-pressed", String(state[name] !== (name === "theme" ? "light" : "ui")));
+      toggles[t].setAttribute("aria-pressed", String(state.theme === "dark"));
     }
     var buttons = document.querySelectorAll("[data-fold]");
     for (var i = 0; i < buttons.length; i++) {
@@ -247,19 +249,50 @@ SCRIPT = """
   function filterTree(text) {
     var wanted = (text || "").toLowerCase();
     var files = document.querySelectorAll(".tree-file");
+    var shown = 0;
     for (var i = 0; i < files.length; i++) {
       var path = (files[i].getAttribute("data-path") || "").toLowerCase();
-      files[i].style.display = wanted && path.indexOf(wanted) < 0 ? "none" : "";
+      var hit = !wanted || path.indexOf(wanted) >= 0;
+      files[i].style.display = hit ? "" : "none";
+      files[i].setAttribute("data-hit", hit ? "1" : "0");
+      if (hit) shown++;
     }
-    if (!wanted) return;
     var dirs = document.querySelectorAll("details.tree-dir");
-    for (var j = 0; j < dirs.length; j++) dirs[j].open = true;
+    for (var j = dirs.length - 1; j >= 0; j--) {
+      if (!wanted) {
+        dirs[j].hidden = false;
+        continue;
+      }
+      dirs[j].open = true;
+      dirs[j].hidden = !dirs[j].querySelector('.tree-file[data-hit="1"]');
+    }
+    var count = document.getElementById("tree-search-count");
+    if (count) {
+      var label = count.getAttribute("data-label") || "{}";
+      count.textContent = wanted ? label.replace("{}", String(shown)) : "";
+    }
+  }
+
+  var commandIndex = null;
+
+  function hintCommand(text) {
+    var target = document.getElementById("cmd-hint");
+    if (!target) return;
+    if (commandIndex === null) {
+      try { commandIndex = JSON.parse(target.getAttribute("data-index") || "{}"); } catch (error) { commandIndex = {}; }
+    }
+    var first = (text || "").trim().split(/\s+/)[0] || "";
+    if (!first) { target.textContent = ""; return; }
+    var summary = commandIndex[first] || "";
+    var unknown = target.getAttribute("data-unknown") || "";
+    target.textContent = summary ? (first + " \u2014 " + summary) : (first + ": " + unknown);
   }
 
   document.addEventListener("input", function (event) {
     var box = event.target;
-    if (!box || !box.getAttribute || box.getAttribute("data-filter") !== "tree") return;
-    filterTree(box.value);
+    if (!box || !box.getAttribute) return;
+    if (box.getAttribute("data-filter") === "tree") filterTree(box.value);
+    if (box.getAttribute("data-hint") === "cmd") hintCommand(box.value);
   });
 
   document.addEventListener("click", function (event) {
@@ -276,7 +309,6 @@ SCRIPT = """
     if (toggle) {
       var which = toggle.getAttribute("data-toggle");
       if (which === "theme") state.theme = state.theme === "dark" ? "light" : "dark";
-      if (which === "font") state.font = state.font === "mono" ? "ui" : "mono";
       apply();
       remember();
       event.preventDefault();
@@ -463,19 +495,8 @@ def section_links() -> dict[str, str]:
     return {
         "index": tr("首页"),
         "list": tr("实体列表"),
-        "edit": tr("编辑"),
-        "source": tr("源码"),
-        "equipment": tr("装备表"),
-        "find": tr("查找"),
-        "deps": tr("引用查询"),
-        "assets": tr("资源"),
-        "check": tr("体检"),
-        "stats": tr("统计"),
         "log": tr("日志"),
-        "ops": tr("操作"),
-        "mcp": tr("MCP"),
         "cmd": tr("命令行"),
-        "help": tr("帮助"),
     }
 
 
@@ -489,6 +510,7 @@ def nav_bar(url: Url) -> str:
     other = "zh" if current() == "en" else "en"
     name = "中文" if other == LANGUAGE_DEFAULT else "English"
     tail.append(f'<span class="sub">| <a href="{att(url(_ROUTE.get(), lang=other))}">{name}</a></span>')
+    tail.append(tr("<span class=\"sub\">| <a href=\"{}\">MCP 服务器</a></span>", att(url("mcp"))))
     tail.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
     return (
         f'<span class="brand">{esc(tr("Firefight 模组编辑器"))}</span>'
@@ -514,6 +536,32 @@ def note(text: str) -> str:
 def note_html(markup: str) -> str:
     """A grey explanatory line that already contains markup."""
     return f'<p class="note">{markup}</p>'
+
+
+def setting_hints(cwd: Path) -> tuple[list[str], Path | None]:
+    """The local Setting.toml entries that name a directory this machine does not have.
+
+    A distribution carries the setting of the machine it was packed on; a key that no
+    longer resolves is reported once on the front page instead of failing later with a
+    scope error nobody can place.
+    """
+    try:
+        config, path = load_config(cwd)
+    except (FfError, OSError):
+        return [], None
+    if config is None or path is None:
+        return [], None
+    missing: list[str] = []
+    for key, marker in (("firefight", "Data"), ("workspace", "Mod"), ("mod", PROJECT_FILE)):
+        value = config_value(config, key)
+        if not value:
+            continue
+        target = Path(value)
+        if not target.is_absolute():
+            target = path.parent / target
+        if not (target / marker).exists():
+            missing.append(f'{key} = "{value}"')
+    return missing, path
 
 
 def warn(text: str) -> str:
@@ -544,6 +592,11 @@ def link(href: str, label: str) -> str:
 def mono(text: str) -> str:
     """Inline monospace."""
     return f"<code>{esc(text)}</code>"
+
+
+def copy_box(value: str, size: int = 44) -> str:
+    """A read-only box: one click selects the whole address, ready to copy."""
+    return f'<input type="text" class="copy" readonly value="{att(value)}" size="{size}">'
 
 
 # How much of one table row the row list shows before it cuts the text off.
@@ -588,20 +641,66 @@ def count_files(node: dict) -> int:
     return len(node["files"]) + sum(count_files(child) for child in node["folders"].values())
 
 
-def render_tree(node: dict, render_file, *, depth: int = 0, open_depth: int = 2, file_class=None) -> str:
+class TreeFacts:
+    """The per-request facts a tree page needs, worked out once for the whole scope.
+
+    Without it every row asks for the declared lists, the stock root and its own twin: a
+    settings read and three syscalls per file, which is what made a 1700-file project take
+    seconds per page.
+    """
+
+    def __init__(self, scope, declared: set[str], stock) -> None:
+        self.scope = scope
+        self.declared = declared
+        self.stock = stock
+        self.project = scope.project.resolve()
+        self.stock_is_project = stock is not None and stock.resolve() == self.project
+        self._twins: dict[str, str | None] = {}
+
+    def twin(self, relative: str) -> str | None:
+        """The .toml twin inside the project, or None; computed once per file."""
+        if relative in self._twins:
+            return self._twins[relative]
+        twin = twin_of(relative)
+        if twin is None or self.stock_is_project:
+            result: str | None = None
+        else:
+            result = twin if (self.scope.project / twin).is_file() else None
+        self._twins[relative] = result
+        return result
+
+
+def render_tree(
+    node: dict,
+    render_file,
+    *,
+    depth: int = 0,
+    open_folder: str = "Data",
+    in_open_branch: bool = False,
+    file_class=None,
+) -> str:
     """Folders as ``<details>`` and files as links; opening one needs no script.
 
     Every file of the folder is drawn, so the tree is the project's whole file
-    list; only the first ``open_depth`` levels start expanded.
+    list.  Only the ``Data`` branch starts expanded: the other top-level folders
+    stay folded until someone opens one.
     """
     parts = []
     for name in sorted(node["folders"]):
         child = node["folders"][name]
-        opened = " open" if depth < open_depth else ""
+        opens = in_open_branch or (depth == 0 and name.casefold() == open_folder.casefold())
+        opened = " open" if opens else ""
         parts.append(
             f'<details class="tree-dir"{opened}><summary>{esc(name)} '
             f'<span class="sub">{esc(tr("{} 项", count_files(child)))}</span></summary>'
-            + render_tree(child, render_file, depth=depth + 1, open_depth=open_depth, file_class=file_class)
+            + render_tree(
+                child,
+                render_file,
+                depth=depth + 1,
+                open_folder=open_folder,
+                in_open_branch=opens,
+                file_class=file_class,
+            )
             + "</details>"
         )
     for path in node["files"]:
@@ -694,6 +793,39 @@ def crumbs(items: list[tuple[str, str]]) -> str:
     return '<div class="crumbs">' + " › ".join(parts) + "</div>"
 
 
+def doc_bar(url: Url, document: str, current: str) -> str:
+    """The two modes of one open document: view and edit.
+
+    They sit under the document path rather than in the tab strip, because a mode
+    needs a document to open; the strip keeps the scope-wide pages.  Editing is the
+    text of the file, so a document that does not parse can still be repaired here.
+    """
+    parts = []
+    for route, label in (("show", "查看"), ("edit", "编辑")):
+        text = esc(tr(label))
+        if route == current:
+            parts.append(f'<span aria-current="true">{text}</span>')
+        else:
+            parts.append(link(url(route, path=document), text))
+    return '<p class="doc-bar">' + " ".join(parts) + "</p>"
+
+
+def tools_bar(url: Url, current: str) -> str:
+    """The three modes of the command page: command line, MCP and help.
+
+    All three run or explain a command of the same tool, so they are one tab with a mode
+    bar; the writing forms live under the command line on the same page.
+    """
+    parts = []
+    for route, label in (("cmd", "命令行"), ("mcp", "MCP"), ("help", "帮助")):
+        text = esc(tr(label))
+        if route == current:
+            parts.append(f'<span aria-current="true">{text}</span>')
+        else:
+            parts.append(link(url(route), text))
+    return '<p class="doc-bar">' + " · ".join(parts) + "</p>"
+
+
 def form(action: str, fields: list[str], submit: str = tr("查询"), css: str = "") -> str:
     """A GET form from pre-built field markup.
 
@@ -719,6 +851,39 @@ def form(action: str, fields: list[str], submit: str = tr("查询"), css: str = 
 def text_field(name: str, label: str, value: str = "", size: int = 30) -> str:
     """A labelled text input."""
     return f'<label>{esc(label)} <input type="text" name="{att(name)}" value="{att(value)}" size="{size}"></label>'
+
+
+def option_list_input(name: str, label: str, value: str, size: int, choices: str, hint: str) -> str:
+    """A text input wired to a ``datalist`` of the names it accepts."""
+    return (
+        f'<label>{esc(label)} <input type="text" name="{att(name)}" value="{att(value)}" '
+        f'size="{size}" list="{att(choices)}" data-hint="{att(hint)}" autocomplete="off"></label>'
+    )
+
+
+def datalist(ident: str, values: list[str]) -> str:
+    """The suggestions one input offers; the browser filters them as the text is typed."""
+    items = "".join(f'<option value="{att(value)}"></option>' for value in values)
+    return f'<datalist id="{att(ident)}">{items}</datalist>'
+
+
+def command_summary(name: str) -> str:
+    """The one-line purpose of one command, in the language of this request."""
+    handler = COMMANDS.get(name)
+    english = (handler.__doc__ or "").strip().splitlines()[0] if handler and handler.__doc__ else ""
+    return command_text(name, english)
+
+
+def command_index_json() -> str:
+    """One line per command, read by the script to describe what the typed command does."""
+    index = {}
+    for name in command_names():
+        summary = command_summary(name)
+        index[name] = summary
+        for alias, canonical in ALIASES.items():
+            if canonical == name:
+                index[alias] = summary
+    return json.dumps(index, ensure_ascii=False)
 
 
 def text_area(name: str, label: str, value: str = "", rows: int | None = None) -> str:
@@ -831,7 +996,7 @@ def operations() -> tuple:
         Operation(
             "roster",
             tr("清单"),
-            tr("清单文件"),
+            tr("单位表"),
             tr("列出工程声明的清单；给「清单动作」则增、改或删条目。"),
             (
                 ("op", tr("清单动作"), "select:|add|set|remove", ""),
@@ -1069,7 +1234,7 @@ _SELECTION = contextvars.ContextVar("web_selection", default="")
 _SEARCH = contextvars.ContextVar("web_search", default="")
 
 # The sections the tab strip offers; every route still works as a plain page load.
-TABS = ("index", "list", "edit", "source", "equipment", "assets", "log", "ops", "mcp", "cmd", "help")
+TABS = ("index", "list", "log", "cmd")
 
 # How much of the project and of the log the side panes show on one page.
 OUTPUT_ROWS = 12
@@ -1077,8 +1242,6 @@ OUTPUT_ROWS = 12
 TREE_HIDDEN = ("EditorCache", "__pycache__", ".git")
 # How many fields the property pane lists for the selected document.
 PROP_ROWS = 40
-# How many pictures or sounds the asset page draws at once.
-ASSET_ROWS = 60
 # How many rows of a plain-text table the table page draws at once.
 TABLE_ROWS = 200
 # How much of the last command's output the bottom pane keeps.
@@ -1094,9 +1257,6 @@ SOURCE_SUFFIXES = (".xml", ".toml", ".txt")
 SOURCE_BYTES = 16_000
 SOURCE_ROWS = 24
 SOURCE_DIFF_ROWS = 120
-
-# The project folders the asset page walks; both hold files the game loads as they are.
-ASSET_FOLDERS = ("Images", "Sounds")
 
 # The MCP panel starts a server from the options this web session was started with, so a trial
 # call resolves the same scopes a client would (docs/mcp.md). The argument box is capped: the
@@ -1165,108 +1325,6 @@ def safe_selector(selector: str) -> str:
     return selector
 
 
-def edit_current(raw: str) -> str:
-    """The bare value of a field: a TOML string keeps its quotes in the payload, not in a control."""
-    text = str(raw).strip()
-    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
-        return text[1:-1]
-    return text
-
-
-def edit_truthy(raw: str) -> bool:
-    """Whether a document value reads as a checked box."""
-    return edit_current(raw).lower() in ("true", "yes", "1", "on")
-
-
-def edit_node(schema, root_tag: str, segments: tuple[str, ...]):
-    """The schema node a field path names, or None when the schema does not know it."""
-    if schema is None or not root_tag:
-        return None
-    return schema.lookup((root_tag, *(part for part in segments if not part.isdigit())))
-
-
-def edit_choice(root_tag: str, item: dict, enums) -> list[str]:
-    """The enum values a field's categories allow, in a stable order."""
-    if enums is None or not root_tag:
-        return []
-    categories = enums_core.categories_of(root_tag, item["segments"])
-    if not categories:
-        return []
-    return sorted(set().union(*(enums.values.get(category, frozenset()) for category in categories)))
-
-
-def edit_input(name: str, label: str, item: dict, node, root_tag: str, enums, size: int = 30) -> str:
-    """The input a field gets: a checkbox for a boolean, a select for an enum, text otherwise.
-
-    The schema decides the shape and the document decides the current value; a field the
-    schema does not know keeps the plain text box (docs/web.md section 2.1).
-    """
-    if node is not None and node.shape == schema_core.LEAF:
-        if node.type == "bool":
-            # A checked box sends value=yes; the hidden field after it sends no when unchecked,
-            # and the server takes the first value it reads.
-            return checkbox(name, tr("是"), edit_truthy(item["value"]), "yes") + hidden(name, "no")
-        choices = edit_choice(root_tag, item, enums)
-        if choices:
-            current = edit_current(item["value"])
-            if current not in choices:
-                choices.insert(0, current)
-            return select_field(name, label, [(choice, choice) for choice in choices], current)
-    return text_field(name, label, "", size)
-
-
-def edit_save(url: "Url", document: str, item: dict, node, root_tag: str, enums) -> str:
-    """The save form of one field: it posts to the existing set operation, never writes itself."""
-    return form(
-        url("ops", command="set"),
-        [hidden("selector", document), hidden("field", item["path"]), edit_input("value", tr("新值"), item, node, root_tag, enums)],
-        tr("保存"),
-    )
-
-
-def edit_rows(values: list[dict]) -> tuple[list[dict], list[tuple[tuple[str, ...], list[dict]]]]:
-    """Split value rows into plain fields and array sections, document order kept.
-
-    Each section pairs an array's path segments with the rows that belong to it; a section
-    starts at every index segment whose predecessor is a name, so a nested array becomes its
-    own section instead of a column of dotted names.
-    """
-    plain: list[dict] = []
-    sections: dict[tuple[str, ...], list[dict]] = {}
-    for item in values:
-        item = dict(item, segments=tuple(item["path"].split(".")))
-        segments = item["segments"]
-        starts = [
-            position
-            for position, part in enumerate(segments)
-            if part.isdigit() and (position == 0 or not segments[position - 1].isdigit())
-        ]
-        if not starts:
-            plain.append(item)
-            continue
-        for position in starts:
-            sections.setdefault(segments[:position], []).append(item)
-    return plain, list(sections.items())
-
-
-def edit_entries(prefix: tuple[str, ...], items: list[dict]) -> dict[str, dict[str, dict]]:
-    """The entries of one array, each as the leaf fields it holds directly.
-
-    A field under a nested array is left to that array's own section, so one value never
-    draws two input boxes.
-    """
-    entries: dict[str, dict[str, dict]] = {}
-    for item in items:
-        segments = item["segments"]
-        if len(segments) <= len(prefix) or not segments[len(prefix)].isdigit():
-            continue
-        cells = entries.setdefault(segments[len(prefix)], {})
-        rest = segments[len(prefix) + 1 :]
-        if rest and not any(part.isdigit() for part in rest):
-            cells[".".join(rest)] = item
-    return entries
-
-
 def index_ready(app: "App", scope_name: str) -> bool:
     """Whether the stored reference tables still match the files they describe."""
     scope = app.scope(scope_name)
@@ -1303,6 +1361,112 @@ def warm_index(app: "App", scope_name: str) -> threading.Thread:
     return thread
 
 
+def prime_index(app: "App", scope_name: str) -> None:
+    """Read one scope's reference cache once, and rebuild it in the background when stale.
+
+    Called as a scope is opened, so the tables are read before the first ``refs`` or ``deps``
+    read on that scope. The rebuild is a daemon thread; a scope that cannot be rebuilt just
+    keeps walking the files, which is what it did before the cache existed.
+    """
+    if not scope_name or scope_name == "Firefight":
+        return
+    with app.warm_lock:
+        if scope_name in app.warmed:
+            return
+        app.warmed.add(scope_name)
+    app.warm_threads.append(warm_index(app, scope_name))
+
+
+CHECK_NAME = "check.json"
+
+
+def check_cache_path(scope) -> Path:
+    """The file the status bar's counts are kept in, beside the reference tables."""
+    return journal.editor_dir(edit.project_root_of(scope.root)) / CHECK_NAME
+
+
+def read_check_cache(scope) -> tuple[float, dict] | None:
+    """The stored counts and the age of the file in seconds, or None when unreadable."""
+    try:
+        stored = json.loads(check_cache_path(scope).read_text(encoding="utf-8"))
+        counts = {
+            "files": int(stored["files"]),
+            "errors": int(stored["errors"]),
+            "dangling": int(stored["dangling"]),
+            "at": str(stored["at"]),
+        }
+        age = max(0.0, time.time() - float(stored["stamp"]))
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return age, counts
+
+
+def write_check_cache(scope, counts: dict) -> None:
+    """Store the counts with the moment they were taken; a cache file never stops a page."""
+    try:
+        path = check_cache_path(scope)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        journal.write_atomic(
+            path,
+            json.dumps({"stamp": time.time(), **counts}, ensure_ascii=False).encode("utf-8"),
+        )
+    except OSError:
+        pass
+
+
+def prime_checks(app: "App", scope_name: str) -> None:
+    """Seed the status bar from the stored counts, so the first page need not run a check."""
+    try:
+        scope = app.scope(scope_name)
+    except (UsageError, FfError):
+        return
+    key = f"{scope.name}:{scope.root}"
+    if key in app.checks:
+        return
+    cached = read_check_cache(scope)
+    if cached is None:
+        return
+    age, counts = cached
+    app.checks[key] = (time.monotonic() - age, counts)
+
+
+def refresh_checks(app: "App", scope_name: str) -> None:
+    """Run the check and store its counts, in a thread that no page waits for."""
+    try:
+        scope = app.scope(scope_name)
+        result = app.call("check", scope, "")
+        counts = {
+            "files": int(result.payload.get("files", 0) or 0),
+            "errors": len(result.payload.get("errors", []) or []),
+            "dangling": int(result.payload.get("dangling_total", 0) or 0),
+            "at": time.strftime("%H:%M:%S"),
+        }
+    except Exception as error:  # a failed refresh just leaves the dated numbers in place
+        print(f"web: check refresh skipped: {error}", flush=True)
+        return
+    app.checks[f"{scope.name}:{scope.root}"] = (time.monotonic(), counts)
+    write_check_cache(scope, counts)
+
+
+def warm_checks(app: "App", scope_name: str) -> None:
+    """Start one background refresh per scope, unless one is already running."""
+    with app.warm_lock:
+        if scope_name in app.refreshing:
+            return
+        app.refreshing.add(scope_name)
+
+    def run() -> None:
+        try:
+            refresh_checks(app, scope_name)
+        finally:
+            with app.warm_lock:
+                app.refreshing.discard(scope_name)
+
+    thread = threading.Thread(target=run, name="ff-check", daemon=True)
+    thread.start()
+    app.warm_threads.append(thread)
+
+
 class App:
     """One web session: the resolved options, the scope and the CLI bridge."""
 
@@ -1320,6 +1484,17 @@ class App:
         self.checks: dict[str, tuple[float, dict]] = {}
         # The one optional second socket, opened from the MCP panel and closed from it too.
         self.mcp = mcp_listener.McpService()
+        # Each scope is primed once: its reference cache is read at that moment and rebuilt
+        # in the background if the files have moved on, so switching scopes pays the cost
+        # once instead of on every refs/deps read.
+        self.warmed: set[str] = set()
+        self.warm_lock = threading.Lock()
+        self.warm_threads: list[threading.Thread] = []
+        # One background check refresh per scope, so a page never starts a second one.
+        self.refreshing: set[str] = set()
+        # The stock root is resolved once: the tree asks for it for every file of a scope.
+        self.stock_root_known = False
+        self.stock_root_value = None
 
     # --- scope and command plumbing -----------------------------------------
 
@@ -1331,12 +1506,18 @@ class App:
             return {}
 
     def scope(self, name: str = ""):
-        """Resolve a scope name, defaulting to the one the tool was started with."""
+        """Resolve a scope name, defaulting to the one the tool was started with.
+
+        The first time a scope is opened its reference cache is read and, if stale, rebuilt
+        in the background; the page never waits on that rebuild.
+        """
         wanted = name or self.default_scope
         known = self.scopes()
         if wanted in known:
-            return known[wanted]
-        return resolve_scope(wanted, self.options, self.cwd)
+            resolved = known[wanted]
+        else:
+            resolved = resolve_scope(wanted, self.options, self.cwd)
+        return resolved
 
     def url(self, scope_name: str = "") -> Url:
         """Link builder bound to an access token and the language of this request."""
@@ -1353,7 +1534,31 @@ class App:
         spec = scope.name if not selector else f"{scope.name}/{selector}"
         _, relative, doc_path = split_spec(spec)
         context = Context(scope=scope, selector=relative, doc_path=doc_path, options=clean, cwd=self.cwd)
-        return run_command(command, context)
+        result = run_command(command, context)
+        if clean.get("write") == "1" and command != "index":
+            # A write moved the files the caches describe: refresh both in the background, so
+            # the next refs/deps read and the status bar find current tables instead of walking
+            # the project again.
+            written = result.payload.get("written")
+            if written:
+                self.refresh_after_write(scope.name)
+        return result
+
+    def refresh_after_write(self, scope_name: str) -> None:
+        """Mark one scope's stored tables stale and rebuild them off the request path."""
+        try:
+            scope = self.scope(scope_name)
+        except (UsageError, FfError):
+            return
+        key = f"{scope.name}:{scope.root}"
+        held = self.checks.get(key)
+        if held is not None:
+            # Keep the dated numbers on screen; the background refresh replaces them.
+            self.checks[key] = (0.0, held[1])
+        with self.warm_lock:
+            self.warmed.discard(scope_name)
+        prime_index(self, scope_name)
+        warm_checks(self, scope_name)
 
     def call_from_query(self, command: str, scope, query: dict[str, str]):
         """Run a command from a page query: selector plus every other key=value."""
@@ -1366,7 +1571,7 @@ class Handler(BaseHTTPRequestHandler):
     """GET router; every route returns HTML, /json returns the raw payload."""
 
     server_version = f"ff-web/{VERSION}"
-    routes = ("index", "list", "show", "get", "edit", "source", "equipment", "tables", "twin", "find", "refs", "deps", "check", "stats", "log", "ops", "mcp", "mcpstart", "mcpstop", "assets", "asset", "cmd", "json", "help", "quit")
+    routes = ("index", "list", "show", "get", "edit", "equipment", "tables", "twin", "find", "refs", "deps", "check", "stats", "log", "mcp", "mcpstart", "mcpstop", "asset", "cmd", "json", "help", "quit")
 
     # --- plumbing -----------------------------------------------------------
 
@@ -1396,6 +1601,15 @@ class Handler(BaseHTTPRequestHandler):
         if route not in self.routes:
             self.respond(404, self._error_page(tr("没有这个页面"), f"/{route}", tr("从上面的导航栏回到首页。")))
             return
+        # Opening a scope reads its reference cache once; a stale cache is rebuilt in the
+        # background. The page never waits for that rebuild.
+        try:
+            opened = self.app.scope(query.get("scope", ""))
+        except (UsageError, FfError):
+            opened = None
+        if opened is not None:
+            prime_index(self.app, opened.name)
+            prime_checks(self.app, opened.name)
         if route == "asset":
             self.serve_asset(query, started)
             return
@@ -1469,7 +1683,7 @@ class Handler(BaseHTTPRequestHandler):
             etag = f'"{stat.st_size}-{int(stat.st_mtime)}"'
             status = 304 if self.headers.get("If-None-Match") == etag else 200
         except AssetNotFound as error:
-            status, data, content_type = 404, self._error_page(tr("没有这个文件"), str(error), tr("从资源页选一个存在的文件。")).encode("utf-8"), "text/html; charset=utf-8"
+            status, data, content_type = 404, self._error_page(tr("没有这个文件"), str(error), tr("从左侧文件树选一个存在的文件。")).encode("utf-8"), "text/html; charset=utf-8"
         except UsageError as error:
             status, data, content_type = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写。")).encode("utf-8"), "text/html; charset=utf-8"
         except (FfError, OSError) as error:
@@ -1630,8 +1844,6 @@ class Handler(BaseHTTPRequestHandler):
         toggles = (
             f'<button class="tbtn" type="button" data-toggle="theme" aria-pressed="false">'
             f'{esc(tr("主题"))}</button>'
-            f'<button class="tbtn" type="button" data-toggle="font" aria-pressed="false">'
-            f'{esc(tr("字体"))}</button>'
         )
         return folds + toggles + f'<span class="sub">{links}</span>'
 
@@ -1649,6 +1861,7 @@ class Handler(BaseHTTPRequestHandler):
         )
         head = (
             form(url(_ROUTE.get()), [field], tr("搜索"), css="tree-search")
+            + f'<div class="sub" id="tree-search-count" data-label="{att(tr("命中 {} 个文件"))}"></div>'
             + f'<div class="tree-dir">{link(url("index"), esc(scope.project.name))}</div>'
         )
         try:
@@ -1659,26 +1872,24 @@ class Handler(BaseHTTPRequestHandler):
         if search:
             wanted = search.lower()
             paths = [item for item in paths if wanted in item.lower()]
-        assets = "".join(
-            f'<div class="tree-file" data-path="{att(folder)}">'
-            f'{link(url("assets", folder=folder), esc(tr("{} 目录", folder)))}</div>'
-            for folder in ASSET_FOLDERS
-            if (scope.project / folder).is_dir()
-        )
         if not paths:
             if search:
-                return head + assets + note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
-            return head + assets + note(tr("这个工程还没有文件。"))
+                return head + note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
+            return head + note(tr("这个工程还没有文件。"))
+        try:
+            declared = declared_lists(scope)
+        except (UsageError, FfError):
+            declared = set()
+        facts = TreeFacts(scope, declared, self.stock_root())
         body = render_tree(
             folder_tree(paths),
-            lambda path: self.tree_link(url, scope, path),
-            file_class=lambda path: self.tree_class(scope, path),
-            open_depth=1,
+            lambda path: self.tree_link(url, scope, path, facts),
+            file_class=lambda path: self.tree_class(scope, path, facts),
         )
         if search:
             counted = note(tr("{} 个文件里有 {} 个匹配 {}。", total, len(paths), search))
-            return head + body + counted + self.tree_search_link(url, search) + assets
-        return head + body + note(tr("{} 个文件", total)) + assets
+            return head + body + counted + self.tree_search_link(url, search)
+        return head + body + note(tr("{} 个文件", total))
 
     def project_files(self, scope) -> list[str]:
         """Every file under the project root, minus the editor's own state."""
@@ -1703,25 +1914,28 @@ class Handler(BaseHTTPRequestHandler):
             return None
         return twin if (scope.project / twin).is_file() else None
 
-    def tree_link(self, url: Url, scope, relative: str) -> str:
+    def tree_link(self, url: Url, scope, relative: str, facts: TreeFacts | None = None) -> str:
         """The page that opens one file, plus the mark a txt twin carries."""
         name = esc(relative.rsplit("/", 1)[-1])
         if is_previewable(relative):
-            anchor = link(url("asset", path=relative), name)
+            anchor = link(url("show", path=relative), name)
         else:
-            try:
-                declared = declared_lists(scope)
-            except (UsageError, FfError):
-                declared = set()
+            if facts is not None:
+                declared = facts.declared
+            else:
+                try:
+                    declared = declared_lists(scope)
+                except (UsageError, FfError):
+                    declared = set()
             if is_list_file(relative, declared, scope.project / relative):
                 anchor = link(url("equipment", path=relative), name)
             elif is_entity(relative):
                 anchor = link(url("show", path=relative), name)
             elif Path(relative).suffix.lower() in SOURCE_SUFFIXES:
-                anchor = link(url("source", path=relative), name)
+                anchor = link(url("show", path=relative), name)
             else:
                 anchor = link(url("asset", path=relative), name)
-        twin = self.twin_pair(scope, relative)
+        twin = facts.twin(relative) if facts is not None else self.twin_pair(scope, relative)
         if twin is None:
             return anchor
         if self.twin_is_equivalent(scope, relative):
@@ -1730,16 +1944,27 @@ class Handler(BaseHTTPRequestHandler):
             url("cmd", line=f"diff left=Firefight:{relative} right={relative}"), tr("差异")
         )
 
-    def tree_class(self, scope, relative: str) -> str:
+    def tree_class(self, scope, relative: str, facts: TreeFacts | None = None) -> str:
         """``dim`` for a txt twin, so the rendered copy reads as the secondary one."""
+        if facts is not None:
+            return "dim" if facts.twin(relative) else ""
         return "dim" if self.twin_pair(scope, relative) else ""
 
     def stock_root(self):
-        """The original data root, when the editor setting names one that exists."""
+        """The original data root, when the editor setting names one that exists.
+
+        Resolved once per server: the setting does not change while a session runs, and
+        the tree asks for it for every file.
+        """
+        if self.app.stock_root_known:
+            return self.app.stock_root_value
         try:
-            return resolve_scope("Firefight", self.app.options, self.app.cwd).root
+            root = resolve_scope("Firefight", self.app.options, self.app.cwd).root
         except (UsageError, FfError):
-            return None
+            root = None
+        self.app.stock_root_known = True
+        self.app.stock_root_value = root
+        return root
 
     def twin_is_equivalent(self, scope, relative: str) -> bool:
         """True when the txt twin is byte for byte the file the original ships."""
@@ -1778,13 +2003,28 @@ class Handler(BaseHTTPRequestHandler):
             body += note(tr("从左边打开一个文件，或在列表页选一份文档，这里会显示它的字段。"))
             return body
         folder = path.rsplit("/", 1)[0] if "/" in path else ""
-        body += h3(tr("当前文档"))
-        body += note_html(
-            f"{link(url('get', path=path), tr('字段'))} · "
-            f"{link(url('edit', path=path), tr('编辑'))} · "
-            f"{link(url('show', path=path), tr('原文'))} · "
-            f"{link(url('list', prefix=folder), tr('同级文件'))}"
-        )
+        body += h3(tr("当前文件"))
+        if is_previewable(path):
+            body += note_html(
+                " · ".join([link(url("show", path=path), tr("查看")), link(url("list", prefix=folder), tr("同级文件"))])
+            )
+            try:
+                target = asset_path(scope, path)
+            except AssetNotFound:
+                target = None
+            if target is None or not target.is_file():
+                body += note(tr("工程里没有 {}", path))
+                return body
+            body += self.asset_view(url, path)
+            body += kv([(tr("类型"), esc(asset_type(path))), (tr("字节"), str(target.stat().st_size))])
+            return body
+        row = [
+            link(url("get", path=path), tr("字段")),
+            link(url("show", path=path), tr("查看")),
+            link(url("edit", path=path), tr("编辑")),
+        ]
+        row.append(link(url("list", prefix=folder), tr("同级文件")))
+        body += note_html(" · ".join(row))
         try:
             payload = self.app.call("get", scope, path, limit=str(PROP_ROWS)).payload
         except (UsageError, FfError) as error:
@@ -1889,7 +2129,11 @@ class Handler(BaseHTTPRequestHandler):
         key = f"{scope.name}:{scope.root}"
         now = time.monotonic()
         held = self.app.checks.get(key)
-        if held is not None and now - held[0] < CHECK_SECONDS:
+        if held is not None:
+            if now - held[0] < CHECK_SECONDS:
+                return held[1]
+            # The numbers are old: show them, dated, and refresh them in the background.
+            warm_checks(self.app, scope.name)
             return held[1]
         try:
             result = self.app.call("check", scope, "")
@@ -1902,6 +2146,7 @@ class Handler(BaseHTTPRequestHandler):
             "at": time.strftime("%H:%M:%S"),
         }
         self.app.checks[key] = (now, counts)
+        write_check_cache(scope, counts)
         return counts
 
     def status_bar(self, scope_name: str) -> str:
@@ -1940,7 +2185,7 @@ class Handler(BaseHTTPRequestHandler):
                     link(here("list"), tr("列表")),
                     link(here("edit"), tr("编辑")),
                     link(here("log"), tr("日志")),
-                    link(here("ops"), tr("操作")),
+                    link(url("cmd"), tr("操作")),
                     link(here("stats"), tr("统计")),
                     link(here("check"), tr("体检")),
                 ]
@@ -1950,6 +2195,12 @@ class Handler(BaseHTTPRequestHandler):
         body += table([tr("作用域"), tr("根目录"), tr("来源"), tr("操作")], rows)
         if not rows:
             body += warn(tr("没有解析到任何作用域：用 root=<目录> 启动，或先建一个含 ModInformation.toml 的工程。"))
+        missing, settings_path = setting_hints(self.app.cwd)
+        if missing and settings_path is not None:
+            body += warn(
+                tr("{} 指向的目录不存在：{}。改该文件的对应键，或用 root=<目录> 启动。",
+                   settings_path.name, "；".join(missing))
+            )
 
         listing = self.app.call("list", scope, "all")
         payload = listing.payload
@@ -1996,8 +2247,8 @@ class Handler(BaseHTTPRequestHandler):
         return " · ".join(
             [
                 link(url("edit", path=path), tr("改")),
-                link(url("ops", command="add", **{"from": path}), tr("复制")),
-                link(url("ops", command="remove", selector=path, confirm="1"), tr("删除")),
+                link(url("cmd", command="add", **{"from": path}), tr("复制")),
+                link(url("cmd", command="remove", selector=path, confirm="1"), tr("删除")),
             ]
         )
 
@@ -2007,7 +2258,9 @@ class Handler(BaseHTTPRequestHandler):
         url = self.app.url(scope.name)
         wanted = query.get("type", "")
         prefix = query.get("prefix", "")
-        payload = self.app.call("list", scope, "all", type=wanted or None).payload
+        # Every row: the page slices what it got, so a cap on the command would hide the
+        # rest of a large project behind an empty second page.
+        payload = self.app.call("list", scope, "all", type=wanted or None, limit="0").payload
         entities = payload["entities"]
         if prefix:
             needle = prefix.casefold()
@@ -2028,6 +2281,23 @@ class Handler(BaseHTTPRequestHandler):
             for item in window
         ]
         body = h2(tr("实体列表"))
+        body += h3(tr("单位表"))
+        try:
+            declared = self.list_files(scope)
+        except (UsageError, FfError) as error:
+            body += bad(str(error))
+            declared = []
+        if not declared:
+            body += note(tr("这个工程没有声明任何单位表。"))
+        else:
+            links = []
+            for item in declared:
+                name = item.rsplit("/", 1)[-1]
+                if is_surnames(item):
+                    links.append(esc(name) + " " + esc(tr("（只读）")))
+                else:
+                    links.append(link(url("equipment", path=item), name))
+            body += note_html(tr("本工程声明的单位表：") + " " + " · ".join(links))
         body += form(
             url("list"),
             [
@@ -2047,7 +2317,7 @@ class Handler(BaseHTTPRequestHandler):
         body += table([tr("路径"), tr("分类"), tr("格式"), tr("字节"), tr("操作")], rows, tr("没有匹配的实体"))
         body += h3(tr("新建文档"))
         body += form(
-            url("ops", command="add"),
+            url("cmd", command="add"),
             [
                 text_field("selector", tr("新文档路径"), "", 60),
                 text_field("from", tr("复制来源（留空则按 schema 建骨架）"), "", 60),
@@ -2055,24 +2325,59 @@ class Handler(BaseHTTPRequestHandler):
             tr("检查"),
         )
         body += note_html(
-            tr("每行的{}、{}、{}都通向操作页的检查步骤，写入前会先显示该命令的真实结果。",
+            tr("每行的{}、{}、{}都通向写入操作的检查步骤，写入前会先显示该命令的真实结果。",
                tr("改"), tr("复制"), tr("删除"))
         )
         body += pager(url, "list", page, len(entities), size, last, prefix=prefix, type=wanted)
         body += note_html(tr("等价命令：") + mono(f"ff {scope.name} list {prefix or 'all'} --json") + " · " + self.json_link(scope.name, "list", selector="all", type=wanted or None))
         return self.shell(tr("实体列表"), body, scope.name)
 
+    def asset_view(self, url: Url, relative: str) -> str:
+        """Draw one picture or sound from the read-only ``/asset`` route."""
+        source = url("asset", path=relative)
+        name = esc(relative.rsplit("/", 1)[-1])
+        if asset_type(relative).startswith("image/"):
+            return f'<div class="asset-view"><img src="{att(source)}" alt="{name}"></div>'
+        return f'<div class="asset-view"><audio controls preload="none" src="{att(source)}"></audio></div>'
+
+    def page_asset(self, url: Url, scope, relative: str) -> str:
+        """One picture or sound as the document pane, opened from the file tree."""
+        try:
+            target = asset_path(scope, relative)
+        except AssetNotFound as error:
+            raise UsageError(str(error))
+        if not target.is_file():
+            raise UsageError(tr("工程里没有 {}", relative))
+        body = crumbs([(url("index"), tr("首页")), ("", relative)])
+        body += h2(relative)
+        body += self.asset_view(url, relative)
+        body += kv(
+            [
+                (tr("文件"), esc(relative)),
+                (tr("类型"), esc(asset_type(relative))),
+                (tr("字节"), str(target.stat().st_size)),
+            ]
+        )
+        body += note_html(link(url("asset", path=relative), tr("打开原文件")))
+        return self.shell(relative, body, scope.name)
+
     def page_show(self, query: dict[str, str]) -> str:
         """One entity as raw text, TOML or XML, with its warnings."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
         path = query.get("path", "")
+        if is_previewable(path):
+            return self.page_asset(url, scope, path)
         view = query.get("as", "toml")
         if view not in TEXT_VIEWS:
             raise UsageError(tr("as={} 不是 raw / toml / xml 之一", repr(view)))
-        payload = self.app.call("show", scope, path, **{"as": view}).payload
+        try:
+            payload = self.app.call("show", scope, path, **{"as": view}).payload
+        except FfError as error:
+            return self.show_text(url, scope, path, error)
         body = crumbs([(url("index"), tr("首页")), (url("list"), tr("列表")), ("", payload["path"])])
         body += h2(payload["path"])
+        body += doc_bar(url, payload["path"], "show")
         links = []
         for name in TEXT_VIEWS:
             label = {"raw": tr("原始内容"), "toml": tr("TOML 视图"), "xml": tr("XML 视图")}[name]
@@ -2080,8 +2385,6 @@ class Handler(BaseHTTPRequestHandler):
         links.append(link(url("refs", path=payload["path"]), tr("[本文件指向谁]")))
         if payload.get("format") == "list":
             links.append(link(url("equipment", path=payload["path"]), tr("[行编辑]")))
-        if Path(payload["path"]).suffix.lower() in SOURCE_SUFFIXES:
-            links.append(link(url("source", path=payload["path"]), tr("[源码]")))
         links.append(self.json_link(scope.name, "show", selector=payload["path"], **{"as": view}))
         body += "<p>" + " ".join(links) + "</p>"
         warnings = payload.get("warnings") or []
@@ -2118,6 +2421,22 @@ class Handler(BaseHTTPRequestHandler):
         if incoming:
             body += note_html(tr("被引用情况：") + incoming)
         return self.shell(payload["path"], body, scope.name)
+
+    def show_text(self, url: Url, scope, relative: str, reason: Exception) -> str:
+        """A file that does not parse, shown as its own text.
+
+        Opening a file must not be a dead end: an unparseable TOML or XML document is
+        exactly the document someone opens here to repair it (docs/web.md section 2.1).
+        """
+        source = self.source_file(scope, relative)
+        document = journal.confine(source.path, scope.project)
+        body = crumbs([(url("index"), tr("首页")), (url("list"), tr("列表")), ("", document)])
+        body += h2(document)
+        body += doc_bar(url, document, "show")
+        body += warn(tr("这份文件解析失败，按文本打开：{}", reason))
+        body += pre(source.text)
+        body += note_html(tr("到{}按文本修改。", link(url("edit", path=document), tr("编辑"))))
+        return self.shell(document, body, scope.name)
 
     def incoming_link(self, scope, path: str) -> str:
         """Best-effort link to the incoming references of one entity's type token."""
@@ -2355,86 +2674,43 @@ class Handler(BaseHTTPRequestHandler):
         return json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
     def page_edit(self, query: dict[str, str]) -> str:
-        """Every field of one document with the input its schema and enum table call for."""
+        """One document as its own text, ready to be edited and saved as a whole.
+
+        TOML and XML are edited as text: no field table stands in between, and a file
+        that does not parse can still be repaired here.  The save is the same two steps
+        as the other writing pages: a check that touches nothing, then the write.
+        """
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
-        selector = query.get("path", "").strip()
+        wanted = query.get("path", "").strip()
         body = h2(tr("编辑文档"))
-        body += note(tr("填一个文档路径，页面列出它的全部字段；改哪一行就改哪一行的输入框，然后按该行的「保存」。"))
-        body += form(url("edit"), [text_field("path", tr("文档"), selector, 60)], tr("读取"))
-        if not selector:
+        body += note(
+            tr(
+                "整份文档当文本改：TOML、XML 与纯文本都直接编辑，解析不了的文件同样按文本打开。"
+                "保存走与其他写入相同的先计划、后应用，按文本原有的编码、换行与 BOM 写回，因此可以撤销。"
+            )
+        )
+        body += form(url("edit"), [text_field("path", tr("文档"), wanted, 60)], tr("读取"))
+        if not wanted:
             return self.shell(tr("编辑文档"), body, scope.name)
-        payload = self.app.call("get", scope, selector).payload
-        values = payload.get("values") or []
-        if not values:
-            body += note(tr("这个文档没有可列出的字段。"))
+        source = self.source_file(scope, wanted)
+        relative = journal.confine(source.path, scope.project)
+        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("编辑"))])
+        body += doc_bar(url, relative, "edit")
+        body += note(
+            tr(
+                "{} 字节，{} 编码，{} 换行，{} BOM。",
+                len(source.path.read_bytes()),
+                "utf-8-sig" if source.had_bom else source.encoding,
+                "CRLF" if "\r\n" in source.raw else "LF",
+                tr("带") if source.had_bom else tr("无"),
+            )
+        )
+        body += self.source_check(scope, relative)
+        if query.get("confirm") != "1":
+            body += form(url("edit", path=relative), [text_area("text", tr("文本"), source.text)], tr("检查"))
             return self.shell(tr("编辑文档"), body, scope.name)
-        document = payload["path"]
-        root_tag = str(payload.get("root") or "")
-        is_toml = payload.get("format") == "toml"
-        schema = schema_core.schema_for(root_tag) if root_tag else None
-        enums = enums_core.load_enums(edit.project_root_of(scope.root))
-        plain, sections = edit_rows(values)
-        body += crumbs([(url("index"), tr("首页")), (url("show", path=document), document), ("", tr("编辑"))])
-        if plain:
-            rows = [
-                [
-                    esc(item["path"]),
-                    pre(item["value"]),
-                    edit_save(url, document, item, edit_node(schema, root_tag, item["segments"]), root_tag, enums),
-                ]
-                for item in plain
-            ]
-            body += table([tr("字段"), tr("当前值"), tr("改为")], rows)
-        for prefix, items in sections:
-            body += self.edit_section(url, document, prefix, items, root_tag, schema, enums, is_toml)
-        body += note_html(tr("也可以用{}一次给多个参数，或到{}看事件日志。", link(url("ops", command="set"), tr("操作页")), link(url("log"), tr("事件日志"))))
-        return self.shell(tr("编辑文档"), body, scope.name)
-
-    def edit_section(self, url: Url, document: str, prefix: tuple[str, ...], items: list[dict], root_tag: str, schema, enums, is_toml: bool) -> str:
-        """One array as a table of entries; add and delete only where the format supports them."""
-        path = ".".join(prefix)
-        body = h3(tr("数组") + " " + path)
-        entries = edit_entries(prefix, items)
-        columns = sorted({name for cells in entries.values() for name in cells})
-        headers = [tr("条目")] + [esc(name) for name in columns] + ([tr("操作")] if is_toml else [])
-        rows = []
-        for index in sorted(entries, key=int):
-            cells = entries[index]
-            row = [esc(index)]
-            for name in columns:
-                item = cells.get(name)
-                row.append(
-                    ""
-                    if item is None
-                    else edit_save(url, document, item, edit_node(schema, root_tag, item["segments"]), root_tag, enums)
-                )
-            if is_toml:
-                row.append(
-                    form(
-                        url("ops", command="set", op="delete"),
-                        [hidden("selector", document), hidden("field", f"{path}.{index}")],
-                        tr("删除"),
-                    )
-                )
-            rows.append(row)
-        body += table(headers, rows)
-        if is_toml:
-            fields = [hidden("selector", document), hidden("field", path)]
-            if entries:
-                fields.append(
-                    select_field(
-                        "from",
-                        tr("复制自"),
-                        [(index, tr("条目") + " " + index) for index in sorted(entries, key=int)],
-                        "",
-                    )
-                )
-            fields.append(hidden("op", "append"))
-            body += form(url("ops", command="set"), fields, tr("添加"))
-        else:
-            body += note(tr("条目只能在工程文档里增删；零售文档只能改已有条目的字段。"))
-        return body
+        return self.shell(tr("编辑文档"), body + self.source_change(scope, source, relative, query), scope.name)
 
     def source_path(self, scope, relative: str) -> Path:
         """The file behind a source path, or a UsageError naming the problem.
@@ -2445,7 +2721,7 @@ class Handler(BaseHTTPRequestHandler):
         """
         name = relative.rsplit("/", 1)[-1]
         if not relative or Path(name).suffix.lower() not in SOURCE_SUFFIXES:
-            raise UsageError(tr("源码页只打开 {} 文件，不是 {}。", "、".join(SOURCE_SUFFIXES), relative or tr("空路径")))
+            raise UsageError(tr("编辑页只打开 {} 文件，不是 {}。", "、".join(SOURCE_SUFFIXES), relative or tr("空路径")))
         path = scope.project / relative
         try:
             journal.confine(path, scope.project)
@@ -2461,7 +2737,7 @@ class Handler(BaseHTTPRequestHandler):
         path = self.source_path(scope, relative)
         if path.stat().st_size > SOURCE_BYTES:
             raise UsageError(
-                tr("{} 有 {} 字节，超过源码页的 {} 字节上限。", relative, path.stat().st_size, SOURCE_BYTES)
+                tr("{} 有 {} 字节，超过编辑页的 {} 字节上限。", relative, path.stat().st_size, SOURCE_BYTES)
             )
         return textio.read_source(path)
 
@@ -2506,47 +2782,6 @@ class Handler(BaseHTTPRequestHandler):
             )
         )
 
-    def page_source(self, query: dict[str, str]) -> str:
-        """One document as its own text, ready to be edited and saved as a whole.
-
-        The save is the same two steps as the other writing pages: a check that touches
-        nothing, then the write. ``check`` is run on both sides and never blocks.
-        """
-        scope = self.app.scope(query.get("scope", ""))
-        url = self.app.url(scope.name)
-        wanted = query.get("path", "").strip()
-        body = h2(tr("源码"))
-        body += note(
-            tr(
-                "整份文档当文本改：TOML 或 XML 都能在这里直接编辑。保存走与其他写入相同的先计划、后应用，"
-                "按文本原有的编码、换行与 BOM 写回，因此可以撤销。"
-            )
-        )
-        body += form(url("source"), [text_field("path", tr("文档"), wanted, 60)], tr("读取"))
-        if not wanted:
-            return self.shell(tr("源码"), body, scope.name)
-        source = self.source_file(scope, wanted)
-        relative = journal.confine(source.path, scope.project)
-        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("源码"))])
-        body += note(
-            tr(
-                "{} 字节，{} 编码，{} 换行，{} BOM。",
-                len(source.path.read_bytes()),
-                "utf-8-sig" if source.had_bom else source.encoding,
-                "CRLF" if "\r\n" in source.raw else "LF",
-                tr("带") if source.had_bom else tr("无"),
-            )
-        )
-        body += self.source_check(scope, relative)
-        if query.get("confirm") != "1":
-            body += form(
-                url("source", path=relative),
-                [text_area("text", tr("文本"), source.text)],
-                tr("检查"),
-            )
-            return self.shell(tr("源码"), body, scope.name)
-        return self.shell(tr("源码"), body + self.source_change(scope, source, relative, query), scope.name)
-
     def source_change(self, scope, source: textio.SourceText, relative: str, query: dict) -> str:
         """The check step and the write step of one whole-document edit."""
         url = self.app.url(scope.name)
@@ -2556,7 +2791,7 @@ class Handler(BaseHTTPRequestHandler):
         digest = state_digest(scope.root, [relative])
         if query.get("write") == "1" and query.get("expect") and query["expect"] != digest:
             body = bad(tr("检查之后这份文档已经改变，因此这次写入被拒绝：写入会覆盖别人刚做的改动。"))
-            body += note_html(tr("重新载入：") + link(url("source", path=relative), tr("源码")))
+            body += note_html(tr("重新载入：") + link(url("edit", path=relative), tr("编辑")))
             return body
         body = h3(tr("差异"))
         body += text_diff(source.text, textio.normalize_newlines(text), SOURCE_DIFF_ROWS) or note(
@@ -2577,7 +2812,7 @@ class Handler(BaseHTTPRequestHandler):
             body += note(tr("写入之前会再核对一次这份文档的字节；其间有人改过就拒绝写入，请重新载入。"))
             body += note_html(
                 link(
-                    url("source", path=relative, text=text, confirm="1", write="1", expect=digest),
+                    url("edit", path=relative, text=text, confirm="1", write="1", expect=digest),
                     tr("写入"),
                 )
             )
@@ -2588,7 +2823,7 @@ class Handler(BaseHTTPRequestHandler):
         body += h3(tr("写入之后"))
         body += self.source_check(scope, relative)
         body += note_html(
-            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("ops", command="undo"), tr("撤销")))
+            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("cmd", command="undo"), tr("撤销")))
         )
         return body
 
@@ -2653,9 +2888,9 @@ class Handler(BaseHTTPRequestHandler):
         url = self.app.url(scope.name)
         wanted = query.get("path", "").strip()
         body = h2(tr("装备表"))
-        body += note(tr("工程设置的清单文件是一行一条。改哪一行就改哪一行的输入框，按该行的「保存」；写入与命令行一样先记账，可用日志页撤销。"))
+        body += note(tr("工程设置的单位表是一行一条。改哪一行就改哪一行的输入框，按该行的「保存」；写入与命令行一样先记账，可用日志页撤销。"))
         found = self.list_files(scope)
-        body += form(url("equipment"), [text_field("path", tr("清单文件"), wanted, 60)], tr("读取"))
+        body += form(url("equipment"), [text_field("path", tr("单位表"), wanted, 60)], tr("读取"))
         if found:
             links = []
             for item in found:
@@ -2667,7 +2902,7 @@ class Handler(BaseHTTPRequestHandler):
             body += note_html(tr("本工程声明的表格：") + " ".join(links))
         if not wanted:
             if not found:
-                body += note(tr("这个工程没有声明任何清单文件。"))
+                body += note(tr("这个工程没有声明任何单位表。"))
             return self.shell(tr("装备表"), body, scope.name)
         path = self.list_path(scope, wanted)
         relative = journal.confine(path, scope.project)
@@ -2783,7 +3018,7 @@ class Handler(BaseHTTPRequestHandler):
         body += h3(tr("写入结果"))
         body += warn(tr("已写入 {} 字节，记录编号 {}。", written["bytes_after"], written.get("id") or ""))
         body += note_html(
-            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("ops", command="undo"), tr("撤销")))
+            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("cmd", command="undo"), tr("撤销")))
         )
         return body
 
@@ -2826,7 +3061,7 @@ class Handler(BaseHTTPRequestHandler):
         body += h2(tr("事件日志"))
         body += note_html(
             tr("每条记录是一次写入。{} 与 {} 把最近几次写入换回或重做；命令行页可以按 document=、field=、actor=、result=、since=、until= 过滤。",
-               link(url("ops", command="undo"), "undo"), link(url("ops", command="redo"), "redo"))
+               link(url("cmd", command="undo"), "undo"), link(url("cmd", command="redo"), "redo"))
         )
         rows = [
             [
@@ -2842,63 +3077,14 @@ class Handler(BaseHTTPRequestHandler):
         body += table([tr("编号"), tr("时间"), tr("动作"), tr("文档"), tr("字段"), tr("结果")], rows)
         body += note(tr("共 {} 条记录，显示 {} 条。", payload.get("selected", 0), payload.get("shown", 0)))
         body += h3(tr("撤销与重做"))
-        body += form(url("ops", command="undo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
-        body += form(url("ops", command="redo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
+        body += form(url("cmd", command="undo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
+        body += form(url("cmd", command="redo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
         return self.shell(tr("事件日志"), body, scope.name)
 
-    def page_assets(self, query: dict[str, str]) -> str:
-        """The pictures and sounds of the project, drawn from the files themselves.
+    def writing_forms(self, scope: Scope, url: Url, query: dict[str, str]) -> str:
+        """One writing command as a form, with a check step before the write.
 
-        The bytes come from the read-only ``/asset`` route, so a thumbnail is the
-        real file and not a copy: replacing it on disk changes what the page shows.
-        """
-        scope = self.app.scope(query.get("scope", ""))
-        url = self.app.url(scope.name)
-        wanted = query.get("folder") or ""
-        folders = [wanted] if wanted else list(ASSET_FOLDERS)
-        body = crumbs([(url("index"), tr("首页")), ("", tr("资源"))])
-        body += h2(tr("资源"))
-        body += note(tr("这里画的是工程目录里的图片与声音文件本身；点图片打开原图，声音可以直接播放。"))
-        drawn = 0
-        for folder in folders:
-            root = scope.project / folder
-            if not root.is_dir():
-                body += note(tr("工程里没有 {} 目录。", folder))
-                continue
-            found = sorted(
-                path.relative_to(scope.project).as_posix()
-                for path in root.rglob("*")
-                if path.is_file() and is_previewable(path.name)
-            )
-            body += h3(tr("{} 目录（{} 个可预览）", folder, len(found)))
-            if not found:
-                body += note(tr("这个目录里没有可预览的文件。"))
-                continue
-            tiles = []
-            for relative in found[:ASSET_ROWS]:
-                source = url("asset", path=relative)
-                name = esc(relative.rsplit("/", 1)[-1])
-                if asset_type(relative).startswith("image/"):
-                    tiles.append(
-                        f'<figure class="tile"><a href="{att(source)}" target="_blank" rel="noopener">'
-                        f'<img class="thumb" src="{att(source)}" alt="{name}" loading="lazy"></a>'
-                        f"<figcaption>{name}</figcaption></figure>"
-                    )
-                else:
-                    tiles.append(
-                        f'<figure class="tile"><audio controls preload="none" src="{att(source)}"></audio>'
-                        f"<figcaption>{name}</figcaption></figure>"
-                    )
-            body += f'<div class="gallery">{"".join(tiles)}</div>'
-            if len(found) > ASSET_ROWS:
-                body += note(tr("只显示前 {} 项，共 {} 项。", ASSET_ROWS, len(found)))
-            drawn += min(len(found), ASSET_ROWS)
-        body += note(tr("共显示 {} 项。", drawn))
-        return self.shell(tr("资源"), body, scope.name, tr("图片与声音"))
-
-    def page_ops(self, query: dict[str, str]) -> str:
-        """Every writing command as a form, with a check step before the write.
-
+        The form is the command line page with one writing command picked: ``/cmd?command=``.
         Nothing is written until the confirmation step is followed: this UI is GET-only, so a
         link can be prefetched or followed by accident, and the write is kept one deliberate
         click away from the page that shows what it would do.
@@ -2907,37 +3093,22 @@ class Handler(BaseHTTPRequestHandler):
         every writing command takes ``--write``, and ``--dry-run`` is what keeps it from
         touching the disk (docs/cli.md section 4).
         """
-        scope = self.app.scope(query.get("scope", ""))
-        url = self.app.url(scope.name)
         offered = operations()
         wanted = query.get("command", "")
-        if not wanted:
-            body = h2(tr("写入操作"))
-            body += note(tr("每条写入命令一张表。先按「检查」：下一步给出等价命令行和只检查不写入的真实结果，确认后再写入。"))
-            rows = [
-                [
-                    link(url("ops", command=item.command), item.command),
-                    esc(item.title),
-                    esc(item.selector or tr("不需要文档")),
-                ]
-                for item in offered
-            ]
-            body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
-            body += note_html(tr("要运行任意命令用{}。", link(url("cmd"), tr("命令行页"))))
-            return self.shell(tr("写入操作"), body, scope.name)
         operation = next((item for item in offered if item.command == wanted), None)
         if operation is None:
             raise UsageError(tr("没有这条写入命令：{}", wanted))
         selector = query.get("selector", "").strip()
         options = operation_options(operation, query)
-        body = crumbs([(url("index"), tr("首页")), (url("ops"), tr("写入操作")), ("", operation.command)])
+        tools = tools_bar(url, "cmd")
+        body = tools + crumbs([(url("index"), tr("首页")), (url("cmd"), tr("写入操作")), ("", operation.command)])
         body += h2(f"{operation.command} · {operation.title}")
         body += note(operation.note)
         fields = []
         if operation.selector:
             fields.append(text_field("selector", operation.selector, selector, 60))
         fields.extend(operation_field(spec, query.get(spec[0], "")) for spec in operation.fields)
-        body += form(url("ops", command=operation.command), fields, tr("检查"))
+        body += form(url("cmd", command=operation.command), fields, tr("检查"))
         if query.get("confirm") != "1":
             return self.shell(operation.title, body, scope.name)
         check = {"actor": "web", **options, "write": "1", "dry-run": "1"}
@@ -2967,7 +3138,7 @@ class Handler(BaseHTTPRequestHandler):
             body += note_html(
                 tr("重新检查：")
                 + link(
-                    url("ops", command=operation.command, confirm="1", selector=selector, **options),
+                    url("cmd", command=operation.command, confirm="1", selector=selector, **options),
                     tr("检查"),
                 )
             )
@@ -2992,7 +3163,7 @@ class Handler(BaseHTTPRequestHandler):
         body += note_html(
             link(
                 url(
-                    "ops",
+                    "cmd",
                     command=operation.command,
                     confirm="1",
                     write="1",
@@ -3004,6 +3175,22 @@ class Handler(BaseHTTPRequestHandler):
             )
         )
         return self.shell(operation.title, body, scope.name)
+
+    def writing_forms_table(self, url: Url) -> str:
+        """Every writing command as one table; a row opens its check-and-write form."""
+        body = h2(tr("写入操作"))
+        body += note(tr("每条写入命令一张表。先按「检查」：下一步给出等价命令行和只检查不写入的真实结果，确认后再写入。"))
+        rows = [
+            [
+                link(url("cmd", command=item.command), item.command),
+                esc(item.title),
+                esc(item.selector or tr("不需要文档")),
+            ]
+            for item in operations()
+        ]
+        body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
+        body += note_html(tr("表单、命令行、MCP 是同一个工具的三种入口，写入规则见{}。", link(url("help"), tr("帮助页"))))
+        return body
 
     # --- MCP panel ----------------------------------------------------------
 
@@ -3112,8 +3299,29 @@ class Handler(BaseHTTPRequestHandler):
         state = self.app.mcp.state()
         url = self.app.url(scope_name)
         body = h3(tr("监听"))
-        body += note(tr("MCP 通常由客户端以 stdio 启动（上一节的两行）。只支持 HTTP 的客户端可以在这里另开一个端口，本进程用同一张工具表应答。"))
+        body += note(tr("MCP 通常由客户端以 stdio 启动（下方「连接」一节的两行）。只支持 HTTP 的客户端可以在这里另开一个端口，本进程用同一张工具表应答。"))
         if state:
+            public = state.get("public")
+            if query.get("public") == "1" and not public:
+                public = self.app.mcp.refresh_public()
+                state["public"] = public
+                state["public_checked"] = True
+            body += h3(tr("对外地址"))
+            pooled = [(tr("内网"), mono(address)) for address in state.get("addresses") or []]
+            if public:
+                pooled.append((tr("公网"), mono(f"http://{public}:{state['port']}/")))
+            body += kv(pooled)
+            body += h3(tr("直接复制"))
+            boxes = [copy_box(address.split("://", 1)[-1].rstrip("/")) for address in state.get("addresses") or []]
+            if public:
+                boxes.append(copy_box(f"{public}:{state['port']}"))
+            body += note_html(" ".join(boxes))
+            if not public:
+                if state.get("public_checked"):
+                    body += note_html(tr("公网地址没有查到：本机连不上外网，或查询服务没有回应。") + " " + link(url("mcp", public="1"), tr("再查一次")))
+                else:
+                    body += note(tr("公网地址正在后台查询，刷新本页看结果。"))
+            body += note(tr("内网地址在同一局域网的机器上可用；公网地址是路由器对外的地址，需要在路由器上把端口映射到本机，运营商大内网下可能连不上。令牌仍然是唯一的门。"))
             rows = [
                 (tr("地址"), mono(state["url"])),
                 (tr("绑定"), mono(f"{state['bind']}:{state['port']}")),
@@ -3123,15 +3331,12 @@ class Handler(BaseHTTPRequestHandler):
             ]
             body += kv(rows)
             if len(state.get("addresses") or []) > 1:
-                body += note(tr("绑定到所有接口时，这台机器每个地址都能连；下面这些是本机枚举到的。"))
-                body += pre("\n".join(state["addresses"]))
-            body += pre(json.dumps(
-                {"mcpServers": {"firefight-mod-editor": {
-                    "url": state["url"],
-                    "headers": {mcp_listener.TOKEN_HEADER: state["token"]},
-                }}},
-                ensure_ascii=False, indent=2))
-            body += note(tr("监听开着的时候，局域网里的其它机器可以连到上面这个地址；令牌是它唯一的门，因此只在本机使用时选 127.0.0.1 更窄。"))
+                body += pre(json.dumps(
+                    {"mcpServers": {"firefight-mod-editor": {
+                        "url": state["url"],
+                        "headers": {mcp_listener.TOKEN_HEADER: state["token"]},
+                    }}},
+                    ensure_ascii=False, indent=2))
             body += note_html(link(url("mcpstop"), tr("关闭监听")))
             return body
         body += note(tr("现在没有在监听。"))
@@ -3144,7 +3349,7 @@ class Handler(BaseHTTPRequestHandler):
             ],
             tr("打开监听"),
         )
-        body += note(tr("监听地址填 local（127.0.0.1，仅本机）、lan（0.0.0.0，所有接口），或这台机器上某个 IP。绑到所有接口后，页面会列出枚举到的每个地址，公网能连到哪一个取决于路由器与防火墙。"))
+        body += note(tr("监听地址填 local（127.0.0.1，仅本机）、lan（0.0.0.0，所有接口），或这台机器上某个 IP。打开后页面列出内网地址，并到外部服务查询公网地址，都给出可直接复制的 ip:端口。"))
         body += note(tr("默认只读：不带写入开关时，写入类工具与不带 --write 的命令行服务器一样不会被登记。"))
         return body
 
@@ -3183,12 +3388,12 @@ class Handler(BaseHTTPRequestHandler):
         """
         scope = self.app.scope(query.get("scope") or "")
         url = self.app.url(scope.name)
-        body = h2(tr("MCP"))
-        body += note(tr("MCP 服务与 DSH 插件读的是同一张工具规格表，这一页列的就是它登记的工具。"))
+        body = tools_bar(url, "mcp") + h2(tr("MCP"))
+        body += note_html(tr("MCP 与命令行页同源，说明见{}。", link(url("help"), tr("帮助页"))))
+        body += self.mcp_listener_section(scope.name, query)
         body += h3(tr("连接"))
         body += note(tr("命令行启动的服务器把工具交给任何 MCP 客户端；下面两行只差 --write。"))
         body += self.mcp_snippet()
-        body += self.mcp_listener_section(scope.name, query)
         body += h3(tr("工具"))
         body += self.mcp_tools_table()
         body += note(tr("参数名后带 * 的是必填项；不带 --write 的服务器只登记不写入的工具。"))
@@ -3213,18 +3418,43 @@ class Handler(BaseHTTPRequestHandler):
         name (`Mod stats`). Quoting a path with a space works; writing commands run here too and the
         command's own gate decides whether they write; only `web` is refused, because it would bind a
         second port inside a request.
+
+        The page also carries the writing commands as forms: ``/cmd?command=set`` is the form of
+        one writing command, with the check step before the write.
         """
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
+        if query.get("command"):
+            return self.writing_forms(scope, url, query)
         line = query.get("line", "").strip()
         as_json = query.get("json", "") in ("1", "yes", "true")
-        body = h2(tr("命令行"))
-        body += note(tr("输入 python -m core.cli 后面的部分即可，例如 list weapon、stats、show Data/Weapons/WEAPON_PISTOL_P38.txt as=toml、deps value=WEAPON_PISTOL_P38。"))
-        body += note(tr("可选在最前面写作用域（Firefight / Mod / 模组文件夹名）；路径带空格时用双引号。写入类命令会照常运行，是否落盘由命令自身的门决定；web 会被拒绝。"))
-        body += form(url("cmd"), [text_field("line", tr("命令"), line, 80), checkbox("json", tr("JSON 输出"), as_json)], tr("运行"))
+        body = tools_bar(url, "cmd") + h2(tr("命令行"))
+        body += note_html(tr("输入 python -m core.cli 后面的部分；作用域可写在最前面，路径带空格时用双引号。命令与写入规则见{}。", link(url("help"), tr("帮助页"))))
+        body += form(
+            url("cmd"),
+            [
+                option_list_input("line", tr("命令"), line, 80, "cmd-commands", "cmd"),
+                checkbox("json", tr("JSON 输出"), as_json),
+            ],
+            tr("运行"),
+        )
+        body += datalist("cmd-commands", [name for name in command_names()])
+        body += datalist(
+            "cmd-keys",
+            [
+                "scope", "root", "path", "selector", "field", "value", "op", "from", "to",
+                "type", "prefix", "tag", "limit", "as", "tag_regex", "ignore_case",
+                "confirm", "write", "overwrite", "strict", "against", "roster", "dry_run",
+            ],
+        )
+        body += (
+            f'<div class="sub" id="cmd-hint" data-unknown="{att(tr("未知命令，输入 help 看全部"))}" '
+            f'data-index="{att(command_index_json())}"></div>'
+        )
         examples = ["list weapon", "stats", "check", "deps value=WEAPON_PISTOL_P38", 'show "Data/Infantry/American-Rifle Squad.txt" as=toml']
         body += note_html(tr("示例：") + " · ".join(link(url("cmd", line=item), item) for item in examples))
         if not line:
+            body += self.writing_forms_table(url)
             return self.shell(tr("命令行"), body, scope.name)
         tokens = split_command_line(line)
         known = self.app.scopes()
@@ -3269,24 +3499,22 @@ class Handler(BaseHTTPRequestHandler):
             + " · " + link(url("json", command=command, selector=selector or "all", **json_options), tr("原始 JSON"))
             + " · " + link(url("cmd", line=shown + (" --json" if as_json else "")), tr("按 JSON 重跑"))
         )
+        body += self.writing_forms_table(url)
         return self.shell(tr("命令行"), body, scope.name)
 
     def page_help(self, query: dict[str, str]) -> str:
         """What every page does and the CLI command behind it."""
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
-        body = h2(tr("页面与等价命令"))
+        body = tools_bar(url, "help") + h2(tr("页面与等价命令"))
         rows = [
             [link(url("index"), "/"), tr("作用域与清单"), mono(f"ff {scope.name} list")],
             [link(url("list"), "/list"), tr("实体表格，可按路径片段与分类过滤"), mono(tr("ff {} list <前缀>", scope.name))],
             [link(url("show", path=""), "/show"), tr("一个实体的原始 / TOML / XML 视图"), mono(tr("ff {} show <路径> as=toml", scope.name))],
             [link(url("get", path=""), "/get"), tr("某个字段的取值、文档路径与行号"), mono(tr("ff {} get <路径> field=<字段>", scope.name))],
-            [link(url("edit"), "/edit"), tr("一个文档的全部字段，每行一个输入框"), mono(tr("ff {} get <路径>", scope.name))],
-            [link(url("source"), "/source"), tr("一份文档的整段文本，可直接改 TOML 或 XML 后保存"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
-            [link(url("equipment"), "/equipment"), tr("工程设置的清单文件，一行一条，可改可删可追加"), mono(tr("ff {} show <路径>", scope.name))],
+            [link(url("edit"), "/edit"), tr("一个文档的整段文本，TOML 与 XML 按文本直接编辑，解析不了的文件同样按文本打开"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
+            [link(url("equipment"), "/equipment"), tr("工程设置的单位表，一行一条，可改可删可追加；入口在实体列表页"), mono(tr("ff {} show <路径>", scope.name))],
             [link(url("log"), "/log"), tr("事件日志，以及撤销与重做的入口"), mono(f"ff {scope.name} log")],
-            [link(url("assets"), "/assets"), tr("工程里的图片与声音；缩略图就是文件本身"), mono(tr("ff {} convert <选择器> to=<目录> assets=1", scope.name))],
-            [link(url("ops"), "/ops"), tr("11 条写入命令的表单；先检查，确认后才写入"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
             [link(url("mcp"), "/mcp"), tr("MCP 工具表、连接片段，以及在进程内试跑一次 tools/call"), mono(tr("python -m core.mcp --write"))],
             [link(url("find"), "/find"), tr("按标签、取值或文档路径搜索"), mono(tr("ff {} find <前缀> tag=…", scope.name))],
             [link(url("refs", path=""), "/refs"), tr("一个实体指向谁"), mono(tr("ff {} refs <路径>", scope.name))],
@@ -3297,10 +3525,15 @@ class Handler(BaseHTTPRequestHandler):
             [link(url("json", command="list", selector="all"), "/json"), tr("任何命令的原始 JSON"), mono(tr("加 --json 的同一个命令"))],
         ]
         body += table([tr("页面"), tr("做什么"), tr("等价命令")], rows)
+        body += h2(tr("命令索引"))
+        index_rows = [[mono(name), esc(command_summary(name))] for name in command_names()]
+        body += table([tr("命令"), tr("做什么")], index_rows)
         body += h2(tr("说明"))
-        body += note(tr("页面跑的是与命令行相同的代码，写入类命令也一样：命令自身的门（--write、工程目录限制）决定是否落盘。只拒绝 web，因为它会在一次请求里再起一个服务。"))
-        body += note(tr("链接里的 scope 参数指定作用域，t 参数是访问令牌（启动时带 token= 才需要）。"))
-        body += note(tr("单线程服务，一次处理一个请求；Ctrl-C 或页面上的「退出」停止。"))
+        body += note(tr("命令行页上的写入表单、一行命令与 MCP 工具表是同一个工具的三种入口：三者最后都走同一份命令实现与同一道写入门，因此说明写在这一页。"))
+        body += note(tr("写入：表单先「检查」再写入；命令行照常运行，写入类命令是否落盘由自身的 --write 决定；MCP 的写入工具也只在带 --write 的服务器上登记。页面不另加锁，也不另写一套。"))
+        body += note(tr("命令：命令行页的输入就是 python -m core.cli 后面的部分，最前面可写作用域；页面里的写入记为 actor=web。只拒绝 web 命令，因为它会在一次请求里再起一个服务。"))
+        body += note(tr("MCP：同一张工具规格表（core/cli/specs.py）登记工具，DSH 插件读的也是它；stdio 与页面上的 HTTP 监听是两种接法，监听地址只决定范围，令牌是它唯一的门。"))
+        body += note(tr("链接里的 scope 参数指定作用域，t 参数是访问令牌（启动时带 token= 才需要）。单线程服务，一次处理一个请求；Ctrl-C 或页面上的「退出」停止。"))
         return self.shell(tr("帮助"), body, scope.name)
 
     def page_quit(self, query: dict[str, str]) -> str:
@@ -3515,7 +3748,7 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
     write_instance(root, record)
     # The reference cache is read first and rebuilt in the background; a failure only prints,
     # so the page layer keeps working from the files themselves (docs/cli.md section 4.6).
-    warm_index(app, scope_name)
+    prime_index(app, scope_name)
     print(tr("Firefight 模组编辑器 Web UI · 作用域 {}", scope_name), flush=True)
     print(tr("  根目录   {}", app.scope(scope_name).root), flush=True)
     print(tr("  地址     {}", address), flush=True)

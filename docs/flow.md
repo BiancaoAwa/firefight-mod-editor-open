@@ -18,7 +18,7 @@ flowchart TD
         B3["mod.txt<br/>the file the game reads"]
         B4["Data/**/*.toml<br/>working files"]
         B5["Images/, Sounds/"]
-        B6["EditorCache/log/*.jsonl<br/>EditorCache/baseline/**"]
+        B6["EditorCache/log/*.jsonl<br/>EditorCache/baseline/**<br/>EditorCache/lock"]
         B7["EditorCache/index.toml<br/>EditorCache/refs.toml"]
     end
 
@@ -36,6 +36,22 @@ flowchart TD
     end
 
     E1["&lt;name&gt;-&lt;version&gt;.zip<br/>Mod/ + README.md + LICENSE"]
+
+    subgraph webmods["The web face, module by module"]
+        W1["core/web/server.py<br/>the routes, the pages, the write path"]
+        W2["core/web/tables.py<br/>the plain-text table editor behind /equipment"]
+        W3["core/web/mcp_listener.py<br/>MCP over HTTP, its token and its bound address"]
+        W4["core/web/i18n.py<br/>the page templates and the Chinese table"]
+    end
+
+    F1["core/roster.py<br/>the plain-text unit rosters, edited by physical line"]
+
+    subgraph pending["Not yet done"]
+        P1["core/schema.py<br/># TODO(m5): no schema for vehicle and at_gun"]
+        P2["core/pack.py<br/># TODO(pack): stock-baseline comparison, APK packaging"]
+        P3["core/pack.py<br/># KNOWN: a document that exists only as TOML is re-emitted canonically"]
+        P4["no marker: init reads no template, Images/ and Sounds/ need convert assets=1,<br/>Maps/ Surnames/ equipment_* outside the schema, no retry against the stock corpus"]
+    end
 
     A1 -->|convert| B4
     A2 -->|"convert assets=1"| B5
@@ -58,6 +74,11 @@ flowchart TD
     C1 --> D2
     C1 --> D3
     D4 --> D1
+    D3 --> W1
+    W1 --> W2
+    W1 --> W3
+    W1 --> W4
+    C1 --> F1
 ```
 
 Every write goes through `core/edit.py`, which stages the new bytes, holds `EditorCache/lock`,
@@ -69,6 +90,8 @@ stores the old and new blobs under `EditorCache/baseline/`, and appends one reco
 
 | Path | Role |
 | --- | --- |
+| `core/__init__.py` | the version number, written down in one place |
+| `core/cli/__main__.py` | the entry point behind `python -m core.cli` |
 | `core/cli/main.py` | argument parsing, the usage text, exit codes |
 | `core/cli/commands.py` | every command and the `Document` it works on |
 | `core/cli/scope.py` | `Mod`, `Firefight` and `<name>` resolution, `entity_files` |
@@ -85,11 +108,23 @@ stores the old and new blobs under `EditorCache/baseline/`, and appends one reco
 | `core/pack.py` | builds the mod-zip |
 | `core/textio.py` | decoding, newlines, the export encoding |
 | `core/enums.py`, `core/errors.py` | enum tables, the error model |
+| `core/roster.py` | the plain-text unit rosters, edited by physical line |
 | `core/mcp/` | stdio JSON-RPC server, its tools and resources |
+| `core/mcp/__main__.py` | the entry point behind `python -m core.mcp` |
+| `core/mcp/server.py` | the JSON-RPC loop, both protocol families |
+| `core/mcp/tools.py` | one in-process command call per tool |
 | `core/web/` | the pages, the instance record, the language table |
+| `core/web/server.py` | the routes, the pages and the write path behind a form |
+| `core/web/mcp_listener.py` | the optional MCP-over-HTTP socket, its token and its bound address |
+| `core/web/tables.py` | the plain-text table editor the `/equipment` page runs |
+| `core/web/i18n.py` | the English templates and the Chinese table |
 | `docs/` | usage and architecture documents, each in English and Chinese |
+| `docs/m1-design.md` | the M1 design note behind toml-mapping.md, not a usage document |
+| `docs/firefight-docs/extract_docs_md.py` | turns the game's own .mht documentation into one markdown file |
 | `tests/` | `python -m unittest discover -s tests -t .` |
 | `tools/launcher/` | the PowerShell launcher and its `.cmd` entry points |
+| `tools/export_fidelity.py` | runs `export` over a data directory and compares every file byte for byte |
+| `tools/m1_roundtrip.py` | XML to TOML to XML over the stock tree, one TSV report |
 | `tools/FirefightModPackager/` | the upstream packager, vendored |
 
 ## Build artifacts
