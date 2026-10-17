@@ -43,6 +43,7 @@
 | `mcp_ff_schema` | `scope`、`element`、`enum`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_diff` | `scope`、`left`、`right`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_verify` | `scope`、`selector`、`limit`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_audit` | `scope`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_export` | `scope`、`selector`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_set` | `scope`、`selector`、`field`、`value`、`op`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_add` | `scope`、`selector`、`type`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
@@ -58,6 +59,10 @@
 | `mcp_ff_clone` | `scope`、`source`、`as`、`into`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_roster` | `scope`、`roster`、`op`、`section`、`value`、`line`、`as`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_import` | `scope`、`source`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_build` | `scope`、`to`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_adopt` | `scope`、`source`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_unpack` | `scope`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_run` | `scope`、`steps`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 
 凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。每个写入工具都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视；`mcp_ff_roster` 只在给出 `op` 时写入，不给则只读。
 

@@ -66,6 +66,11 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `check` | `lint` | load everything; report load errors, warnings and dangling references |
 | `schema` | | the declared fields of one root element, or one enum table; read-only (§4.13) |
 | `verify` | | read every selected document back and report what does not survive; read-only (§4.11) |
+| `build` | `to=` | index, check and pack in one run; stops at the first step that fails (§4.17) |
+| `audit` | | verify every document, then check with both gates on; read-only (§4.17) |
+| `adopt` | `<tree or zip>` `to=` | import a tree or zip as a project, then index it (§4.17) |
+| `unpack` | `to=` | write the project back out as the original XML and text (§4.17) |
+| `run` | `<steps.toml>` | run the steps the file lists, in order (§4.17) |
 | `diff` | | compare two documents, or two trees lined up by entity path; read-only (§4.10) |
 | `roster` | | read the rosters the settings declare, or check the entries against the documents; `op=` needs `--write` (§4.14) |
 | `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
@@ -297,6 +302,9 @@ python -m core.cli Mod index [selector] --write [--dry-run]
   `roster`, so the tables carry them beside the ones inside XML documents and `deps <unit>`
   answers from the index too. A surname list contributes nothing: it names people, not files
   (docs/refs.md §1).
+* The web server reads both tables at start-up and rebuilds them in a background thread when the
+  fingerprint no longer matches; the command itself is unchanged, and the pages fall back to
+  walking the files if the rebuild fails (docs/web.md §1).
 
 ### 4.7 Translating between `mod.txt` and `ModSetting.toml`
 
@@ -454,6 +462,9 @@ python -m core.cli Mod clone <document> as=<Token> [into=<scope or directory>] -
   `bytes_after`, `existed_before` and `recorded`. The write is recorded as an `add`, so one
   `undo` removes the copy again (§4.2).
 
+A project file is copied the same way, without `as=`: the source names
+`ModInformation.toml` or `ModSetting.toml`, and `into=` names the project that receives it.
+
 ### 4.13 Reading the schema of a root element
 
 ```
@@ -579,6 +590,45 @@ usually looks.
 * The payload carries `source`, `root` (the prefix inside the source that held the mod), `to`,
   `overwrite`, `dry_run`, `count`, `shown` (`path`, `bytes`), `files` (how many files the source
   offered), `has_settings`, `skipped` and `errors`.
+
+### 4.17 `build`, `audit`, `adopt`, `unpack` and `run` — one call for a whole sequence
+
+The four workflows that used to take several invocations each now have one command, and a
+fifth runs any list of steps:
+
+```
+ff Mod build to=<directory> --write [--dry-run]
+ff Mod audit [--json]
+ff Mod adopt <tree or zip> to=<directory> --write [--dry-run] [overwrite=1]
+ff Mod unpack to=<directory> --write [--dry-run] [overwrite=1]
+ff Mod run <steps.toml> --write [--dry-run] [--json]
+```
+
+`build` runs `index`, then `check`, then `pack`. `audit` runs `verify`, then `check` with
+`assets=1 rosters=1`. `adopt` runs `import`, then `index` on the project it just wrote.
+`unpack` runs `export`, preceded by `settings op=render --write` when the project carries a
+`mod.txt`.
+
+Every step is an ordinary command call, so it is logged, gated and reversible exactly as it
+would be on its own. A step that reports a failure stops the run and the summary names it;
+the steps before it have already happened, and `undo` reverses them. `--dry-run` switches
+each step to its own dry run and changes nothing.
+
+`run` takes a TOML file:
+
+```toml
+[[step]]
+command = "set"
+selector = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+with = ["field=name", "value=P38 Carbine"]
+
+[[step]]
+command = "check"
+```
+
+`command` must be one of the commands above; `selector` is the document or element the step
+works on; `with` is a list of `key=value` options. The same rule applies: the first failing
+step stops the run.
 
 ## 5. Exit codes
 

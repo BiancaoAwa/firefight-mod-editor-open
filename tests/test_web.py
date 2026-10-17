@@ -38,6 +38,7 @@ STOCK = SCRATCH / "stock"
 PROJECT = SCRATCH / "project"
 WORKSPACE = SCRATCH / "workspace"
 MEDIA = SCRATCH / "media"
+TWINS = SCRATCH / "twins"
 
 WEAPON_XML = """<weapon>
 \t<name>P38 Pistol</name>
@@ -103,6 +104,15 @@ American-Rifle Squad.txt
 PICTURE = b"\x89PNG\r\n\x1a\nfixture-pixels"
 SOUND = b"OggS-fixture-bytes"
 
+# One working document, used where a fixture needs a .toml beside a .txt twin.
+TWIN_TOML = """[weapon]
+	name = "P38 Pistol"
+	type = "WEAPON_PISTOL"
+
+[weapon.dimensions]
+	calibre = "9mm"
+"""
+
 # One document whose image field names a file that is really there, and one whose
 # image field dangles: only the first may draw a preview.
 MEDIA_XML = """<weapon>
@@ -153,6 +163,13 @@ class WebTestCase(unittest.TestCase):
         write(MEDIA / "Data/Weapons/WEAPON_PREVIEW.txt", MEDIA_XML)
         write(MEDIA / "Data/Weapons/WEAPON_MISSING.txt", MEDIA_MISSING_XML)
         write_bytes(MEDIA / "Images/units/rifleman.png", PICTURE)
+        write(TWINS / "ModInformation.toml", 'name = "Twins"\n')
+        write(TWINS / "Data/Weapons/WEAPON_PISTOL_P38.toml", TWIN_TOML)
+        write(TWINS / "Data/Weapons/WEAPON_PISTOL_P38.txt", WEAPON_XML)
+        write(TWINS / "Data/Weapons/WEAPON_EVIL.toml", TWIN_TOML)
+        write(TWINS / "Data/Weapons/WEAPON_EVIL.txt", "different bytes\n")
+        write(TWINS / "README.md", "a readme\n")
+        write(TWINS / "EditorCache/state.toml", 'seen = "1"\n')
         cls.options = {"root": str(STOCK), "workspace": str(WORKSPACE)}
         cls.app = App(cls.options, SCRATCH, "Firefight")
         cls.server = make_server(cls.app, 0)
@@ -637,9 +654,9 @@ class WebTestCase(unittest.TestCase):
     # --- editing, the event log and the operation page ----------------------
 
     @contextlib.contextmanager
-    def running(self, root: Path):
+    def running(self, root: Path, **options):
         """Serve a second app whose default scope is a real project directory."""
-        app = App({"workspace": str(WORKSPACE)}, root, "Mod")
+        app = App({"workspace": str(WORKSPACE), **options}, root, "Mod")
         server = make_server(app, 0)
         server.quiet = True
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -697,6 +714,111 @@ class WebTestCase(unittest.TestCase):
         self.assertIn('action="/ops"', body)
         for name in ("command", "selector", "field", "value"):
             self.assertIn(f'name="{name}"', body)
+
+    # --- structured controls, driven by the schema and the enum tables ------
+
+    STRUCTURED_TOML = """[weapon]
+\tname = "Structured Pistol"
+\ttype = "WEAPON_PISTOL_P38"
+
+[weapon.shoot]
+\tmuzzle_flash = false
+\tsound_shoot = "shoot_pistol"
+
+[[weapon.ammo.type]]
+\tflavour = "FLAVOUR_BALL"
+\tname = "9x19mm"
+"""
+
+    def structured(self) -> str:
+        """Serve one project document the schema knows, and return its /edit body."""
+        project = SCRATCH / "structured-project"
+        shutil.rmtree(project, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, project, True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Structured"\n\tversion_name = "0.0.1"\n')
+        document = project / "Data" / "Weapons" / "WEAPON_STRUCTURED.toml"
+        write(document, self.STRUCTURED_TOML)
+        with self.running(project) as base:
+            status, body = self.fetch_from(base, "/edit", path="Data/Weapons/WEAPON_STRUCTURED.toml")
+        self.assertEqual(status, 200, body[:400])
+        return body
+
+    def test_edit_draws_a_checkbox_for_a_boolean_field(self) -> None:
+        body = self.structured()
+        self.assertIn('<input type="checkbox" name="value" value="yes">', body)
+        self.assertIn('<input type="hidden" name="value" value="no">', body)
+        self.assertIn('name="field" value="shoot.muzzle_flash"', body)
+
+    def test_edit_draws_a_select_for_an_enumerated_field(self) -> None:
+        body = self.structured()
+        self.assertIn('<select name="value">', body)
+        self.assertIn('<option value="WEAPON_PISTOL_P38" selected>', body)
+        self.assertIn('name="field" value="type"', body)
+
+    def test_edit_keeps_a_text_box_for_a_field_outside_the_schema(self) -> None:
+        """Only the fields the schema knows get a control; the rest keep the plain text box."""
+        body = self.structured()
+        self.assertIn('name="field" value="shoot.sound_shoot"', body)
+        self.assertIn('<input type="text" name="value" value="" size="30">', body)
+
+    def test_edit_draws_an_array_as_a_table_with_add_and_delete(self) -> None:
+        body = self.structured()
+        self.assertIn("数组 ammo.type", body)
+        self.assertIn('name="field" value="ammo.type.0.flavour"', body)
+        self.assertIn('<input type="hidden" name="op" value="delete">', body)
+        self.assertIn('<input type="hidden" name="op" value="append">', body)
+        self.assertIn('value="添加"', body)
+
+    def test_edit_keeps_retail_array_entries_editable_without_add_or_delete(self) -> None:
+        """An XML document has no array of tables to append to, so only its fields are offered."""
+        _, body = self.fetch("/edit", path="Data/Weapons/WEAPON_PISTOL_P38.txt")
+        self.assertIn("数组 ammo.type", body)
+        self.assertIn('name="field" value="ammo.type.0.flavour"', body)
+        self.assertNotIn('name="op"', body)
+        self.assertNotIn("op=delete", body)
+        self.assertNotIn('value="添加"', body)
+
+    # --- the reference cache: read at start, rebuilt when stale --------------
+
+    def cache_project(self) -> Path:
+        """One project with a single document, the smallest tree the index covers."""
+        project = SCRATCH / "cache-project"
+        shutil.rmtree(project, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, project, True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Cache"\n\tversion_name = "0.0.1"\n')
+        write(project / "Data" / "Weapons" / "WEAPON_CACHE.txt", WEAPON_XML)
+        return project
+
+    def test_the_reference_cache_is_built_once_and_reused(self) -> None:
+        project = self.cache_project()
+        app = App({"workspace": str(WORKSPACE)}, project, "Mod")
+        self.assertTrue(server.rebuild_index(app, "Mod"))
+        self.assertTrue((project / "EditorCache" / "index.toml").exists())
+        self.assertTrue((project / "EditorCache" / "refs.toml").exists())
+        self.assertFalse(server.rebuild_index(app, "Mod"), "a current cache was rebuilt again")
+
+    def test_a_changed_document_makes_the_cache_stale(self) -> None:
+        project = self.cache_project()
+        app = App({"workspace": str(WORKSPACE)}, project, "Mod")
+        self.assertTrue(server.rebuild_index(app, "Mod"))
+        write(project / "Data" / "Weapons" / "WEAPON_CACHE.txt", WEAPON_XML.replace("P38 Pistol", "Cache Pistol"))
+        self.assertTrue(server.rebuild_index(app, "Mod"), "a changed document did not trigger a rebuild")
+
+    def test_the_server_starts_the_rebuild_in_the_background(self) -> None:
+        project = self.cache_project()
+        app = App({"workspace": str(WORKSPACE)}, project, "Mod")
+        thread = server.warm_index(app, "Mod")
+        thread.join(timeout=20)
+        self.assertFalse(thread.is_alive(), "the warm-up did not finish")
+        self.assertTrue((project / "EditorCache" / "index.toml").exists())
+
+    def test_a_failure_in_the_rebuild_is_only_logged(self) -> None:
+        """The page layer keeps working from the files, so a cache error never escapes."""
+        app = mock.Mock()
+        app.scope.side_effect = FfError("no scope")
+        with contextlib.redirect_stdout(io.StringIO()) as printed:
+            self.assertFalse(server.rebuild_index(app, "Mod"))
+        self.assertIn("index rebuild skipped", printed.getvalue())
 
     def test_the_log_page_carries_the_undo_and_redo_forms(self) -> None:
         status, body = self.fetch("/log")
@@ -911,13 +1033,30 @@ class WebTestCase(unittest.TestCase):
             server.server_close()
             thread.join(timeout=5)
 
-    def test_pages_carry_one_inline_script_and_load_nothing(self) -> None:
-        """The workbench script is the only one, and it is inline: no outside file is fetched."""
+    def test_pages_load_one_stylesheet_and_one_script(self) -> None:
+        """The shell is two files, the same two for every page, so the browser keeps one copy."""
         for route in ("/", "/list", "/find", "/deps", "/check", "/stats", "/edit", "/log", "/ops", "/help", "/quit"):
             _, body = self.fetch(route)
             self.assertEqual(body.count("<script"), 1, f"{route} does not carry exactly one script")
-            self.assertNotIn("<script src", body, f"{route} loads an outside script")
-            self.assertNotIn("<link", body, f"{route} loads an outside style sheet")
+            self.assertIn('<script src="/shell.js"', body, f"{route} does not load the shell script")
+            self.assertNotIn("<script>", body, f"{route} still carries the script inline")
+            self.assertEqual(body.count("<link"), 1, f"{route} does not carry exactly one stylesheet link")
+            self.assertIn('<link rel="stylesheet" href="/shell.css"', body, f"{route} does not load the shell style sheet")
+            self.assertNotIn("<style>", body, f"{route} still carries the style sheet inline")
+
+    def test_the_shell_is_served_once_with_a_cache_header(self) -> None:
+        """A static file: no token, an ETag and a one-hour cache, and a 304 when it repeats."""
+        status, css, headers = self.fetch_asset("/shell.css")
+        self.assertEqual(status, 200, css[:200])
+        self.assertIn("text/css", headers["Content-Type"])
+        self.assertEqual(headers["Cache-Control"], "public, max-age=3600")
+        etag = headers["ETag"]
+        status, _, headers = self.fetch_asset("/shell.css", etag=etag)
+        self.assertEqual(status, 304)
+        status, js, headers = self.fetch_asset("/shell.js")
+        self.assertEqual(status, 200)
+        self.assertIn("javascript", headers["Content-Type"])
+        self.assertIn("ff.workbench", js.decode("utf-8"))
 
     def test_a_page_can_ask_for_the_document_pane_alone(self) -> None:
         """The tab strip fetches this fragment and drops it into the pane it already has."""
@@ -939,7 +1078,7 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("Weapons", body)
         self.assertIn("2 项", body)
         self.assertIn("WEAPON_PISTOL_P38.txt", body)
-        self.assertIn("6 个文件", body)
+        self.assertIn("9 个文件", body)
 
     def test_the_tree_lists_the_plain_text_tables_too(self) -> None:
         """An equipment list is a document a person edits, so the tree offers it."""
@@ -959,11 +1098,37 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("从左边打开一个文件", body)
 
     def test_the_workbench_face_and_size_come_from_the_stylesheet(self) -> None:
-        """The narrow industrial face and the larger base size, both in one place."""
-        _, body = self.fetch("/")
-        self.assertIn("--font: Tahoma", body)
-        self.assertIn("--size: 15px", body)
-        self.assertIn("font-size: var(--size)", body)
+        """The narrow industrial face and the larger base size, both in the one file."""
+        status, sheet, _headers = self.fetch_asset("/shell.css")
+        self.assertEqual(status, 200)
+        css = sheet.decode("utf-8")
+        self.assertIn("--font: Tahoma", css)
+        self.assertIn("--size: 15px", css)
+        self.assertIn("font-size: var(--size)", css)
+
+    def test_the_stylesheet_carries_a_dark_theme_and_two_faces(self) -> None:
+        """The theme is a set of variables on the root, so one attribute switches it."""
+        _, sheet, _headers = self.fetch_asset("/shell.css")
+        css = sheet.decode("utf-8")
+        self.assertIn(':root[data-theme="dark"]', css)
+        self.assertIn("--bg: #202020", css)
+        self.assertIn("body.mono-font { --font: var(--mono)", css)
+
+    def test_the_tool_bar_carries_the_theme_and_font_toggles(self) -> None:
+        """Two buttons, and the script stores what they switch in the browser."""
+        _, body = self.fetch("/index")
+        self.assertIn('data-toggle="theme"', body)
+        self.assertIn('data-toggle="font"', body)
+        _, script, _headers = self.fetch_asset("/shell.js")
+        js = script.decode("utf-8")
+        self.assertIn("state.theme", js)
+        self.assertIn('state.font === "mono"', js)
+
+    def test_the_scope_origin_is_read_as_a_sentence(self) -> None:
+        """The pane says where the scope came from; `Scope.origin` keeps its log wording."""
+        _, body = self.fetch("/index")
+        self.assertIn("命令行 root=", body)
+        self.assertNotIn("option root=", body)
 
     def test_the_tree_carries_a_search_box(self) -> None:
         """One field in the tree pane, and every file carries the path the script filters on."""
@@ -977,7 +1142,65 @@ class WebTestCase(unittest.TestCase):
         _, body = self.fetch("/", scope="Firefight", q="equipment_american")
         self.assertIn("equipment_american_WW2.txt", body)
         self.assertNotIn("WEAPON_PISTOL_P38.txt", body)
-        self.assertIn("6 个文件里有 1 个匹配 equipment_american。", body)
+        self.assertIn("9 个文件里有 1 个匹配 equipment_american。", body)
+
+    def test_the_tree_lists_every_file_of_the_project(self) -> None:
+        """Not only the entities: the readme, the manifest and the settings are files too."""
+        with self.running(TWINS, firefight=str(STOCK)) as base:
+            status, body = self.fetch_from(base, "/index")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn("README.md", body)
+        self.assertIn("Data/Weapons/WEAPON_PISTOL_P38.toml", body)
+        # the editor's own state is not part of the project
+        self.assertNotIn("EditorCache", body)
+
+    def test_a_twin_txt_is_dimmed_and_offers_its_deletion(self) -> None:
+        """The rendered copy is the secondary file; the delete link is for the equal case."""
+        with self.running(TWINS, firefight=str(STOCK)) as base:
+            _, body = self.fetch_from(base, "/index")
+        self.assertIn('class="tree-file dim" data-path="Data/Weapons/WEAPON_PISTOL_P38.txt"', body)
+        self.assertIn("/twin?path=Data%2FWeapons%2FWEAPON_PISTOL_P38.txt", body)
+
+    def test_a_twin_that_differs_is_marked_instead(self) -> None:
+        """A txt that no longer matches the original offers a look at the difference, not a delete."""
+        with self.running(TWINS, firefight=str(STOCK)) as base:
+            _, body = self.fetch_from(base, "/index")
+        self.assertIn("≠", body)
+        self.assertNotIn("/twin?path=Data%2FWeapons%2FWEAPON_EVIL.txt", body)
+
+    def test_deleting_an_equivalent_twin_writes_only_after_the_check(self) -> None:
+        root = SCRATCH / "twins-delete"
+        shutil.rmtree(root, ignore_errors=True)
+        shutil.copytree(TWINS, root)
+        target = root / "Data/Weapons/WEAPON_PISTOL_P38.txt"
+        with self.running(root, firefight=str(STOCK)) as base:
+            status, body = self.fetch_from(base, "/twin", path="Data/Weapons/WEAPON_PISTOL_P38.txt")
+            self.assertEqual(status, 200, body[:400])
+            self.assertIn("检查通过，尚未删除。", body)
+            self.assertTrue(target.is_file())
+            status, body = self.fetch_from(
+                base, "/twin", path="Data/Weapons/WEAPON_PISTOL_P38.txt", write="1"
+            )
+            self.assertEqual(status, 200, body[:400])
+            self.assertIn("已删除", body)
+            self.assertFalse(target.is_file())
+            _, log = self.fetch_from(base, "/json", command="log", actor="web")
+        self.assertIn('"remove"', log)
+
+    def test_the_menu_bar_does_not_repeat_the_tabs(self) -> None:
+        """The sections live on the tab strip; the menu bar carries only the chrome."""
+        _, body = self.fetch("/index")
+        self.assertNotIn('class="menu"', body)
+        menubar = body.split('class="menubar"', 1)[1].split("</div>", 1)[0]
+        self.assertIn("Firefight 模组编辑器", menubar)
+        self.assertNotIn("实体列表", menubar)
+
+    def test_the_top_bars_have_a_fixed_height(self) -> None:
+        """The bars keep their height whatever the font size asks for."""
+        _, sheet, _headers = self.fetch_asset("/shell.css")
+        css = sheet.decode("utf-8")
+        self.assertIn("height: 24px; min-height: 24px", css)
+        self.assertIn("height: 26px; min-height: 26px", css)
 
     def test_a_search_that_matches_nothing_says_so(self) -> None:
         _, body = self.fetch("/", scope="Firefight", q="nothing-like-this")
@@ -1205,7 +1428,8 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("/asset?path=Images%2Funits%2Frifleman.png", body)
         self.assertIn("shoot_pistol.ogg", body)
         # a .txt inside Images is not something a browser can draw
-        self.assertNotIn("notes.txt", body)
+        gallery = body.split('class="gallery"', 1)[1]
+        self.assertNotIn("notes.txt", gallery)
 
     def test_the_tree_offers_the_asset_folders(self) -> None:
         status, body = self.fetch("/index")
@@ -1242,7 +1466,7 @@ class WebTestCase(unittest.TestCase):
         project = self.table_project()
         try:
             with self.running(project) as base:
-                status, body = self.fetch_from(base, "/tables", path="Data/equipment_demo.txt")
+                status, body = self.fetch_from(base, "/equipment", path="Data/equipment_demo.txt")
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn("// demo list", body)
                 self.assertIn("Rifle Squad.txt", body)
@@ -1255,7 +1479,7 @@ class WebTestCase(unittest.TestCase):
         project = self.table_project()
         try:
             with self.running(project) as base:
-                status, body = self.fetch_from(base, "/tables")
+                status, body = self.fetch_from(base, "/equipment")
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn('name="path"', body)
                 self.assertIn("equipment_demo.txt", body, "a declared table is not offered")
@@ -1272,14 +1496,14 @@ class WebTestCase(unittest.TestCase):
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "set", "line": "2",
                          "value": "Marksman.txt", "confirm": "1"}
-                status, body = self.fetch_from(base, "/tables", **asked)
+                status, body = self.fetch_from(base, "/equipment", **asked)
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn("操作后", body)
                 self.assertIn("Marksman.txt", body)
                 self.assertIn("actor=web", body)
                 self.assertIn("尚未写入", body)
                 self.assertEqual(document.read_bytes(), before, "the check step wrote the table")
-                status, body = self.fetch_from(base, "/tables", **asked, write="1")
+                status, body = self.fetch_from(base, "/equipment", **asked, write="1")
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn("写入结果", body)
                 written = document.read_text("cp1252")
@@ -1294,11 +1518,11 @@ class WebTestCase(unittest.TestCase):
         try:
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "add", "value": "Sniper.txt", "confirm": "1"}
-                status, body = self.fetch_from(base, "/tables", **asked, write="1")
+                status, body = self.fetch_from(base, "/equipment", **asked, write="1")
                 self.assertEqual(status, 200, body[:400])
                 self.assertEqual(document.read_text("cp1252"), "// demo list\nRifle Squad.txt\nSniper.txt\n")
                 asked = {"path": "Data/equipment_demo.txt", "op": "delete", "line": "2", "confirm": "1"}
-                status, body = self.fetch_from(base, "/tables", **asked, write="1")
+                status, body = self.fetch_from(base, "/equipment", **asked, write="1")
                 self.assertEqual(status, 200, body[:400])
                 self.assertEqual(document.read_text("cp1252"), "// demo list\nSniper.txt\n")
         finally:
@@ -1311,7 +1535,7 @@ class WebTestCase(unittest.TestCase):
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "set", "line": "2",
                          "value": "Marksman.txt", "confirm": "1", "write": "1"}
-                self.fetch_from(base, "/tables", **asked)
+                self.fetch_from(base, "/equipment", **asked)
                 status, body = self.fetch_from(base, "/json", command="log", actor="web")
                 self.assertEqual(status, 200, body[:400])
                 events = json.loads(body)["events"]
@@ -1331,7 +1555,7 @@ class WebTestCase(unittest.TestCase):
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "set", "line": "2",
                          "value": "Marksman.txt", "confirm": "1", "write": "1"}
-                self.fetch_from(base, "/tables", **asked)
+                self.fetch_from(base, "/equipment", **asked)
                 self.assertNotEqual(document.read_bytes(), before)
                 status, body = self.fetch_from(base, "/ops", command="undo", count="1", confirm="1", write="1")
                 self.assertEqual(status, 200, body[:400])
@@ -1343,10 +1567,10 @@ class WebTestCase(unittest.TestCase):
         project = self.table_project()
         try:
             with self.running(project) as base:
-                status, body = self.fetch_from(base, "/tables", path="Data/Weapons/WEAPON_TABLE.txt")
+                status, body = self.fetch_from(base, "/equipment", path="Data/Weapons/WEAPON_TABLE.txt")
                 self.assertEqual(status, 400)
                 self.assertIn("不是工程设置的表格文件", body)
-                status, body = self.fetch_from(base, "/tables", path="../ModInformation.toml")
+                status, body = self.fetch_from(base, "/equipment", path="../ModInformation.toml")
                 self.assertEqual(status, 400)
         finally:
             shutil.rmtree(project, ignore_errors=True)
@@ -1356,7 +1580,7 @@ class WebTestCase(unittest.TestCase):
         try:
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "delete", "line": "99", "confirm": "1"}
-                status, body = self.fetch_from(base, "/tables", **asked)
+                status, body = self.fetch_from(base, "/equipment", **asked)
                 self.assertEqual(status, 400)
                 self.assertIn("line 99", body)
         finally:
@@ -1368,7 +1592,7 @@ class WebTestCase(unittest.TestCase):
             with self.running(project) as base:
                 status, body = self.fetch_from(base, "/show", path="Data/equipment_demo.txt")
                 self.assertEqual(status, 200, body[:400])
-                self.assertIn("/tables?path=Data%2Fequipment_demo.txt", body)
+                self.assertIn("/equipment?path=Data%2Fequipment_demo.txt", body)
         finally:
             shutil.rmtree(project, ignore_errors=True)
 
@@ -1404,12 +1628,12 @@ class WebTestCase(unittest.TestCase):
             with self.running(project) as base:
                 asked = {"path": "Data/equipment_demo.txt", "op": "set", "line": "2",
                          "value": "Marksman.txt", "confirm": "1"}
-                status, body = self.fetch_from(base, "/tables", **asked)
+                status, body = self.fetch_from(base, "/equipment", **asked)
                 self.assertEqual(status, 200, body[:400])
                 found = re.search(r"expect=([0-9a-f]{32})", body)
                 self.assertIsNotNone(found, "the check step offers no digest")
                 document.write_bytes(b"// demo list\nSomeone Else.txt\n")
-                status, body = self.fetch_from(base, "/tables", **asked, write="1", expect=found.group(1))
+                status, body = self.fetch_from(base, "/equipment", **asked, write="1", expect=found.group(1))
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn("已经改变", body)
                 self.assertNotIn("写入结果", body)
@@ -1767,8 +1991,22 @@ class WebTestCase(unittest.TestCase):
         status, body = self.status_of(self.no_redirect(),
                                       f"{self.base}/mcpstart?host=everywhere&port={self.free_port()}")
         self.assertEqual(status, 400)
-        self.assertIn("local 或 lan", body)
+        self.assertIn("local、lan 或一个 IP 地址", body)
         self.assertEqual(self.app.mcp.state(), {})
+
+    def test_the_listener_opens_on_the_loopback_it_was_given(self) -> None:
+        port = self.free_port()
+        try:
+            self.status_of(self.no_redirect(),
+                           f"{self.base}/mcpstart?host=127.0.0.1&port={port}")
+            state = self.app.mcp.state()
+            self.assertEqual(state["bind"], "127.0.0.1")
+            self.assertEqual(state["port"], port)
+            self.assertEqual(state["addresses"], [f"http://127.0.0.1:{port}/"])
+            self.assertEqual(state["url"], f"http://127.0.0.1:{port}/")
+        finally:
+            if self.app.mcp.running():
+                self.app.mcp.stop()
 
     # --- the status bar and the bottom pane ---------------------------------
 
@@ -1882,7 +2120,7 @@ class WebTestCase(unittest.TestCase):
             shutil.rmtree(project, ignore_errors=True)
 
     def test_the_english_wording_never_keeps_chinese(self) -> None:
-        for route in ("", "/list", "/find", "/stats", "/check", "/assets", "/tables", "/source", "/mcp", "/help", "/cmd", "/quit"):
+        for route in ("", "/list", "/find", "/stats", "/check", "/assets", "/equipment", "/source", "/mcp", "/help", "/cmd", "/quit"):
             status, body = self.fetch(route, lang="en")
             self.assertEqual(status, 200, route)
             found = sorted(set(re.findall(r"[\u4e00-\u9fff]+", body)) - self.LANGUAGE_NAMES)

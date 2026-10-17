@@ -374,6 +374,15 @@ TOOLS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
+        name="ff_audit",
+        command="audit",
+        description=(
+            "Read every document back, then run check with both gates on. Read-only; one call "
+            "for what would otherwise be two."
+        ),
+        parameters=(SCOPE, ROOT, WORKSPACE),
+    ),
+    ToolSpec(
         name="ff_export",
         command="export",
         description="Render the entities of a Firefight scope as stock XML under a destination directory. This writes files; narrow it with selector and check the result.",
@@ -650,6 +659,64 @@ TOOLS: tuple[ToolSpec, ...] = (
             Parameter("source", "string", "Directory or zip file to import from.", target="selector", required=True),
             TO,
             OVERWRITE,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_build",
+        command="build",
+        description=(
+            "Index the project, check it and pack it into one archive. Writes the index, then "
+            "the zip under to=; every step stops the run when it fails."
+        ),
+        parameters=(SCOPE, TO, DRY_RUN, ROOT, WORKSPACE),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_adopt",
+        command="adopt",
+        description=(
+            "Import a source tree or zip as a project under to=, then index it. Writes a new "
+            "project; the source is never modified."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("source", "string", "Directory or zip that holds the mod's documents.", target="selector"),
+            TO,
+            OVERWRITE,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_unpack",
+        command="unpack",
+        description=(
+            "Write the project back out under to= as stock XML and text, refreshing mod.txt "
+            "first when the project carries one. Writes files."
+        ),
+        parameters=(SCOPE, TO, OVERWRITE, DRY_RUN, ROOT, WORKSPACE),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_run",
+        command="run",
+        description=(
+            "Run the steps a TOML file lists, in order, stopping at the first failure. Writes "
+            "whatever those steps write; pass dryRun to plan the whole list."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("steps", "string", "TOML file with a [[step]] array.", target="selector", required=True),
             DRY_RUN,
             ROOT,
             WORKSPACE,

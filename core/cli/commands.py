@@ -848,7 +848,15 @@ def cmd_get(ctx: Context) -> Result:
         f"{tally(len(shown), len(rows))} value(s)",
     )
     return Result(
-        {"path": relative, "field": "/".join(keys), "count": len(rows), "shown": len(shown), "values": shown},
+        {
+            "path": relative,
+            "field": "/".join(keys),
+            "root": document.root_tag,
+            "format": document.format,
+            "count": len(rows),
+            "shown": len(shown),
+            "values": shown,
+        },
         text,
     )
 
@@ -888,7 +896,15 @@ def _get_all(ctx: Context, document, relative: str) -> Result:
         f"{tally(len(shown), len(rows))} field(s)",
     )
     return Result(
-        {"path": relative, "field": "", "count": len(rows), "shown": len(shown), "values": shown},
+        {
+            "path": relative,
+            "field": "",
+            "root": document.root_tag,
+            "format": document.format,
+            "count": len(rows),
+            "shown": len(shown),
+            "values": shown,
+        },
         text,
     )
 
@@ -1603,10 +1619,14 @@ def cmd_clone(ctx: Context) -> Result:
 
     source_scope, source_selector = split_side(ctx.selector, ctx)
     token = (ctx.options.get("as") or "").strip()
-    if not token:
+    project_file = Path(source_selector).name in (PROJECT_FILE, SETTING_FILE)
+    if token and project_file:
+        raise UsageError("clone copies a project file under its own name; as= names one document")
+    if not token and not project_file:
         raise UsageError("clone needs as=<the new token>; it is the name the copy declares")
-    if any(character in token for character in "/\\:") or any(
-        character.isspace() for character in token
+    if token and (
+        any(character in token for character in "/\\:")
+        or any(character.isspace() for character in token)
     ):
         raise UsageError(f"as= is one token without a path or a space, not {token!r}")
     if ctx.options.get("write") != "1":
@@ -1622,6 +1642,35 @@ def cmd_clone(ctx: Context) -> Result:
             target = resolve_scope(into, {}, ctx.cwd)
     if target.name == "Firefight":
         raise UsageError("the stock scope is read-only; clone refuses to write under Firefight")
+
+    if project_file:
+        source_file = source_scope.project / Path(source_selector).name
+        if not source_file.is_file():
+            raise UsageError(f"no {source_file.name} in the project {source_scope.project}")
+        source = textio.read_source(source_file)
+        relative = source_file.name
+        destination = target.project / relative
+        project_root = edit.project_root_of(target.root)
+        try:
+            plan = edit.plan_render(
+                destination,
+                relative,
+                source.text,
+                entity=Path(relative).stem,
+                newline="",
+                encoding="utf-8-sig" if source.had_bom else source.encoding,
+            )
+            payload = edit.apply_document(
+                plan,
+                project_root,
+                dry_run=ctx.options.get("dry-run") == "1",
+                actor=write_actor(ctx),
+            )
+        except edit.EditRefused as error:
+            raise UsageError(str(error)) from None
+        payload["scope"] = target.name
+        payload["source"] = f"{source_scope.name}:{relative}"
+        return Result(payload, _document_text(payload, "cloned"))
 
     files = entity_files(source_scope, source_selector)
     if len(files) != 1:
@@ -3299,6 +3348,158 @@ def cmd_roster(ctx: Context) -> Result:
     )
 
 
+# --- combined commands -----------------------------------------------------
+
+DRY_RUNNABLE = frozenset({
+    "add", "batch", "clone", "convert", "export", "import", "index", "init", "pack",
+    "redo", "remove", "roster", "set", "settings", "undo",
+})
+STEP_KEYS = ("command", "selector", "with")
+
+
+def run_sequence(ctx: Context, steps: list[dict]) -> Result:
+    """Run the steps in order, stopping at the first one that reports a failure.
+
+    A step is a dict with a command, an optional selector and its options. Under --dry-run
+    every step that can report without writing is switched to its own dry run, so one
+    invocation shows the whole sequence without touching a file.
+    """
+    dry_run = ctx.options.get("dry-run") == "1"
+    done: list[dict] = []
+    stopped = ""
+    for step in steps:
+        command = step["command"]
+        options = dict(step.get("options") or {})
+        if dry_run and command in DRY_RUNNABLE:
+            options["write"] = "1"
+            options["dry-run"] = "1"
+        if step.get("scope_root"):
+            scope = resolve_scope("Mod", {"root": step["scope_root"]}, ctx.cwd)
+        else:
+            scope = ctx.scope
+        inner = Context(scope=scope, selector=step.get("selector", ""), doc_path=(),
+                        options=options, cwd=ctx.cwd)
+        try:
+            result = run_command(command, inner)
+            code, output = result.code, result.text or ""
+        except (UsageError, FfError) as error:
+            code, output = 2, str(error)
+        lines = [line for line in output.splitlines() if line.strip()]
+        done.append({
+            "command": command,
+            "selector": step.get("selector", ""),
+            "code": code,
+            "result": lines[-1].strip() if lines else "",
+        })
+        if code != 0:
+            stopped = command
+            break
+    rows = [[str(index), item["command"], str(item["code"]), item["result"]]
+            for index, item in enumerate(done, 1)]
+    if stopped:
+        summary = f"{len(done)} step(s) run, stopped at {stopped}"
+    elif dry_run:
+        summary = f"{len(done)} step(s) planned, nothing written"
+    else:
+        summary = f"{len(done)} step(s) run"
+    payload = {
+        "scope": ctx.scope.name,
+        "steps": done,
+        "count": len(done),
+        "stopped": stopped,
+        "dry_run": dry_run,
+        "ok": not stopped,
+    }
+    return Result(payload, table_of(["step", "command", "code", "result"], rows, summary),
+                  code=1 if stopped else 0)
+
+
+def cmd_build(ctx: Context) -> Result:
+    """index, check and pack in one run (docs/cli.md section 4.17)."""
+    to = ctx.options.get("to")
+    if not to:
+        raise UsageError("build needs a destination directory: to=<directory>")
+    return run_sequence(ctx, [
+        {"command": "index", "options": {"write": "1"}},
+        {"command": "check"},
+        {"command": "pack", "options": {"to": to, "write": "1"}},
+    ])
+
+
+def cmd_audit(ctx: Context) -> Result:
+    """Read every document back, then check with both gates on (docs/cli.md section 4.17)."""
+    return run_sequence(ctx, [
+        {"command": "verify"},
+        {"command": "check", "options": {"assets": "1", "rosters": "1"}},
+    ])
+
+
+def cmd_adopt(ctx: Context) -> Result:
+    """Import a tree or a zip as a project, then index it (docs/cli.md section 4.17)."""
+    to = ctx.options.get("to")
+    if not to:
+        raise UsageError("adopt needs a destination directory: to=<directory>")
+    return run_sequence(ctx, [
+        {"command": "import", "selector": ctx.selector, "options": {"to": to, "write": "1"}},
+        {"command": "index", "options": {"write": "1"}, "scope_root": to},
+    ])
+
+
+def cmd_unpack(ctx: Context) -> Result:
+    """Write the project back out as the original XML and text (docs/cli.md section 4.17)."""
+    to = ctx.options.get("to")
+    if not to:
+        raise UsageError("unpack needs a destination directory: to=<directory>")
+    steps = [{"command": "export", "options": {"to": to, "write": "1"}}]
+    if (ctx.scope.project / "mod.txt").is_file():
+        steps.insert(0, {"command": "settings",
+                         "options": {"op": "render", "write": "1", "overwrite": "1"}})
+    return run_sequence(ctx, steps)
+
+
+def read_steps(path: Path) -> list[dict]:
+    """Read the [[step]] array of a step file into the shape run_sequence wants."""
+    source = textio.read_source(path)
+    table = toml.parse(source.text, path.name)
+    entry = table.get("step")
+    if entry is None:
+        raise UsageError(f"{path.name}: no [[step]] array")
+    items = list(entry.items) if isinstance(entry, toml.TomlArrayEntry) else [entry]
+    steps: list[dict] = []
+    for index, item in enumerate(items, 1):
+        if not isinstance(item, toml.TomlTable):
+            raise UsageError(f"{path.name}: [[step]] {index} is not a table")
+        command = item.get("command")
+        command = command.value if isinstance(command, toml.TomlValue) else ""
+        if command not in COMMANDS:
+            raise UsageError(f"{path.name}: [[step]] {index}: no command {command!r}")
+        selector = item.get("selector")
+        options: dict[str, str] = {}
+        extra = item.get("with")
+        if isinstance(extra, toml.TomlValue) and isinstance(extra.value, list):
+            for pair in extra.value:
+                key, _, value = str(pair).partition("=")
+                if not key or not _:
+                    raise UsageError(f"{path.name}: [[step]] {index}: {pair!r} is not key=value")
+                options[key.strip()] = value.strip()
+        steps.append({
+            "command": command,
+            "selector": selector.value if isinstance(selector, toml.TomlValue) else "",
+            "options": options,
+        })
+    return steps
+
+
+def cmd_run(ctx: Context) -> Result:
+    """Run the steps a TOML file lists, in order (docs/cli.md section 4.17)."""
+    if not ctx.selector:
+        raise UsageError("run needs a step file: run <steps.toml>")
+    paths = entity_files(ctx.scope, ctx.selector)
+    if len(paths) != 1:
+        raise UsageError(f"run needs one step file, not {len(paths)}")
+    return run_sequence(ctx, read_steps(paths[0]))
+
+
 def cmd_version(ctx: Context) -> Result:
     """Version of the editor, the interpreter and the resolved scope."""
     payload = {
@@ -3349,6 +3550,11 @@ COMMANDS = {
     "pack": cmd_pack,
     "diff": cmd_diff,
     "verify": cmd_verify,
+    "build": cmd_build,
+    "audit": cmd_audit,
+    "adopt": cmd_adopt,
+    "unpack": cmd_unpack,
+    "run": cmd_run,
     "version": cmd_version,
     "web": cmd_web,
 }

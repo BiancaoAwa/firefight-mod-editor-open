@@ -66,6 +66,7 @@ EXPECTED_READ_TOOLS = {
     "ff_verify": {
         "scope": False, "selector": False, "limit": False, "root": False, "workspace": False,
     },
+    "ff_audit": {"scope": False, "root": False, "workspace": False},
 }
 
 EXPECTED_WRITE_TOOLS = {
@@ -123,6 +124,18 @@ EXPECTED_WRITE_TOOLS = {
         "scope": False, "source": True, "to": False, "overwrite": False, "dryRun": False,
         "root": False, "workspace": False,
     },
+    "ff_build": {"scope": False, "to": False, "dryRun": False, "root": False, "workspace": False},
+    "ff_adopt": {
+        "scope": False, "source": False, "to": False, "overwrite": False, "dryRun": False,
+        "root": False, "workspace": False,
+    },
+    "ff_unpack": {
+        "scope": False, "to": False, "overwrite": False, "dryRun": False, "root": False,
+        "workspace": False,
+    },
+    "ff_run": {
+        "scope": False, "steps": True, "dryRun": False, "root": False, "workspace": False,
+    },
 }
 
 PLUGIN_CANDIDATES = (
@@ -146,6 +159,11 @@ EXPOSED_WRITE_TOOLS = [exposed(name) for name in EXPECTED_WRITE_TOOLS]
 # behind this one on purpose (m05179).  Every name here must still be a tool this table holds;
 # the day the plugin catches up this set goes empty and the lag assertion keeps passing.
 PLUGIN_LAG = {
+    "ff_audit",
+    "ff_build",
+    "ff_adopt",
+    "ff_unpack",
+    "ff_run",
     "ff_schema",
     "ff_diff",
     "ff_verify",

@@ -8,7 +8,7 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Added
 
-* The editor command line: 29 commands over two scopes, `Firefight` for the
+* The editor command line: 34 commands over two scopes, `Firefight` for the
   game's own data and any named directory for a mod project. `init`, `import`,
   `list`, `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`,
   `diff`, `set`, `batch`, `add`, `remove`, `index`, `convert`, `settings`,
@@ -68,7 +68,17 @@ semantic and is written down in one place, `core/__init__.py`.
   and the page offers a new-document form, so the three document-level writes
   are reachable from the list and each still ends on the operation page's check
   step.
-* An MCP server for two protocol families, exposing 26 tools of which 11 are
+* `build`, `audit`, `adopt`, `unpack` and `run` turn the multi-step workflows and any list of
+  steps into one command each: index then check then pack, verify then check with both gates,
+  import then index, export alone. A failing step stops the run and the summary names it.
+* The MCP server exposes the same five: `mcp_ff_build`, `mcp_ff_audit`, `mcp_ff_adopt`,
+  `mcp_ff_unpack` and `mcp_ff_run`.
+* `clone` also copies a project file (`ModInformation.toml`, `ModSetting.toml`) into another
+  project, without `as=`.
+* The page that edits the declared plain-text tables is `/equipment`, not `/tables`.
+* The optional MCP listener can bind any interface rather than only loopback or the LAN, and
+  the panel shows the address it really bound. The token stays mandatory.
+* An MCP server for two protocol families, exposing 31 tools of which 12 are
   read-only; the writing tools are registered only under `--write`. Every
   command carries a tool, including the later `batch`, `clone`, `roster`,
   `schema`, `diff`, `verify` and `import` (docs/mcp.md).
@@ -96,6 +106,21 @@ semantic and is written down in one place, `core/__init__.py`.
 
 ### Changed
 
+* The workbench shell is two files rather than two blocks copied into every page: `/shell.css` and
+  `/shell.js` are served once, with a one-hour cache header and an `ETag`, so walking through the
+  pages fetches them a single time and a page that cannot load them still reads.
+* The tool bar offers a dark theme and a second face (the mono stack at 14px); both are CSS
+  variables on the root element, so one attribute repaints the page, and the choice joins the
+  panel widths in `localStorage`. The menu bar and the tool bar are shorter, and the scope origin
+  in the property pane reads as a sentence instead of the log wording.
+* The tree lists every file of the project — the readme and the settings beside the documents,
+  and the pictures and the sounds — while leaving `EditorCache/` out. A `.txt` that a `.toml` of
+  the same name renders is drawn dimmed instead of being hidden, and when the copy still matches
+  the original byte for byte it carries a delete link that goes through a check and the event log,
+  so `undo` brings the file back (docs/web.md section 0).
+* The menu bar keeps the brand, the scope, the language and the exit link; the sections are on the
+  tab strip only, and the menu bar and the tool bar each declare a fixed height so a long menu
+  cannot squeeze the document pane.
 * `check` accepts `against=stock` for the installation named in the editor setting, and when
   more than one kind of reference is dangling the summary and `dangling_kinds` name the counts
   per kind, so an imported project's missing assets are told apart from its broken references.
@@ -114,7 +139,7 @@ semantic and is written down in one place, `core/__init__.py`.
 * The asset pages serve the project's pictures and sounds: `/assets` draws the files themselves,
   and `/asset?path=` hands back one file's own bytes with its content type and an `ETag`. The
   route reads only inside the project, and a field that names a picture gets a preview beside it.
-* `/tables` edits the plain-text tables the commands skip: every line with its own box, a delete
+* `/equipment` edits the plain-text tables the commands skip: every line with its own box, a delete
   and an append, comments and blank lines shown as markers. The write goes through
   `core.edit` — plan, then apply — so it lands in the event log and `undo` restores it; `web` joins
   `cli` and `mcp` as an actor, which is what `log actor=web` filters on.
@@ -134,13 +159,21 @@ semantic and is written down in one place, `core/__init__.py`.
   through a page is recorded as `web`, and the JSON link a page offers carries a dry run whenever
   the line it came from writes, so following it cannot change the project twice.
 * A check step shows what it would change before it offers the write: `/ops` prints the field, the
-  value now and the value after, `/tables` prints the row as it is and as it would be, and
+  value now and the value after, `/equipment` prints the row as it is and as it would be, and
   `/source` prints a line diff. The write link carries the digest the check read, so a write whose
   documents changed in the meantime is refused and the other writer's bytes are left in place.
 * `/ops` carries every writing command, the later `batch`, `clone`, `roster` and `import` included,
   and `undo` and `redo` name their count in the document field because that count is the command's
   positional selector. A payload key that is a count in one command and a list of paths in another
   no longer makes the check step of `index` fail with a server error.
+* `/edit` draws the control each field's schema calls for: a checkbox for a boolean, a drop-down for
+  a leaf whose values come from an enum table, and a row table for an array. A field outside the
+  schema keeps its text box, and only a working TOML document carries the `添加` and `删除` forms
+  that add or delete an array entry, because that is the shape `set` can append to.
+* The web server reads `EditorCache/index.toml` and `refs.toml` at start-up and rebuilds them in a
+  background thread when their fingerprint no longer matches the files; the rebuild replaces both
+  tables atomically, a failure is printed as `web: index rebuild skipped`, and the reference pages
+  fall back to walking the documents.
 * The workbench reads at the density of a desktop tool: a narrow industrial system face
   (`Tahoma`, with `Arial Narrow` and the platform sans behind it) at a 15px base size, with the
   pane widths, controls and thumbnails scaled to match.
@@ -153,7 +186,7 @@ semantic and is written down in one place, `core/__init__.py`.
   a port it cannot take, registers the writing tools only when the form allows them, and answers
   one POSTed JSON-RPC message at a time.
 * User-visible text is English throughout. The Web UI carries a Chinese
-  translation of all 444 templates and a `lang=zh|en` switch.
+  translation of all 482 templates and a `lang=zh|en` switch.
 * `export` replaces a file that is already there unless `overwrite=0` is
   given; `convert` and `settings` skip an existing destination unless
   `overwrite=1` is given.

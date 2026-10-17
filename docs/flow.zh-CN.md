@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph layer["命令层"]
-        C1["core/cli/commands.py<br/>run_command，29 条命令"]
+        C1["core/cli/commands.py<br/>run_command，34 条命令"]
         C2["core/cli/specs.py<br/>唯一一张工具表"]
         C3["core/cli/scope.py<br/>Mod、Firefight、&lt;名称&gt;"]
     end
