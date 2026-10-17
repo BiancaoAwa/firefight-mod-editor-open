@@ -400,7 +400,9 @@ they name decides whether anything is written.
 ### 2.6 The MCP panel
 
 The menu bar carries the link to `/mcp` next to the exit link, and while the listener is open the
-page put its external addresses first, each with a box that copies it.
+page put its external addresses first, each with a box that copies it. The wildcard is left out and every address another machine can dial is listed; the loopback comes
+last, labelled `本机`, so a client on the same machine has one too. The `地址` row names the
+first dialable address while `绑定` keeps the bound host.
 
 `/mcp` is the one page that does not call a CLI command. It builds the same tool specification
 table the MCP server and the DSH plugin read (`core/cli/specs.py`), so the names, the commands and

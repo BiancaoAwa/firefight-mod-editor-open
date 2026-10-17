@@ -55,24 +55,36 @@ def local_addresses(bind: str) -> list[str]:
     if bind not in ("0.0.0.0", "::"):
         return [bind]
     found: list[str] = []
+
+    def keep(address: str) -> None:
+        if _dialable(address) and address not in found:
+            found.append(address)
+
     probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         probe.connect(("8.8.8.8", 53))
-        found.append(probe.getsockname()[0])
+        keep(probe.getsockname()[0])
     except OSError:
         pass
     finally:
         probe.close()
     try:
         for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
-            address = info[4][0]
-            if address not in found:
-                found.append(address)
+            keep(info[4][0])
     except OSError:
         pass
     if "127.0.0.1" not in found:
         found.append("127.0.0.1")
     return found
+
+
+def _dialable(address: str) -> bool:
+    """Whether another machine can reach this address: no loopback, no link-local, no wildcard."""
+    try:
+        parsed = ipaddress.ip_address(address)
+    except ValueError:
+        return False
+    return not (parsed.is_loopback or parsed.is_link_local or parsed.is_unspecified)
 
 
 def public_address(timeout: float = PUBLIC_TIMEOUT) -> str | None:

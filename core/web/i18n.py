@@ -196,6 +196,7 @@ ENGLISH: dict[str, str] = {
     "内容": "text",
     "内容没有变化，因此没有可写入的东西。": "The text is unchanged, so there is nothing to write.",
     "内网": "private",
+    "本机": "this machine",
     "内网地址在同一局域网的机器上可用；公网地址是路由器对外的地址，需要在路由器上把端口映射到本机，运营商大内网下可能连不上。令牌仍然是唯一的门。": "A private address works on a machine in the same local network; the public address is the router's outward address, and reaching this machine through it needs a port mapping on the router, which can fail behind a carrier-grade NAT. The token is still the only gate.",
     "内部错误": "internal error",
     "再查一次": "look again",
