@@ -1,7 +1,8 @@
 """Local web UI: one page per command, rendered on the server from the CLI payloads.
 
-GET only and no JavaScript; a page may run a writing command, and the command's own gate
-(`--write`, project confinement, the stock-scope rule) is what decides (docs/web.md).
+GET only, and one inline script that only lays the workbench out; a page may run a writing
+command, and the command's own gate (`--write`, project confinement, the stock-scope rule)
+is what decides (docs/web.md).
 """
 
 import json
@@ -18,13 +19,25 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from core import edit, journal, textio
 from core.errors import FfError
 from core.journal import EDITOR_DIR
+from core.web import mcp_listener, tables
 from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, current, html_lang, tr, use
 
-from core.cli.commands import ALIASES, DEFAULT_LIMIT, VERSION, Context, command_names, run_command
+from core.cli.commands import (
+    ALIASES,
+    DEFAULT_LIMIT,
+    VERSION,
+    Context,
+    command_names,
+    declared_lists,
+    is_list_file,
+    run_command,
+)
+from core.cli import specs
 from core.cli.main import parse_argv
-from core.cli.scope import UsageError, resolve_all, resolve_scope, split_spec
+from core.cli.scope import UsageError, Scope, resolve_all, resolve_scope, split_spec
 # the two resolvers that recognise a project and an editor folder; using them keeps the
 # rules in one place (docs/project-layout.md section 10.1)
 from core.cli.scope import _editor_root, _project_root
@@ -34,43 +47,228 @@ from urllib.parse import parse_qsl, urlencode
 
 
 STYLE = """
-body { background: #efefef; color: #000; font-family: Verdana, Geneva, Arial, sans-serif;
-       font-size: 13px; margin: 12px; }
-h1 { font-size: 18px; margin: 0 0 2px 0; }
-h2 { font-size: 14px; margin: 18px 0 6px 0; border-bottom: 1px solid #999; padding-bottom: 2px; }
-h3 { font-size: 13px; margin: 14px 0 4px 0; }
+:root { --tree: 290px; --props: 350px; --output: 180px; --line: #a8a8a8; --face: #e6e6e6;
+        --font: Tahoma, "Arial Narrow", "Microsoft YaHei UI", "Segoe UI", Arial, sans-serif;
+        --mono: Consolas, "Courier New", monospace; --size: 15px; }
+* { box-sizing: border-box; }
+body { background: #efefef; color: #000; font-family: var(--font);
+       font-size: var(--size); margin: 0; height: 100vh; overflow: hidden; display: grid;
+       grid-template-columns: var(--tree) 5px minmax(0, 1fr) 5px var(--props);
+       grid-template-rows: auto auto minmax(0, 1fr) 5px var(--output) auto;
+       grid-template-areas: "menu menu menu menu menu"
+                            "tool tool tool tool tool"
+                            "tree g1 doc g2 props"
+                            "g3 g3 g3 g3 g3"
+                            "out out out out out"
+                            "stat stat stat stat stat"; }
+body.folded-tree { --tree: 0px; }
+body.folded-props { --props: 0px; }
+body.folded-output { --output: 0px; }
+body.folded-tree .pane-tree, body.folded-tree [data-gutter="tree"],
+body.folded-props .pane-props, body.folded-props [data-gutter="props"],
+body.folded-output .pane-output, body.folded-output [data-gutter="output"] { display: none; }
+h1 { font-size: 18px; margin: 0 0 3px 0; }
+h2 { font-size: 16px; margin: 16px 0 7px 0; border-bottom: 1px solid #999; padding-bottom: 3px; }
+h3 { font-size: 15px; margin: 14px 0 5px 0; }
 a { color: #0000cc; }
 a:visited { color: #660099; }
-.head { margin-bottom: 6px; }
+.head { margin-bottom: 8px; }
 .sub { color: #444; }
-.nav a { margin-right: 8px; }
-hr { border: 0; border-top: 1px solid #bbb; margin: 10px 0; }
-table { border-collapse: collapse; background: #fff; margin: 6px 0; }
-th, td { border: 1px solid #999; padding: 2px 6px; text-align: left; vertical-align: top; }
+.nav a { margin-right: 10px; }
+hr { border: 0; border-top: 1px solid #bbb; margin: 12px 0; }
+table { border-collapse: collapse; background: #fff; margin: 8px 0; }
+th, td { border: 1px solid #999; padding: 3px 8px; text-align: left; vertical-align: top; }
 th { background: #ddd; font-weight: bold; }
 td.num, th.num { text-align: right; }
-pre { background: #fff; border: 1px solid #999; padding: 6px; margin: 6px 0;
-      font-family: Consolas, "Courier New", monospace; font-size: 12px;
+pre { background: #fff; border: 1px solid #999; padding: 8px; margin: 8px 0;
+      font-family: var(--mono); font-size: 13px;
       white-space: pre; overflow-x: auto; }
-code { font-family: Consolas, "Courier New", monospace; font-size: 12px; background: #e6e6e6;
-       padding: 0 2px; }
-form { background: #f7f7f7; border: 1px solid #bbb; padding: 6px; margin: 6px 0; }
-label { margin-right: 10px; }
-input[type=text] { border: 1px solid #888; font-family: inherit; font-size: 13px; padding: 1px 3px; }
-input[type=submit] { font-family: inherit; font-size: 13px; }
-select { font-family: inherit; font-size: 13px; }
+code { font-family: var(--mono); font-size: 13px; background: #e6e6e6;
+       padding: 0 3px; }
+form { background: #f7f7f7; border: 1px solid #bbb; padding: 8px; margin: 8px 0; }
+label { margin-right: 12px; }
+input[type=text] { border: 1px solid #888; font-family: inherit; font-size: var(--size);
+                   padding: 2px 5px; }
+input[type=submit] { font-family: inherit; font-size: var(--size); padding: 2px 10px; }
+select { font-family: inherit; font-size: var(--size); }
 .note { color: #444; }
-.warn { background: #fff8d0; border: 1px solid #c8b45a; padding: 6px; margin: 6px 0; }
-.bad { background: #ffd9d9; border: 1px solid #c86a6a; padding: 6px; margin: 6px 0; }
-.ok { background: #dff5df; border: 1px solid #6ac86a; padding: 6px; margin: 6px 0; }
+.warn { background: #fff8d0; border: 1px solid #c8b45a; padding: 8px; margin: 8px 0; }
+.bad { background: #ffd9d9; border: 1px solid #c86a6a; padding: 8px; margin: 8px 0; }
+.ok { background: #dff5df; border: 1px solid #6ac86a; padding: 8px; margin: 8px 0; }
 .empty { color: #666; }
-.foot { color: #666; font-size: 12px; }
-.crumbs { margin-bottom: 6px; color: #444; }
+.foot { color: #666; font-size: 14px; }
+.crumbs { margin-bottom: 8px; color: #444; }
+/* workbench: menu bar, tool bar, three side panes, status bar */
+.menubar { grid-area: menu; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+           background: var(--face); border-bottom: 1px solid var(--line); padding: 4px 10px; }
+.menubar .brand { font-weight: bold; }
+.menubar .menu { display: flex; gap: 12px; flex-wrap: wrap; }
+.toolbar { grid-area: tool; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+           background: #f4f4f4; border-bottom: 1px solid #c8c8c8; padding: 4px 10px; }
+.tbtn { border: 1px solid #b0b0b0; background: #fbfbfb; padding: 2px 10px; text-decoration: none;
+        color: #000; font-family: inherit; font-size: 14px; }
+.tbtn[aria-pressed="true"] { background: #d6d6d6; border-color: #808080; }
+.pane { overflow: auto; background: #fff; min-height: 0; }
+.pane-h { position: sticky; top: 0; background: var(--face); border-bottom: 1px solid #c8c8c8;
+          padding: 3px 8px; font-weight: bold; }
+.pane-b { padding: 5px 8px; }
+.pane-tree { grid-area: tree; border-right: 1px solid #c8c8c8; }
+.pane-props { grid-area: props; border-left: 1px solid #c8c8c8; }
+.pane-output { grid-area: out; border-top: 1px solid #c8c8c8;
+               font-family: var(--mono); font-size: 14px; }
+.pane-doc { grid-area: doc; display: flex; flex-direction: column; min-height: 0; background: #efefef; }
+.tabs { display: flex; gap: 3px; padding: 4px 8px 0 8px; background: var(--face);
+        border-bottom: 1px solid #c8c8c8; overflow-x: auto; }
+.tabs a { border: 1px solid #b0b0b0; border-bottom: none; background: #f4f4f4; padding: 3px 12px;
+          text-decoration: none; color: #000; white-space: nowrap; }
+.tabs a[aria-current="true"] { background: #fff; font-weight: bold; }
+.doc-body { overflow: auto; padding: 10px 12px; background: #fff; flex: 1; min-height: 0; }
+.gutter { background: #dcdcdc; }
+.gutter:hover { background: #c0c0c0; }
+[data-gutter="tree"] { grid-area: g1; cursor: col-resize; }
+[data-gutter="props"] { grid-area: g2; cursor: col-resize; }
+[data-gutter="output"] { grid-area: g3; cursor: row-resize; }
+.statusbar { grid-area: stat; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+             background: var(--face); border-top: 1px solid var(--line); padding: 3px 10px; }
+.tree-dir { margin-top: 5px; font-weight: bold; }
+.tree-file { margin-left: 14px; }
+details.tree-dir > summary { cursor: pointer; font-weight: bold; }
+details.tree-dir > details { margin-left: 14px; }
+.tree-search { display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
+.tree-search input[type=text] { flex: 1; min-width: 0; }
+.gallery { display: flex; flex-wrap: wrap; gap: 10px; }
+.tile { margin: 0; width: 160px; background: #fff; border: 1px solid var(--line); padding: 5px; }
+.tile figcaption { font-size: 13px; word-break: break-all; margin-top: 4px; }
+.thumb { display: block; width: 148px; height: 112px; object-fit: contain; background:
+         repeating-conic-gradient(#f4f4f4 0% 25%, #e6e6e6 0% 50%) 50% / 14px 14px; }
+.tile audio { width: 148px; }
+.preview { margin: 8px 0; }
+.preview img { max-width: 100%; max-height: 260px; background:
+               repeating-conic-gradient(#f4f4f4 0% 25%, #e6e6e6 0% 50%) 50% / 14px 14px; }
+label.wide { display: block; margin: 8px 0; }
+label.wide textarea { display: block; width: 100%; margin-top: 4px; font-family: var(--mono);
+                      font-size: 13px; white-space: pre; }
+""".strip()
+
+
+SCRIPT = """
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "ff.workbench";
+  var WIDE = { tree: 290, props: 350, output: 180 };
+  var state = { tree: WIDE.tree, props: WIDE.props, output: WIDE.output };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    for (var key in state) {
+      if (typeof saved[key] === "number" && saved[key] >= 0 && saved[key] < 900) state[key] = saved[key];
+    }
+  } catch (error) { /* a locked-down browser simply keeps the defaults */ }
+
+  function apply() {
+    root.style.setProperty("--tree", state.tree + "px");
+    root.style.setProperty("--props", state.props + "px");
+    root.style.setProperty("--output", state.output + "px");
+    var body = document.body;
+    body.classList.toggle("folded-tree", state.tree < 8);
+    body.classList.toggle("folded-props", state.props < 8);
+    body.classList.toggle("folded-output", state.output < 8);
+    var buttons = document.querySelectorAll("[data-fold]");
+    for (var i = 0; i < buttons.length; i++) {
+      var name = buttons[i].getAttribute("data-fold");
+      buttons[i].setAttribute("aria-pressed", String(state[name] < 8));
+    }
+  }
+
+  function remember() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (error) { /* nothing to keep */ }
+  }
+
+  var drag = null;
+  document.addEventListener("pointerdown", function (event) {
+    var handle = event.target.closest ? event.target.closest("[data-gutter]") : null;
+    if (!handle) return;
+    var name = handle.getAttribute("data-gutter");
+    drag = { name: name, x: event.clientX, y: event.clientY, start: state[name] };
+    handle.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  document.addEventListener("pointermove", function (event) {
+    if (!drag) return;
+    var size;
+    if (drag.name === "tree") size = drag.start + (event.clientX - drag.x);
+    else if (drag.name === "props") size = drag.start - (event.clientX - drag.x);
+    else size = drag.start - (event.clientY - drag.y);
+    state[drag.name] = Math.max(0, Math.min(880, Math.round(size)));
+    apply();
+  });
+  document.addEventListener("pointerup", function () {
+    if (!drag) return;
+    drag = null;
+    if (state.tree < 40) state.tree = 0;
+    if (state.props < 40) state.props = 0;
+    if (state.output < 30) state.output = 0;
+    apply();
+    remember();
+  });
+
+  function filterTree(text) {
+    var wanted = (text || "").toLowerCase();
+    var files = document.querySelectorAll(".tree-file");
+    for (var i = 0; i < files.length; i++) {
+      var path = (files[i].getAttribute("data-path") || "").toLowerCase();
+      files[i].style.display = wanted && path.indexOf(wanted) < 0 ? "none" : "";
+    }
+    if (!wanted) return;
+    var dirs = document.querySelectorAll("details.tree-dir");
+    for (var j = 0; j < dirs.length; j++) dirs[j].open = true;
+  }
+
+  document.addEventListener("input", function (event) {
+    var box = event.target;
+    if (!box || !box.getAttribute || box.getAttribute("data-filter") !== "tree") return;
+    filterTree(box.value);
+  });
+
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest ? event.target.closest("[data-fold]") : null;
+    if (button) {
+      var name = button.getAttribute("data-fold");
+      state[name] = state[name] < 8 ? WIDE[name] : 0;
+      apply();
+      remember();
+      event.preventDefault();
+      return;
+    }
+    var tab = event.target.closest ? event.target.closest(".tabs a") : null;
+    if (!tab || !window.fetch) return;
+    var href = tab.getAttribute("href");
+    event.preventDefault();
+    fetch(href + (href.indexOf("?") < 0 ? "?" : "&") + "pane=doc", { credentials: "same-origin" })
+      .then(function (response) {
+        if (!response.ok) throw new Error(String(response.status));
+        return response.text();
+      })
+      .then(function (html) {
+        var panes = document.querySelectorAll(".doc-body");
+        if (panes.length !== 1) throw new Error("one document pane expected");
+        panes[0].innerHTML = html;
+        var tabs = document.querySelectorAll(".tabs a");
+        for (var i = 0; i < tabs.length; i++) tabs[i].setAttribute("aria-current", String(tabs[i] === tab));
+        document.title = tab.textContent + " \\u00b7 " + document.title.split("\\u00b7")[0].trim();
+        history.pushState({ pane: true }, "", href);
+      })
+      .catch(function () { window.location.href = href; });
+  });
+
+  window.addEventListener("popstate", function () { window.location.reload(); });
+  apply();
+})();
 """.strip()
 
 def footer() -> str:
-    """The line under every page, in the language of this request."""
-    return tr("服务端渲染 · 无 JavaScript · 数据与 <code>ff --json</code> 完全一致 · 写入由命令自身的门决定")
+    """The line at the right of the status bar, in the language of this request."""
+    return tr("数据与 <code>ff --json</code> 完全一致 · 写入由命令自身的门决定")
 
 
 def esc(value) -> str:
@@ -104,36 +302,116 @@ class Url:
         return f"/{path}" + (f"?{encoded}" if encoded else "")
 
 
-def layout(title: str, body: str, nav: str = "", subtitle: str = "") -> str:
-    """One complete page."""
-    head = f'<div class="head"><h1>{esc(title)}</h1>'
+def page_head(title: str, subtitle: str = "") -> str:
+    """The heading block at the top of the centre pane."""
+    html = f'<div class="head"><h1>{esc(title)}</h1>'
     if subtitle:
-        head += f'<div class="sub">{esc(subtitle)}</div>'
-    head += "</div>"
+        html += f'<div class="sub">{esc(subtitle)}</div>'
+    return html + "</div>"
+
+
+def document_region(title: str, subtitle: str, body: str) -> str:
+    """The centre pane on its own, the shape the tab loader drops into place."""
+    return page_head(title, subtitle) + body
+
+
+def panel(title: str, body: str, pane: str) -> str:
+    """One side pane with a heading that stays put while it scrolls."""
+    return (
+        f'<aside class="pane pane-{pane}" id="pane-{pane}">'
+        f'<div class="pane-h">{esc(title)}</div><div class="pane-b">{body}</div></aside>'
+    )
+
+
+def gutter(pane: str, label: str, axis: str = "v") -> str:
+    """The drag handle between two panes; the script gives it its meaning."""
+    return (
+        f'<div class="gutter {axis}" data-gutter="{pane}" title="{att(label)}" '
+        'role="separator" aria-orientation="vertical"></div>'
+    )
+
+
+def layout(
+    title: str,
+    body: str,
+    nav: str = "",
+    subtitle: str = "",
+    *,
+    tabs: str = "",
+    toolbar: str = "",
+    panes: dict[str, str] | None = None,
+    status: str = "",
+    script: bool = True,
+) -> str:
+    """One complete page: menu bar, tool bar, panes, centre document, status bar.
+
+    The panes are named areas of a CSS grid, so their order in the markup only
+    matters to a screen reader, not to the browser laying them out.
+    """
+    panes = panes or {}
+    tree, props, output = panes.get("tree", ""), panes.get("props", ""), panes.get("output", "")
+    document = (
+        '<main class="pane-doc">'
+        + (f'<div class="tabs">{tabs}</div>' if tabs else "")
+        + f'<div class="doc-body">{page_head(title, subtitle)}{body}</div>'
+        + "</main>"
+    )
+    middle = (
+        f"{tree}{gutter('tree', tr('拖动改变左栏宽度')) if tree else ''}"
+        f"{document}"
+        f"{gutter('props', tr('拖动改变右栏宽度')) if props else ''}{props}"
+        f"{gutter('output', tr('拖动改变底栏高度'), 'h') if output else ''}{output}"
+    )
     return (
         f'<!DOCTYPE html>\n<html lang="{html_lang()}">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f"<title>{esc(title)}</title>\n<style>\n{STYLE}\n</style>\n</head>\n<body>\n"
-        f"{head}\n"
-        + (f'<div class="nav">{nav}</div>\n' if nav else "")
-        + "<hr>\n"
-        f"{body}\n"
-        "<hr>\n"
-        f'<div class="foot">{footer()}</div>\n'
-        "</body>\n</html>\n"
+        + (f'<div class="menubar">{nav}</div>\n' if nav else "")
+        + (f'<div class="toolbar">{toolbar}</div>\n' if toolbar else "")
+        + middle
+        + "\n"
+        + (f'<div class="statusbar">{status}</div>\n' if status else "")
+        + (f"<script>\n{SCRIPT}\n</script>\n" if script else "")
+        + "</body>\n</html>\n"
     )
 
 
+def section_links() -> dict[str, str]:
+    """The sections of the tool, in menu order, in the language of this request."""
+    return {
+        "index": tr("首页"),
+        "list": tr("实体列表"),
+        "edit": tr("编辑"),
+        "source": tr("源码"),
+        "tables": tr("表格"),
+        "find": tr("查找"),
+        "deps": tr("引用查询"),
+        "assets": tr("资源"),
+        "check": tr("体检"),
+        "stats": tr("统计"),
+        "log": tr("日志"),
+        "ops": tr("操作"),
+        "mcp": tr("MCP"),
+        "cmd": tr("命令行"),
+        "help": tr("帮助"),
+    }
+
+
 def nav_bar(url: Url, links: dict[str, str] | None = None) -> str:
-    """The line of section links, with the current scope and the exit link."""
-    links = links or {"index": tr("首页"), "list": tr("实体列表"), "edit": tr("编辑"), "find": tr("查找"), "deps": tr("引用查询"), "check": tr("体检"), "stats": tr("统计"), "log": tr("日志"), "ops": tr("操作"), "cmd": tr("命令行"), "help": tr("帮助")}
+    """The menu bar: section links, the current scope, the language and the exit."""
+    links = links or section_links()
     parts = [f'<a href="{att(url(route))}">{esc(label)}</a>' for route, label in links.items()]
-    parts.append(tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-")))
+    menu = " ".join(parts)
+    tail = [tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-"))]
     other = "zh" if current() == "en" else "en"
     name = "中文" if other == LANGUAGE_DEFAULT else "English"
-    parts.append(f'<span class="sub">| <a href="{att(url(_ROUTE.get(), lang=other))}">{name}</a></span>')
-    parts.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
-    return " ".join(parts)
+    tail.append(f'<span class="sub">| <a href="{att(url(_ROUTE.get(), lang=other))}">{name}</a></span>')
+    tail.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
+    return (
+        f'<span class="brand">{esc(tr("Firefight 模组编辑器"))}</span>'
+        f'<span class="menu">{" ".join(parts)}</span>'
+        f'<span class="sub">{" ".join(tail)}</span>'
+    )
 
 
 def h2(text: str) -> str:
@@ -186,6 +464,100 @@ def mono(text: str) -> str:
     return f"<code>{esc(text)}</code>"
 
 
+# How much of one table row the row list shows before it cuts the text off.
+ROW_CHARS = 120
+
+
+def one_line(text: str, limit: int = ROW_CHARS) -> str:
+    """One table row's text, tabs widened and the tail cut off past ``limit`` characters."""
+    text = text.replace("\t", "    ")
+    return text if len(text) <= limit else text[:limit] + "…"
+
+
+def folder_tree(paths: list[str]) -> dict:
+    """Group project-relative paths into nested folders.
+
+    A node is ``{"files": [path, ...], "folders": {name: node}}``; ``files`` holds
+    the full relative path so a link can be built from the leaf alone.
+    """
+    root: dict = {"files": [], "folders": {}}
+    for path in sorted(paths):
+        node = root
+        for part in path.split("/")[:-1]:
+            node = node["folders"].setdefault(part, {"files": [], "folders": {}})
+        node["files"].append(path)
+    return root
+
+
+def count_files(node: dict) -> int:
+    """Every file below one node, folders included."""
+    return len(node["files"]) + sum(count_files(child) for child in node["folders"].values())
+
+
+def render_tree(node: dict, render_file, *, depth: int = 0, open_depth: int = 2) -> str:
+    """Folders as ``<details>`` and files as links; opening one needs no script.
+
+    A folder summarises itself and links to its slice of the list page; only the
+    first ``TREE_ROWS`` files of a folder are drawn, so a big project stays cheap.
+    """
+    parts = []
+    for name in sorted(node["folders"]):
+        child = node["folders"][name]
+        opened = " open" if depth < open_depth else ""
+        parts.append(
+            f'<details class="tree-dir"{opened}><summary>{esc(name)} '
+            f'<span class="sub">{esc(tr("{} 项", count_files(child)))}</span></summary>'
+            + render_tree(child, render_file, depth=depth + 1, open_depth=open_depth)
+            + "</details>"
+        )
+    for path in node["files"][:TREE_ROWS]:
+        parts.append(f'<div class="tree-file" data-path="{att(path)}">{render_file(path)}</div>')
+    if len(node["files"]) > TREE_ROWS:
+        parts.append(note(tr("只显示前 {} 项", TREE_ROWS)))
+    return "".join(parts)
+
+
+ASSET_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".bmp": "image/bmp",
+    ".webp": "image/webp",
+    ".tga": "image/x-tga",
+    ".ogg": "audio/ogg",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+}
+
+
+class AssetNotFound(Exception):
+    """The requested asset is not a readable file inside the project."""
+
+
+def asset_type(relative: str) -> str:
+    """The content type of one asset, by extension; unknown files are opaque."""
+    return ASSET_TYPES.get(Path(relative).suffix.lower(), "application/octet-stream")
+
+
+def is_previewable(relative: str) -> bool:
+    """Whether a browser can show this file on its own (image or sound)."""
+    return Path(relative).suffix.lower() in ASSET_TYPES
+
+
+def asset_path(scope: Scope, relative: str) -> Path:
+    """Resolve a project-relative asset path, refusing anything outside the project.
+
+    The path is confined to the project directory, so ``../``, an absolute path
+    and a drive letter all end up as a refusal rather than as a read.
+    """
+    base = scope.project.resolve()
+    candidate = (base / relative).resolve()
+    if candidate != base and base not in candidate.parents:
+        raise AssetNotFound(tr("{} 指向工程目录之外", relative))
+    return candidate
+
+
 def table(headers: list[str], rows: list[list[str]], empty: str = tr("没有数据")) -> str:
     """A bordered table; cells are markup and must be escaped by the caller."""
     if not rows:
@@ -228,7 +600,7 @@ def crumbs(items: list[tuple[str, str]]) -> str:
     return '<div class="crumbs">' + " › ".join(parts) + "</div>"
 
 
-def form(action: str, fields: list[str], submit: str = tr("查询")) -> str:
+def form(action: str, fields: list[str], submit: str = tr("查询"), css: str = "") -> str:
     """A GET form from pre-built field markup.
 
     A GET submission replaces the query string of the action with the form's own fields, so
@@ -246,12 +618,19 @@ def form(action: str, fields: list[str], submit: str = tr("查询")) -> str:
         if name not in named  # a field of the form itself wins, so no parameter is sent twice
     ]
     body = " ".join(carry + fields)
-    return f'<form method="get" action="{att(path)}">{body} <input type="submit" value="{att(submit)}"></form>'
+    room = f' class="{att(css)}"' if css else ""
+    return f'<form method="get"{room} action="{att(path)}">{body} <input type="submit" value="{att(submit)}"></form>'
 
 
 def text_field(name: str, label: str, value: str = "", size: int = 30) -> str:
     """A labelled text input."""
     return f'<label>{esc(label)} <input type="text" name="{att(name)}" value="{att(value)}" size="{size}"></label>'
+
+
+def text_area(name: str, label: str, value: str = "", rows: int | None = None) -> str:
+    """A labelled multi-line box, for one document's whole text."""
+    rows = SOURCE_ROWS if rows is None else rows
+    return f'<label class="wide">{esc(label)}<textarea name="{att(name)}" rows="{rows}" spellcheck="false">{esc(value)}</textarea></label>'
 
 
 def checkbox(name: str, label: str, checked: bool, value: str = "1") -> str:
@@ -415,10 +794,52 @@ def shell_line(scope_name: str, command: str, selector: str, options: dict) -> s
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
-RESERVED = ("scope", "t", "command", "selector", "page", "lang")
+RESERVED = ("scope", "t", "command", "selector", "page", "lang", "pane", "q")
 
 # The route of the request being answered, so the language switch can stay on the page.
 _ROUTE = contextvars.ContextVar("web_route", default="index")
+
+# pane=doc asks for the centre pane alone; the tab strip fetches it and drops it in place.
+_FRAGMENT = contextvars.ContextVar("web_fragment", default=False)
+
+# The document the request is about, so the property pane can follow the centre pane.
+_SELECTION = contextvars.ContextVar("web_selection", default="")
+_SEARCH = contextvars.ContextVar("web_search", default="")
+
+# The sections the tab strip offers; every route still works as a plain page load.
+TABS = ("index", "list", "edit", "source", "tables", "assets", "log", "ops", "mcp", "cmd", "help")
+
+# How much of the project and of the log the side panes show on one page.
+TREE_ROWS = 40
+OUTPUT_ROWS = 12
+# How many fields the property pane lists for the selected document.
+PROP_ROWS = 40
+# How many pictures or sounds the asset page draws at once.
+ASSET_ROWS = 60
+# How many rows of a plain-text table the table page draws at once.
+TABLE_ROWS = 200
+# How much of the last command's output the bottom pane keeps.
+ECHO_CHARS = 2000
+# How long the status bar may keep a check result. A check parses every document in the project
+# (about 1.2 s on a 765 file project), which is too much for every page load.
+CHECK_SECONDS = 20.0
+
+# What the source page will open, and how much of it. The UI answers GET only, so the edited
+# text travels in the query string; 16000 bytes of document leaves room for the percent
+# encoding inside the 64 KiB request line the server accepts.
+SOURCE_SUFFIXES = (".xml", ".toml", ".txt")
+SOURCE_BYTES = 16_000
+SOURCE_ROWS = 24
+
+# The project folders the asset page walks; both hold files the game loads as they are.
+ASSET_FOLDERS = ("Images", "Sounds")
+
+# The MCP panel starts a server from the options this web session was started with, so a trial
+# call resolves the same scopes a client would (docs/mcp.md). The argument box is capped: the
+# request line is the only carrier the GET-only UI has.
+MCP_KEYS = ("workspace", "root", "firefight")
+MCP_ARGUMENTS = 4_000
+
 TEXT_VIEWS = ("raw", "toml", "xml")
 
 # Commands the UI refuses: `web` would try to bind a second port inside a request. Everything
@@ -490,6 +911,13 @@ class App:
         self.page_size = page_size
         self.token = token
         self.language = language
+        # The bottom pane keeps the last command line this session ran, and the status bar keeps
+        # the check counts for a few seconds. Both live with the server, so browsing to another
+        # page does not lose them.
+        self.last_command: dict | None = None
+        self.checks: dict[str, tuple[float, dict]] = {}
+        # The one optional second socket, opened from the MCP panel and closed from it too.
+        self.mcp = mcp_listener.McpService()
 
     # --- scope and command plumbing -----------------------------------------
 
@@ -536,7 +964,7 @@ class Handler(BaseHTTPRequestHandler):
     """GET router; every route returns HTML, /json returns the raw payload."""
 
     server_version = f"ff-web/{VERSION}"
-    routes = ("index", "list", "show", "get", "edit", "find", "refs", "deps", "check", "stats", "log", "ops", "cmd", "json", "help", "quit")
+    routes = ("index", "list", "show", "get", "edit", "source", "tables", "find", "refs", "deps", "check", "stats", "log", "ops", "mcp", "mcpstart", "mcpstop", "assets", "asset", "cmd", "json", "help", "quit")
 
     # --- plumbing -----------------------------------------------------------
 
@@ -550,6 +978,8 @@ class Handler(BaseHTTPRequestHandler):
         route = parsed.path.strip("/") or "index"
         _ROUTE.set(route)
         query = {key: value[0] for key, value in parse_qs(parsed.query, keep_blank_values=True).items()}
+        _SELECTION.set(query.get("path") or query.get("selector") or "")
+        _SEARCH.set(query.get("q", ""))
         try:
             use(query.get("lang") or self.app.language)
         except ValueError as error:
@@ -561,22 +991,73 @@ class Handler(BaseHTTPRequestHandler):
         if route not in self.routes:
             self.respond(404, self._error_page(tr("没有这个页面"), f"/{route}", tr("从上面的导航栏回到首页。")))
             return
+        if route == "asset":
+            self.serve_asset(query, started)
+            return
+        if route in ("mcpstart", "mcpstop"):
+            self.mcp_control(route, query)
+            return
         status = 200
         body = ""
+        fragment = query.get("pane") == "doc"
         try:
             self.check_token(query)
+            _FRAGMENT.set(fragment)
             body = getattr(self, f"page_{route}")(query)
         except UsageError as error:
+            _FRAGMENT.set(False)
             status, body = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写；下面的表单给出可用取值。"))
         except FfError as error:
+            _FRAGMENT.set(False)
             status, body = 500, self._error_page(tr("读取失败"), str(error), tr("文件可能损坏或不可解码；用 CLI 的 check 命令定位。"))
         except Exception as error:  # keep the server alive and report what happened
+            _FRAGMENT.set(False)
             traceback.print_exc(file=sys.stderr)
             status, body = 500, self._error_page(tr("内部错误"), f"{type(error).__name__}: {error}", tr("这是界面的问题，请把上面那段命令回报。"))
         if route == "json" and status == 200:
             self.respond(status, body, "text/plain; charset=utf-8")
         else:
             self.respond(status, body)
+        self.note_request(status, started)
+
+    def serve_asset(self, query: dict[str, str], started: float) -> None:
+        """Send one project file as its own bytes, or an error page.
+
+        The ETag is the file's size and modification time, so a browser that asks
+        again with ``If-None-Match`` gets a 304 and the picture is not sent twice.
+        """
+        etag = ""
+        try:
+            self.check_token(query)
+            scope = self.app.scope(query.get("scope") or "")
+            relative = query.get("path") or ""
+            if not relative:
+                raise UsageError(tr("缺少 path=：给出工程内的相对路径，例如 Images/units/rifleman.png"))
+            path = asset_path(scope, relative)
+            if path.is_dir():
+                raise UsageError(tr("{} 是一个目录，不是文件", relative))
+            if not path.is_file():
+                raise AssetNotFound(tr("工程里没有 {}", relative))
+            data = path.read_bytes()
+            content_type = asset_type(relative)
+            stat = path.stat()
+            etag = f'"{stat.st_size}-{int(stat.st_mtime)}"'
+            status = 304 if self.headers.get("If-None-Match") == etag else 200
+        except AssetNotFound as error:
+            status, data, content_type = 404, self._error_page(tr("没有这个文件"), str(error), tr("从资源页选一个存在的文件。")).encode("utf-8"), "text/html; charset=utf-8"
+        except UsageError as error:
+            status, data, content_type = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写。")).encode("utf-8"), "text/html; charset=utf-8"
+        except (FfError, OSError) as error:
+            status, data, content_type = 500, self._error_page(tr("读取失败"), str(error), tr("文件可能损坏或不可读。")).encode("utf-8"), "text/html; charset=utf-8"
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "private, no-cache")
+        if etag:
+            self.send_header("ETag", etag)
+        self.end_headers()
+        if data:
+            self.wfile.write(data)
         self.note_request(status, started)
 
     # --- everything that is not a GET ---------------------------------------
@@ -677,9 +1158,256 @@ class Handler(BaseHTTPRequestHandler):
     # --- shared builders ----------------------------------------------------
 
     def shell(self, title: str, body: str, scope_name: str, subtitle: str = "") -> str:
-        """A page with the standard navigation."""
+        """A page inside the workbench: menu bar, tool bar, panes, status bar."""
         url = self.app.url(scope_name)
-        return layout(title, body, nav_bar(url), subtitle or tr("作用域 {}", scope_name))
+        line = subtitle or tr("作用域 {}", scope_name)
+        if _FRAGMENT.get():
+            return document_region(title, line, body)
+        return layout(
+            title,
+            body,
+            nav_bar(url),
+            line,
+            tabs=self.section_tabs(url),
+            toolbar=self.tool_bar(url),
+            panes={
+                "tree": panel(tr("工程"), self.pane_tree(scope_name), "tree"),
+                "props": panel(tr("属性"), self.pane_props(scope_name), "props"),
+                "output": panel(tr("输出"), self.pane_output(scope_name), "output"),
+            },
+            status=self.status_bar(scope_name),
+        )
+
+    def section_tabs(self, url: Url) -> str:
+        """The tab strip; without a script each tab is an ordinary link."""
+        route = _ROUTE.get()
+        labels = section_links()
+        parts = []
+        for name in TABS:
+            here = ' aria-current="true"' if name == route else ""
+            parts.append(f'<a href="{att(url(name))}"{here}>{esc(labels[name])}</a>')
+        return "".join(parts)
+
+    def tool_bar(self, url: Url) -> str:
+        """Buttons that fold a pane, plus the sections the tabs do not carry."""
+        folds = "".join(
+            f'<button class="tbtn" type="button" data-fold="{pane}" aria-pressed="false">{esc(label)}</button>'
+            for pane, label in (("tree", tr("左栏")), ("props", tr("右栏")), ("output", tr("输出")) )
+        )
+        links = " · ".join(
+            link(url(route), label)
+            for route, label in (("find", tr("查找")), ("deps", tr("引用查询")), ("check", tr("体检")), ("stats", tr("统计")))
+        )
+        return folds + f'<span class="sub">{links}</span>'
+
+    def pane_tree(self, scope_name: str) -> str:
+        """The project's documents as folders, from the same table the list page shows."""
+        try:
+            scope = self.app.scope(scope_name)
+        except (UsageError, FfError) as error:
+            return note(esc(str(error)))
+        url = self.app.url(scope.name)
+        search = _SEARCH.get().strip()
+        field = (
+            f'<input type="text" name="q" value="{att(search)}" size="12" '
+            f'placeholder="{att(tr("搜索文件"))}" data-filter="tree">'
+        )
+        head = (
+            form(url(_ROUTE.get()), [field], tr("搜索"), css="tree-search")
+            + f'<div class="tree-dir">{link(url("index"), esc(scope.project.name))}</div>'
+        )
+        try:
+            payload = self.app.call("list", scope, "all", limit="0").payload
+        except (UsageError, FfError) as error:
+            return bad(esc(str(error)))
+        entities = payload.get("entities", [])
+        if search:
+            wanted = search.lower()
+            entities = [item for item in entities if wanted in item["path"].lower()]
+        assets = "".join(
+            f'<div class="tree-file" data-path="{att(folder)}">'
+            f'{link(url("assets", folder=folder), esc(tr("{} 目录", folder)))}</div>'
+            for folder in ASSET_FOLDERS
+            if (scope.project / folder).is_dir()
+        )
+        if not entities:
+            if search:
+                return head + assets + note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
+            return head + assets + note(tr("这个工程还没有实体文件。"))
+        body = render_tree(
+            folder_tree([item["path"] for item in entities]),
+            lambda path: link(url("show", path=path), esc(path.rsplit("/", 1)[-1])),
+        )
+        if search:
+            counted = note(tr("{} 个文件里有 {} 个匹配 {}。", payload.get("count", 0), len(entities), search))
+            return head + body + counted + self.tree_search_link(url, search) + assets
+        return head + body + note(tr("{} 个文件", payload.get("count", len(entities)))) + assets
+
+    def tree_search_link(self, url: Url, search: str) -> str:
+        """The same search on the list page, where the selector filter is the command's own."""
+        return note_html(link(url("list", selector=search), tr("在列表页里搜索")))
+
+    def pane_props(self, scope_name: str) -> str:
+        """The selected document's fields, and the way into each of them."""
+        try:
+            scope = self.app.scope(scope_name)
+        except (UsageError, FfError) as error:
+            return note(esc(str(error)))
+        url = self.app.url(scope.name)
+        body = kv(
+            [
+                (tr("名字"), esc(scope.name)),
+                (tr("根目录"), esc(str(scope.root))),
+                (tr("来源"), esc(scope.origin)),
+            ]
+        )
+        path = _SELECTION.get()
+        if not path:
+            body += note(tr("从左边打开一个文件，或在列表页选一份文档，这里会显示它的字段。"))
+            return body
+        folder = path.rsplit("/", 1)[0] if "/" in path else ""
+        body += h3(tr("当前文档"))
+        body += note_html(
+            f"{link(url('get', path=path), tr('字段'))} · "
+            f"{link(url('edit', path=path), tr('编辑'))} · "
+            f"{link(url('show', path=path), tr('原文'))} · "
+            f"{link(url('list', prefix=folder), tr('同级文件'))}"
+        )
+        try:
+            payload = self.app.call("get", scope, path, limit=str(PROP_ROWS)).payload
+        except (UsageError, FfError) as error:
+            body += note(esc(str(error)))
+            return body
+        rows = [[esc(item["path"]), esc(item["value"])] for item in payload.get("values", [])]
+        body += table([tr("字段"), tr("值")], rows, tr("这份文档没有字段"))
+        total = int(payload.get("count", 0))
+        if total > len(rows):
+            body += note(tr("只显示前 {} 项", len(rows)))
+        body += self.field_preview(url, scope, payload.get("values", []))
+        body += note_html(
+            mono(f"ff {scope.name} get {path} --json") + " · " + self.json_link(scope.name, "get", selector=path)
+        )
+        return body
+
+    def field_preview(self, url: Url, scope: Scope, values: list[dict]) -> str:
+        """Draw the pictures a field points at, when the value names a project file.
+
+        A texture or a sound is named by its path in the game data, not by a field
+        the schema knows, so the values are matched against the asset folders and
+        anything that is really there is shown. A name that stays dangling is left
+        alone: it is a reference the project has not filled in yet (docs/refs.md).
+        """
+        base = scope.project.resolve()
+        drawn = []
+        for item in values:
+            name = str(item.get("value") or "").strip()
+            if len(name) >= 2 and name[0] == name[-1] and name[0] in "\"'":
+                name = name[1:-1]  # the value column shows TOML text, quotes included
+            if "/" not in name or not is_previewable(name):
+                continue
+            try:
+                path = asset_path(scope, name)
+            except AssetNotFound:
+                continue
+            if not path.is_file() or base not in path.parents:
+                continue
+            source = url("asset", path=name)
+            if asset_type(name).startswith("image/"):
+                drawn.append(
+                    f'<a href="{att(source)}" target="_blank" rel="noopener">'
+                    f'<img src="{att(source)}" alt="{att(name)}" loading="lazy"></a>'
+                )
+            else:
+                drawn.append(f'<audio controls preload="none" src="{att(source)}"></audio>')
+        if not drawn:
+            return ""
+        return f'<div class="preview"><div class="sub">{esc(tr("字段指向的文件"))}</div>{"".join(drawn)}</div>'
+
+    def pane_output(self, scope_name: str) -> str:
+        """The last command this session ran, above the tail of the event log.
+
+        The last command is kept with the server, so the pane still shows it after the reader
+        moves to another page; only the session's own runs appear here.
+        """
+        parts = [f'<div class="sub">{esc(tr("最近一次命令"))}</div>']
+        echo = self.app.last_command
+        if echo is None:
+            parts.append(note(tr("本次会话还没有运行过命令")))
+        else:
+            parts.append(f"<div>{mono(echo['line'])}</div>")
+            output = echo["output"]
+            if len(output) > ECHO_CHARS:
+                output = output[:ECHO_CHARS] + "…"
+            parts.append(pre(output) if output.strip() else note(tr("这条命令没有文本输出")))
+            parts.append(
+                note_html(
+                    tr("退出码 {}", echo["exit"])
+                    + " · "
+                    + f"{echo['elapsed']:.2f} s"
+                    + " · "
+                    + link(self.app.url(echo["scope"])("cmd", line=echo["line"]), tr("重跑"))
+                )
+            )
+        parts.append(f'<div class="sub">{esc(tr("事件日志"))}</div>')
+        try:
+            scope = self.app.scope(scope_name)
+            result = self.app.call("log", scope, "", limit=str(OUTPUT_ROWS))
+        except (UsageError, FfError) as error:
+            parts.append(note(str(error)))
+            return "".join(parts)
+        events = result.payload.get("events", [])
+        if not events:
+            parts.append(note(tr("还没有写入记录")))
+            return "".join(parts)
+        for event in events:
+            words = [str(event.get(key) or "") for key in ("result", "document", "field")]
+            parts.append(f'<div>{esc(event.get("id", ""))} {esc(" ".join(word for word in words if word))}</div>')
+        return "".join(parts)
+
+    def check_counts(self, scope_name: str) -> dict | None:
+        """What the status bar reports, refreshed at most once every CHECK_SECONDS.
+
+        The result carries the time it was taken, so a cached number is visibly dated rather
+        than silently stale.
+        """
+        try:
+            scope = self.app.scope(scope_name)
+        except (UsageError, FfError):
+            return None
+        key = f"{scope.name}:{scope.root}"
+        now = time.monotonic()
+        held = self.app.checks.get(key)
+        if held is not None and now - held[0] < CHECK_SECONDS:
+            return held[1]
+        try:
+            result = self.app.call("check", scope, "")
+        except (UsageError, FfError):
+            return None
+        counts = {
+            "files": int(result.payload.get("files", 0) or 0),
+            "errors": len(result.payload.get("errors", []) or []),
+            "dangling": int(result.payload.get("dangling_total", 0) or 0),
+            "at": time.strftime("%H:%M:%S"),
+        }
+        self.app.checks[key] = (now, counts)
+        return counts
+
+    def status_bar(self, scope_name: str) -> str:
+        """The bottom line: the scope, the project's counts, the language and how a page is made."""
+        parts = [f'<span>{esc(tr("作用域 {}", scope_name))}</span>']
+        counts = self.check_counts(scope_name)
+        if counts is None:
+            parts.append(f'<span class="sub">{esc(tr("无法读取该作用域的计数"))}</span>')
+        else:
+            parts.append(
+                f'<span>{esc(tr("文件 {}", counts["files"]))}</span>'
+                f'<span>{esc(tr("错误 {}", counts["errors"]))}</span>'
+                f'<span>{esc(tr("悬空 {}", counts["dangling"]))}</span>'
+                f'<span class="sub">{esc(tr("数据于 {}", counts["at"]))}</span>'
+            )
+        parts.append(f'<span class="sub">{esc(current())}</span>')
+        parts.append(f'<span class="foot">{footer()}</span>')
+        return "".join(parts)
 
     def json_link(self, scope_name: str, command: str, **params) -> str:
         """A link to the same data as a raw payload."""
@@ -745,6 +1473,22 @@ class Handler(BaseHTTPRequestHandler):
         body += note(tr("提示：列表页可以用路径片段过滤；统计、体检、引用查询都在导航栏里。"))
         return self.shell(tr("Firefight 模组编辑器"), body, scope.name)
 
+    def entity_actions(self, url: Url, path: str) -> str:
+        """The three writes that act on one document, each behind the check step.
+
+        ``add`` keeps the document it copies in ``from=`` and takes the new path as its
+        selector, so a copy starts as a prefilled form and not as a write. ``remove`` is
+        linked with ``confirm=1``, which runs its check and nothing more: the write stays
+        one deliberate click past the page that shows what it would do.
+        """
+        return " · ".join(
+            [
+                link(url("edit", path=path), tr("改")),
+                link(url("ops", command="add", **{"from": path}), tr("复制")),
+                link(url("ops", command="remove", selector=path, confirm="1"), tr("删除")),
+            ]
+        )
+
     def page_list(self, query: dict[str, str]) -> str:
         """Entity table with a text filter, a category filter and paging."""
         scope = self.app.scope(query.get("scope", ""))
@@ -763,10 +1507,11 @@ class Handler(BaseHTTPRequestHandler):
         window = entities[(page - 1) * size : page * size]
         rows = [
             [
-                link(url("show", path=item["path"], as_="toml"), item["path"]),
+                link(url("show", path=item["path"], **{"as": "toml"}), item["path"]),
                 link(url("list", type=item["category"]), item["category"]),
                 esc(item["format"]),
                 esc(item["bytes"]),
+                self.entity_actions(url, item["path"]),
             ]
             for item in window
         ]
@@ -787,7 +1532,20 @@ class Handler(BaseHTTPRequestHandler):
             tr("过滤"),
         )
         body += note(tr("根目录 {} · 命中 {} / {} 个实体文件", payload['root'], len(entities), payload['count']))
-        body += table([tr("路径"), tr("分类"), tr("格式"), tr("字节")], rows, tr("没有匹配的实体"))
+        body += table([tr("路径"), tr("分类"), tr("格式"), tr("字节"), tr("操作")], rows, tr("没有匹配的实体"))
+        body += h3(tr("新建文档"))
+        body += form(
+            url("ops", command="add"),
+            [
+                text_field("selector", tr("新文档路径"), "", 60),
+                text_field("from", tr("复制来源（留空则按 schema 建骨架）"), "", 60),
+            ],
+            tr("检查"),
+        )
+        body += note_html(
+            tr("每行的{}、{}、{}都通向操作页的检查步骤，写入前会先显示该命令的真实结果。",
+               tr("改"), tr("复制"), tr("删除"))
+        )
         body += pager(url, "list", page, len(entities), size, last, prefix=prefix, type=wanted)
         body += note_html(tr("等价命令：") + mono(f"ff {scope.name} list {prefix or 'all'} --json") + " · " + self.json_link(scope.name, "list", selector="all", type=wanted or None))
         return self.shell(tr("实体列表"), body, scope.name)
@@ -808,6 +1566,10 @@ class Handler(BaseHTTPRequestHandler):
             label = {"raw": tr("原始内容"), "toml": tr("TOML 视图"), "xml": tr("XML 视图")}[name]
             links.append(link(url("show", path=payload["path"], **{"as": name}), f"[{label}]" if name != view else f"[{label} ←]"))
         links.append(link(url("refs", path=payload["path"]), tr("[本文件指向谁]")))
+        if payload.get("format") == "list":
+            links.append(link(url("tables", path=payload["path"]), tr("[行编辑]")))
+        if Path(payload["path"]).suffix.lower() in SOURCE_SUFFIXES:
+            links.append(link(url("source", path=payload["path"]), tr("[源码]")))
         links.append(self.json_link(scope.name, "show", selector=payload["path"], **{"as": view}))
         body += "<p>" + " ".join(links) + "</p>"
         warnings = payload.get("warnings") or []
@@ -1109,6 +1871,311 @@ class Handler(BaseHTTPRequestHandler):
         body += note_html(tr("也可以用{}一次给多个参数，或到{}看事件日志。", link(url("ops", command="set"), tr("操作页")), link(url("log"), tr("事件日志"))))
         return self.shell(tr("编辑文档"), body, scope.name)
 
+    def source_path(self, scope, relative: str) -> Path:
+        """The file behind a source path, or a UsageError naming the problem.
+
+        Only the project's own text files are open here: the suffix has to be one the editor
+        reads (``.xml``, ``.toml``, ``.txt``) and the path has to resolve inside the project
+        directory (docs/web.md section 2.5).
+        """
+        name = relative.rsplit("/", 1)[-1]
+        if not relative or Path(name).suffix.lower() not in SOURCE_SUFFIXES:
+            raise UsageError(tr("源码页只打开 {} 文件，不是 {}。", "、".join(SOURCE_SUFFIXES), relative or tr("空路径")))
+        path = scope.project / relative
+        try:
+            journal.confine(path, scope.project)
+        except FfError as error:
+            # a path outside the project is a bad request, not a broken server
+            raise UsageError(str(error)) from None
+        if not path.is_file():
+            raise UsageError(tr("找不到 {}。", relative))
+        return path
+
+    def source_file(self, scope, relative: str) -> textio.SourceText:
+        """The decoded document, refusing one the UI cannot carry in a query string."""
+        path = self.source_path(scope, relative)
+        if path.stat().st_size > SOURCE_BYTES:
+            raise UsageError(
+                tr("{} 有 {} 字节，超过源码页的 {} 字节上限。", relative, path.stat().st_size, SOURCE_BYTES)
+            )
+        return textio.read_source(path)
+
+    def source_write(self, project: Path, source: textio.SourceText, relative: str, text: str, *, dry_run: bool) -> dict:
+        """Stage and apply a whole-document rewrite of one source file, recorded as ``web``.
+
+        The file's own encoding, BOM and line ending are kept: a UTF-8 file that carried a BOM
+        is written back as ``utf-8-sig``, because ``textio.encode_export`` never adds one
+        (core/textio.py).  The write goes through the same plan and journal as a command-line
+        change, so it lands in the event log and ``undo`` puts it back.
+        """
+        encoding = "utf-8-sig" if source.had_bom else source.encoding
+        newline = "\r\n" if "\r\n" in source.raw else "\n"
+        plan = edit.plan_render(
+            source.path,
+            relative,
+            text,
+            entity=relative.rsplit("/", 1)[-1].rsplit(".", 1)[0],
+            newline=newline,
+            encoding=encoding,
+        )
+        return edit.apply_document(plan, project, dry_run=dry_run, actor="web")
+
+    def source_check(self, scope, relative: str) -> str:
+        """What ``check`` says about this document, shown before and after a save.
+
+        The result is reported and never used as a gate: a document that does not load is
+        exactly the document someone wants to fix here (docs/web.md section 2.5).
+        """
+        try:
+            payload = self.app.call("check", scope, relative).payload
+        except (UsageError, FfError) as error:
+            return bad(str(error))
+        errors = len(payload.get("errors") or [])
+        return pre(
+            tr(
+                "体检 {}：{} 个加载错误、{} 条警告、{} 条悬空引用。",
+                relative,
+                errors,
+                payload.get("warnings_total", 0),
+                payload.get("dangling_total", 0),
+            )
+        )
+
+    def page_source(self, query: dict[str, str]) -> str:
+        """One document as its own text, ready to be edited and saved as a whole.
+
+        The save is the same two steps as the other writing pages: a check that touches
+        nothing, then the write. ``check`` is run on both sides and never blocks.
+        """
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        wanted = query.get("path", "").strip()
+        body = h2(tr("源码"))
+        body += note(
+            tr(
+                "整份文档当文本改：TOML 或 XML 都能在这里直接编辑。保存走与其他写入相同的先计划、后应用，"
+                "按文本原有的编码、换行与 BOM 写回，因此可以撤销。"
+            )
+        )
+        body += form(url("source"), [text_field("path", tr("文档"), wanted, 60)], tr("读取"))
+        if not wanted:
+            return self.shell(tr("源码"), body, scope.name)
+        source = self.source_file(scope, wanted)
+        relative = journal.confine(source.path, scope.project)
+        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("源码"))])
+        body += note(
+            tr(
+                "{} 字节，{} 编码，{} 换行，{} BOM。",
+                len(source.path.read_bytes()),
+                "utf-8-sig" if source.had_bom else source.encoding,
+                "CRLF" if "\r\n" in source.raw else "LF",
+                tr("带") if source.had_bom else tr("无"),
+            )
+        )
+        body += self.source_check(scope, relative)
+        if query.get("confirm") != "1":
+            body += form(
+                url("source", path=relative),
+                [text_area("text", tr("文本"), source.text)],
+                tr("检查"),
+            )
+            return self.shell(tr("源码"), body, scope.name)
+        return self.shell(tr("源码"), body + self.source_change(scope, source, relative, query), scope.name)
+
+    def source_change(self, scope, source: textio.SourceText, relative: str, query: dict) -> str:
+        """The check step and the write step of one whole-document edit."""
+        url = self.app.url(scope.name)
+        text = query.get("text", "")
+        if textio.normalize_newlines(text) == source.text:
+            return note(tr("内容没有变化，因此没有可写入的东西。"))
+        body = h3(tr("只检查不写入"))
+        try:
+            dry = self.source_write(scope.project, source, relative, text, dry_run=True)
+        except (UsageError, FfError) as error:
+            body += bad(str(error))
+            body += note(tr("写入被拒绝；再试一次也不会不同，因此没有写入链接。"))
+            return body
+        body += pre(
+            tr("{} 字节 → {} 字节，记录为 actor=web、动作 set、文档 {}。", dry["bytes_before"], dry["bytes_after"], dry["path"])
+        )
+        if query.get("write") != "1":
+            body += warn(tr("尚未写入。核对上面的差别，确认无误后再按「写入」。"))
+            body += note_html(
+                link(url("source", path=relative, text=text, confirm="1", write="1"), tr("写入"))
+            )
+            return body
+        written = self.source_write(scope.project, source, relative, text, dry_run=False)
+        body += h3(tr("写入结果"))
+        body += warn(tr("已写入 {} 字节，记录编号 {}。", written["bytes_after"], written.get("id") or ""))
+        body += h3(tr("写入之后"))
+        body += self.source_check(scope, relative)
+        body += note_html(
+            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("ops", command="undo"), tr("撤销")))
+        )
+        return body
+
+    def list_files(self, scope) -> list[str]:
+        """The project's plain-text tables, as the project settings declare them.
+
+        The same rule the CLI applies to skip a file decides what is offered here, so a
+        table that ``convert`` leaves alone is a table this page offers to edit
+        (docs/cli.md section 4.3).
+        """
+        payload = self.app.call("list", scope, "all", limit="0").payload
+        declared = declared_lists(scope)
+        found = []
+        for item in payload.get("entities") or []:
+            relative = item.get("path") or ""
+            if relative and is_list_file(relative, declared, scope.project / relative):
+                found.append(relative)
+        return found
+
+    def list_path(self, scope, relative: str) -> Path:
+        """The file behind a table path, or a UsageError naming the problem."""
+        path = scope.project / relative
+        if not is_list_file(relative, declared_lists(scope), path):
+            raise UsageError(tr("{} 不是工程设置的表格文件", relative))
+        if not path.is_file():
+            raise UsageError(tr("找不到 {}。", relative))
+        journal.confine(path, scope.project)
+        return path
+
+    def table_write(
+        self, project: Path, path: Path, relative: str, lines: list[str], encoding: str, bom: bool, *, dry_run: bool
+    ) -> dict:
+        """Stage and apply a whole-document rewrite of one table, recorded as ``web``.
+
+        The row operation only changes the text; the write goes through the same plan and
+        journal as a command-line change, so it lands in the event log and ``undo`` puts it
+        back (docs/project-layout.md section 8).
+        """
+        text = tables.encode(lines, encoding, bom)
+        plan = edit.plan_render(
+            path,
+            relative,
+            text,
+            entity=relative.rsplit("/", 1)[-1].rsplit(".", 1)[0],
+            newline="",
+            encoding=encoding,
+        )
+        return edit.apply_document(plan, project, dry_run=dry_run, actor="web")
+
+    def page_tables(self, query: dict[str, str]) -> str:
+        """The plain-text tables of the project, one row per line.
+
+        A list file is one entry per line, so the page is a row list: every row has its own
+        input box and its own delete link, and the bottom of the page appends a row.  The
+        write follows the same two steps as the operations page -- a check that touches
+        nothing, then the write (docs/web.md section 2.2).
+        """
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        wanted = query.get("path", "").strip()
+        body = h2(tr("表格"))
+        body += note(tr("工程设置的清单文件是一行一条。改哪一行就改哪一行的输入框，按该行的「保存」；写入与命令行一样先记账，可用日志页撤销。"))
+        found = self.list_files(scope)
+        body += form(url("tables"), [text_field("path", tr("清单文件"), wanted, 60)], tr("读取"))
+        if found:
+            body += note_html(
+                tr("本工程声明的表格：")
+                + " ".join(link(url("tables", path=item), item.rsplit("/", 1)[-1]) for item in found)
+            )
+        if not wanted:
+            if not found:
+                body += note(tr("这个工程没有声明任何清单文件。"))
+            return self.shell(tr("表格"), body, scope.name)
+        path = self.list_path(scope, wanted)
+        relative = journal.confine(path, scope.project)
+        content = path.read_bytes()
+        lines, encoding, newline = tables.read_rows(path)
+        bom = content.startswith(textio.BOM)
+        body += crumbs([(url("index"), tr("首页")), (url("show", path=relative), relative), ("", tr("表格"))])
+        body += note(tr("{} 行，{} 编码，{} 换行。", len(lines), encoding, "CRLF" if newline == "\r\n" else "LF"))
+        op = query.get("op", "")
+        line = query.get("line", "")
+        if op:
+            body += self.table_change(scope, path, relative, lines, encoding, bom, op, line, query)
+            return self.shell(tr("表格"), body, scope.name)
+        rows = []
+        for row in tables.rows(lines, TABLE_ROWS):
+            mark = tr("注释") if row["comment"] else (tr("空行") if row["blank"] else "")
+            actions = form(
+                url("tables", path=relative, op="set", line=str(row["line"]), confirm="1"),
+                [text_field("value", tr("改为"), row["text"], 30)],
+                tr("保存"),
+            )
+            actions += " " + link(
+                url("tables", path=relative, op="delete", line=str(row["line"]), confirm="1"), tr("删除")
+            )
+            rows.append([esc(str(row["line"])), pre(one_line(row["text"])), esc(mark), actions])
+        body += table([tr("行"), tr("内容"), tr("标记"), tr("改为")], rows)
+        if len(lines) > TABLE_ROWS:
+            body += note(tr("只显示前 {} 行，共 {} 行。", TABLE_ROWS, len(lines)))
+        body += h3(tr("追加一行"))
+        body += form(url("tables", path=relative, op="add", confirm="1"), [text_field("value", tr("内容"), "", 40)], tr("追加"))
+        return self.shell(tr("表格"), body, scope.name)
+
+    def table_change(
+        self,
+        scope,
+        path: Path,
+        relative: str,
+        lines: list[str],
+        encoding: str,
+        bom: bool,
+        op: str,
+        line: str,
+        query: dict,
+    ) -> str:
+        """The check step and the write step of one row operation."""
+        url = self.app.url(scope.name)
+        if op not in tables.OPS:
+            raise UsageError(tr("op= 是 {} 之一，不是 {}。", "、".join(tables.OPS), op))
+        number = 0
+        if op != "add":
+            try:
+                number = int(line)
+            except ValueError:
+                raise UsageError(tr("line= 是行号，不是 {}。", line)) from None
+        value = query.get("value", "")
+        newline = "\r\n" if b"\r\n" in path.read_bytes() else "\n"
+        try:
+            changed, before, after = tables.row_change(lines, op, number, value, newline)
+        except ValueError as error:
+            raise UsageError(f"{relative}: {error}") from None
+        label = {"set": tr("改写第 {} 行", number), "add": tr("追加一行"), "delete": tr("删除第 {} 行", number)}[op]
+        body = h3(label)
+        body += table([tr("行"), tr("现在"), tr("操作后")], [[esc(str(number)), pre(one_line(before)), pre(one_line(after))]], "")
+        if changed == lines:
+            body += note(tr("内容没有变化，因此没有可写入的东西。"))
+            return body
+        body += h3(tr("只检查不写入"))
+        try:
+            dry = self.table_write(scope.project, path, relative, changed, encoding, bom, dry_run=True)
+        except (UsageError, FfError) as error:
+            body += bad(str(error))
+            body += note(tr("写入被拒绝；再试一次也不会不同，因此没有写入链接。"))
+            return body
+        body += pre(
+            tr("{} 字节 → {} 字节，记录为 actor=web、动作 set、文档 {}。", dry["bytes_before"], dry["bytes_after"], dry["path"])
+        )
+        if query.get("write") != "1":
+            body += warn(tr("尚未写入。核对上面的差别，确认无误后再按「写入」。"))
+            body += note_html(
+                link(
+                    url("tables", path=relative, op=op, line=str(number), value=value, confirm="1", write="1"),
+                    tr("写入"),
+                )
+            )
+            return body
+        written = self.table_write(scope.project, path, relative, changed, encoding, bom, dry_run=False)
+        body += h3(tr("写入结果"))
+        body += warn(tr("已写入 {} 字节，记录编号 {}。", written["bytes_after"], written.get("id") or ""))
+        body += note_html(
+            tr("到{}看这条记录，或到{}换回。", link(url("log"), tr("事件日志")), link(url("ops", command="undo"), tr("撤销")))
+        )
+        return body
+
     def page_log(self, query: dict[str, str]) -> str:
         """The event log, with the undo and redo forms beside it."""
         scope = self.app.scope(query.get("scope", ""))
@@ -1139,6 +2206,56 @@ class Handler(BaseHTTPRequestHandler):
         body += form(url("ops", command="undo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
         body += form(url("ops", command="redo"), [text_field("count", tr("条数"), "1", 6)], tr("检查"))
         return self.shell(tr("事件日志"), body, scope.name)
+
+    def page_assets(self, query: dict[str, str]) -> str:
+        """The pictures and sounds of the project, drawn from the files themselves.
+
+        The bytes come from the read-only ``/asset`` route, so a thumbnail is the
+        real file and not a copy: replacing it on disk changes what the page shows.
+        """
+        scope = self.app.scope(query.get("scope", ""))
+        url = self.app.url(scope.name)
+        wanted = query.get("folder") or ""
+        folders = [wanted] if wanted else list(ASSET_FOLDERS)
+        body = crumbs([(url("index"), tr("首页")), ("", tr("资源"))])
+        body += h2(tr("资源"))
+        body += note(tr("这里画的是工程目录里的图片与声音文件本身；点图片打开原图，声音可以直接播放。"))
+        drawn = 0
+        for folder in folders:
+            root = scope.project / folder
+            if not root.is_dir():
+                body += note(tr("工程里没有 {} 目录。", folder))
+                continue
+            found = sorted(
+                path.relative_to(scope.project).as_posix()
+                for path in root.rglob("*")
+                if path.is_file() and is_previewable(path.name)
+            )
+            body += h3(tr("{} 目录（{} 个可预览）", folder, len(found)))
+            if not found:
+                body += note(tr("这个目录里没有可预览的文件。"))
+                continue
+            tiles = []
+            for relative in found[:ASSET_ROWS]:
+                source = url("asset", path=relative)
+                name = esc(relative.rsplit("/", 1)[-1])
+                if asset_type(relative).startswith("image/"):
+                    tiles.append(
+                        f'<figure class="tile"><a href="{att(source)}" target="_blank" rel="noopener">'
+                        f'<img class="thumb" src="{att(source)}" alt="{name}" loading="lazy"></a>'
+                        f"<figcaption>{name}</figcaption></figure>"
+                    )
+                else:
+                    tiles.append(
+                        f'<figure class="tile"><audio controls preload="none" src="{att(source)}"></audio>'
+                        f"<figcaption>{name}</figcaption></figure>"
+                    )
+            body += f'<div class="gallery">{"".join(tiles)}</div>'
+            if len(found) > ASSET_ROWS:
+                body += note(tr("只显示前 {} 项，共 {} 项。", ASSET_ROWS, len(found)))
+            drawn += min(len(found), ASSET_ROWS)
+        body += note(tr("共显示 {} 项。", drawn))
+        return self.shell(tr("资源"), body, scope.name, tr("图片与声音"))
 
     def page_ops(self, query: dict[str, str]) -> str:
         """Every writing command as a form, with a check step before the write.
@@ -1184,7 +2301,7 @@ class Handler(BaseHTTPRequestHandler):
         body += form(url("ops", command=operation.command), fields, tr("检查"))
         if query.get("confirm") != "1":
             return self.shell(operation.title, body, scope.name)
-        check = {**options, "write": "1", "dry-run": "1"}
+        check = {"actor": "web", **options, "write": "1", "dry-run": "1"}
         body += h3(tr("将要运行"))
         body += pre(shell_line(scope.name, operation.command, selector, check))
         body += h3(tr("只检查不写入"))
@@ -1199,7 +2316,9 @@ class Handler(BaseHTTPRequestHandler):
             if dry.code != 0:
                 body += warn(tr("退出码 {}：命令报了失败项，写入前先看上面的输出。", dry.code))
         if not refused and query.get("write") == "1":
-            result = self.app.call(operation.command, scope, selector, write="1", **options)
+            # The journal records where a write came from; a form is the web surface, so it
+            # writes as ``web`` unless the command line names an actor itself.
+            result = self.app.call(operation.command, scope, selector, **{"actor": "web", "write": "1", **options})
             body += h3(tr("写入结果"))
             body += warn(tr("已写入，退出码 {}。", result.code))
             body += pre(result.text or tr("（这条命令没有文本输出，看载荷）"))
@@ -1214,6 +2333,208 @@ class Handler(BaseHTTPRequestHandler):
         body += warn(tr("尚未写入。核对上面的结果，确认无误后再按「写入」。"))
         body += note_html(link(url("ops", command=operation.command, confirm="1", write="1", selector=selector, **options), tr("写入")))
         return self.shell(operation.title, body, scope.name)
+
+    # --- MCP panel ----------------------------------------------------------
+
+    def mcp_defaults(self) -> dict[str, str]:
+        """The scope options this session was started with, handed to the in-process server."""
+        return {key: value for key, value in self.app.options.items() if key in MCP_KEYS and value}
+
+    def mcp_server(self, *, write: bool, scope_name: str = ""):
+        """One MCP session in process, over the same specification table a client reads.
+
+        The server is built per request with the options of this web session, so a trial call
+        resolves the scopes of the page and produces the JSON-RPC answer a client would get.
+        """
+        from core.mcp.server import Server  # imported here so a plain web start never loads it
+
+        defaults = dict(self.mcp_defaults())
+        if scope_name:
+            defaults["scope"] = scope_name
+        return Server(write=write, defaults=defaults, cwd=self.app.cwd)
+
+    def mcp_args(self, write: bool) -> list[str]:
+        """The arguments of the command that starts a server for this workspace."""
+        parts = ["-m", "core.mcp"]
+        if write:
+            parts.append("--write")
+        parts.extend(f"{key}={value}" for key, value in sorted(self.mcp_defaults().items()))
+        return parts
+
+    def mcp_command(self, write: bool) -> str:
+        """The command a person runs to start the server by hand; a path with a space is quoted."""
+        return " ".join(f'"{part}"' if " " in part else part for part in ["python", *self.mcp_args(write)])
+
+    def mcp_snippet(self) -> str:
+        """The two command lines and the block a client's configuration takes."""
+        block = json.dumps(
+            {"mcpServers": {"firefight-mod-editor": {"command": "python", "args": self.mcp_args(True)}}},
+            ensure_ascii=False,
+            indent=2,
+        )
+        return pre(f"{self.mcp_command(False)}\n{self.mcp_command(True)}\n\n{block}")
+
+    def mcp_tools_table(self) -> str:
+        """Every registered tool: the exposed name, the command, read or write, its arguments."""
+        rows = []
+        for spec in specs.TOOLS:
+            parameters = ", ".join(
+                f"{parameter.name}=*" if parameter.required else parameter.name for parameter in spec.parameters
+            )
+            rows.append(
+                [
+                    mono(specs.exposed_name(spec.name)),
+                    mono(spec.command),
+                    tr("写入") if spec.writes else tr("只读"),
+                    esc(parameters) if parameters else "—",
+                ]
+            )
+        return table([tr("工具"), tr("命令"), tr("读或写"), tr("参数")], rows, tr("没有工具"))
+
+    def mcp_trial(self, scope_name: str, query: dict[str, str]) -> str:
+        """One ``tools/call`` answered by a server started in this request, printed as it came."""
+        name = query.get("tool", "").strip()
+        raw = query.get("arguments", "").strip() or "{}"
+        if len(raw) > MCP_ARGUMENTS:
+            return bad(tr("参数超过 {} 字节。", MCP_ARGUMENTS))
+        try:
+            arguments = json.loads(raw)
+        except ValueError as error:
+            return bad(tr("参数不是 JSON：{}", str(error)))
+        if not isinstance(arguments, dict):
+            return bad(tr("参数必须是一个 JSON 对象。"))
+        canonical = specs.canonical_name(name)
+        spec = specs.tool_named(canonical) if canonical else None
+        if spec is None or not spec.available:
+            return bad(tr("没有这个工具：{}（名字要带 {} 前缀）", name, specs.TOOL_PREFIX))
+        url = self.app.url(scope_name)
+        check_only = spec.writes and query.get("write") != "1"
+        if check_only:
+            # The check step is the line a person would type: the tool still runs with write on,
+            # and dryRun is what stops it from writing (docs/mcp.md section 4).
+            arguments = {**arguments, "dryRun": True}
+        answer = self.mcp_server(write=True, scope_name=scope_name).handle(
+            {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": name, "arguments": arguments}}
+        )
+        body = ""
+        if check_only:
+            body += warn(tr("这是一个写入工具；这次试跑加了 dryRun，因此什么也没有写。"))
+        elif spec.writes:
+            body += bad(tr("已按原样运行，写入已经发生。"))
+        body += pre(json.dumps(answer, ensure_ascii=False, indent=2, default=str))
+        if check_only:
+            body += note_html(
+                link(
+                    url("mcp", tool=name, arguments=query.get("arguments", "{}"), confirm="1", write="1"),
+                    tr("按原样再跑一次（会写入）"),
+                )
+            )
+        return body
+
+    def mcp_listener_section(self, scope_name: str, query: dict[str, str]) -> str:
+        """The optional second socket: its state when it is open, and the form that opens it.
+
+        The listener binds one host and port in this process and answers the same protocol over
+        HTTP POST with a token of its own. Opening it is a real bind, so it is refused with the
+        reason when the port is taken; closing it shuts the socket down at once.
+        """
+        state = self.app.mcp.state()
+        url = self.app.url(scope_name)
+        body = h3(tr("监听"))
+        body += note(tr("MCP 通常由客户端以 stdio 启动（上一节的两行）。只支持 HTTP 的客户端可以在这里另开一个端口，本进程用同一张工具表应答。"))
+        if state:
+            rows = [
+                (tr("地址"), mono(state["url"])),
+                (tr("绑定"), mono(f"{state['bind']}:{state['port']}")),
+                (tr("令牌"), mono(state["token"])),
+                (tr("写入"), tr("允许") if state["write"] else tr("只读")),
+                (tr("开始于"), mono(state["at"])),
+            ]
+            body += kv(rows)
+            body += pre(json.dumps(
+                {"mcpServers": {"firefight-mod-editor": {
+                    "url": state["url"],
+                    "headers": {mcp_listener.TOKEN_HEADER: state["token"]},
+                }}},
+                ensure_ascii=False, indent=2))
+            body += note(tr("监听开着的时候，局域网里的其它机器可以连到上面这个地址；令牌是它唯一的门，因此只在本机使用时选 127.0.0.1 更窄。"))
+            body += note_html(link(url("mcpstop"), tr("关闭监听")))
+            return body
+        body += note(tr("现在没有在监听。"))
+        body += form(
+            url("mcpstart"),
+            [
+                select_field(
+                    "host",
+                    tr("监听地址"),
+                    [("local", tr("127.0.0.1（仅本机）")), ("lan", tr("0.0.0.0（局域网）"))],
+                    query.get("host", "local"),
+                ),
+                text_field("port", tr("端口"), query.get("port", str(mcp_listener.DEFAULT_PORT)), 8),
+                checkbox("write", tr("允许写入（默认只读）"), False),
+            ],
+            tr("打开监听"),
+        )
+        body += note(tr("默认只读：不带写入开关时，写入类工具与不带 --write 的命令行服务器一样不会被登记。"))
+        return body
+
+    def mcp_control(self, route: str, query: dict[str, str]) -> None:
+        """Open or close the panel's second socket, then go back to the panel."""
+        back = self.app.url(self.app.default_scope)("mcp")
+        try:
+            self.check_token(query)
+            if route == "mcpstart":
+                self.app.mcp.start(
+                    host=query.get("host", "local"),
+                    port=int(query.get("port") or mcp_listener.DEFAULT_PORT),
+                    write=query.get("write") == "1",
+                    defaults=self.mcp_defaults(),
+                    cwd=self.app.cwd,
+                )
+            else:
+                self.app.mcp.stop()
+        except ValueError as error:
+            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("端口要是一个整数。")))
+            return
+        except UsageError as error:
+            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("回到 MCP 页重新选择。")))
+            return
+        self.send_response(302)
+        self.send_header("Location", back)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def page_mcp(self, query: dict[str, str]) -> str:
+        """The MCP panel: the tool table, the connection snippet and one trial call.
+
+        The tools are the ones the MCP server registers, which are one specification table
+        (``core/cli/specs.py``) with the DSH plugin reading the same rows; the panel therefore
+        shows what a client sees, and the trial runs the call in process instead of over stdio.
+        """
+        scope = self.app.scope(query.get("scope") or "")
+        url = self.app.url(scope.name)
+        body = h2(tr("MCP"))
+        body += note(tr("MCP 服务与 DSH 插件读的是同一张工具规格表，这一页列的就是它登记的工具。"))
+        body += h3(tr("连接"))
+        body += note(tr("命令行启动的服务器把工具交给任何 MCP 客户端；下面两行只差 --write。"))
+        body += self.mcp_snippet()
+        body += self.mcp_listener_section(scope.name, query)
+        body += h3(tr("工具"))
+        body += self.mcp_tools_table()
+        body += note(tr("参数名后带 * 的是必填项；不带 --write 的服务器只登记不写入的工具。"))
+        body += h3(tr("试跑"))
+        body += note(tr("在进程内跑一次 tools/call，原样显示 JSON-RPC 应答；不经过网络，也不另起进程。"))
+        body += form(
+            url("mcp"),
+            [
+                text_field("tool", tr("工具名"), query.get("tool", specs.exposed_name("ff_list")), 40),
+                text_area("arguments", tr("参数（JSON 对象）"), query.get("arguments", "{}"), 6),
+            ],
+            tr("试跑"),
+        )
+        if query.get("tool"):
+            body += self.mcp_trial(scope.name, query)
+        return self.shell(tr("MCP"), body, scope.name)
 
     def page_cmd(self, query: dict[str, str]) -> str:
         """A command line: run one CLI command and print exactly what the CLI prints.
@@ -1246,9 +2567,17 @@ class Handler(BaseHTTPRequestHandler):
         command = web_command(invocation.positionals[0])
         selector = " ".join(invocation.positionals[1:])
         started = time.monotonic()
-        result = self.app.call(command, scope, selector, **invocation.options)
+        # A write reached through a page is recorded as ``web`` unless the line names an actor.
+        result = self.app.call(command, scope, selector, **{"actor": "web", **invocation.options})
         elapsed = time.monotonic() - started
         shown = f"{scope.name} {command}" + (f" {selector}" if selector else "")
+        self.app.last_command = {
+            "line": shown + (" --json" if as_json else ""),
+            "scope": scope.name,
+            "exit": result.code,
+            "elapsed": elapsed,
+            "output": json.dumps(result.payload, indent=2, ensure_ascii=False, default=str) if as_json else (result.text or ""),
+        }
         body += h2(tr("输出"))
         if as_json:
             body += pre(json.dumps(result.payload, indent=2, ensure_ascii=False, default=str))
@@ -1260,9 +2589,14 @@ class Handler(BaseHTTPRequestHandler):
         rows.append((tr("退出码"), tr("{}（0 成功，1 已执行但有失败）", result.code)))
         rows.append((tr("耗时"), f"{elapsed:.2f} s"))
         body += table([tr("项"), tr("值")], rows)
+        # The JSON link previews the run. It must not carry ``write``: a link that reads like a
+        # read would otherwise write a second time.
+        json_options = dict(invocation.options)
+        if json_options.get("write") == "1":
+            json_options["dry-run"] = "1"
         body += note_html(
             tr("等价命令行：") + mono(f"ff {shown}" + (" --json" if as_json else ""))
-            + " · " + link(url("json", command=command, selector=selector or "all", **invocation.options), tr("原始 JSON"))
+            + " · " + link(url("json", command=command, selector=selector or "all", **json_options), tr("原始 JSON"))
             + " · " + link(url("cmd", line=shown + (" --json" if as_json else "")), tr("按 JSON 重跑"))
         )
         return self.shell(tr("命令行"), body, scope.name)
@@ -1278,8 +2612,12 @@ class Handler(BaseHTTPRequestHandler):
             [link(url("show", path=""), "/show"), tr("一个实体的原始 / TOML / XML 视图"), mono(tr("ff {} show <路径> as=toml", scope.name))],
             [link(url("get", path=""), "/get"), tr("某个字段的取值、文档路径与行号"), mono(tr("ff {} get <路径> field=<字段>", scope.name))],
             [link(url("edit"), "/edit"), tr("一个文档的全部字段，每行一个输入框"), mono(tr("ff {} get <路径>", scope.name))],
+            [link(url("source"), "/source"), tr("一份文档的整段文本，可直接改 TOML 或 XML 后保存"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
+            [link(url("tables"), "/tables"), tr("工程设置的清单文件，一行一条，可改可删可追加"), mono(tr("ff {} show <路径>", scope.name))],
             [link(url("log"), "/log"), tr("事件日志，以及撤销与重做的入口"), mono(f"ff {scope.name} log")],
+            [link(url("assets"), "/assets"), tr("工程里的图片与声音；缩略图就是文件本身"), mono(tr("ff {} convert <选择器> to=<目录> assets=1", scope.name))],
             [link(url("ops"), "/ops"), tr("11 条写入命令的表单；先检查，确认后才写入"), mono(tr("ff {} set <路径> field=<字段> value=<值> --write", scope.name))],
+            [link(url("mcp"), "/mcp"), tr("MCP 工具表、连接片段，以及在进程内试跑一次 tools/call"), mono(tr("python -m core.mcp --write"))],
             [link(url("find"), "/find"), tr("按标签、取值或文档路径搜索"), mono(tr("ff {} find <前缀> tag=…", scope.name))],
             [link(url("refs", path=""), "/refs"), tr("一个实体指向谁"), mono(tr("ff {} refs <路径>", scope.name))],
             [link(url("deps"), "/deps"), tr("谁引用了某个取值"), mono(tr("ff {} deps value=<取值>", scope.name))],
@@ -1298,8 +2636,8 @@ class Handler(BaseHTTPRequestHandler):
     def page_quit(self, query: dict[str, str]) -> str:
         """Stop the server from the browser; /quit asks first, /quit?do=1 does it.
 
-        A GET is the only verb this interface has (no JavaScript, no forms that
-        POST), so the exit is a two-step page: a link can be followed by a
+        A GET is the only verb this interface has (the script fetches and never
+        posts), so the exit is a two-step page: a link can be followed by a
         prefetcher or by accident, a second deliberate click cannot.
         """
         scope = self.app.scope(query.get("scope", ""))
@@ -1509,7 +2847,8 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
     print(tr("  根目录   {}", app.scope(scope_name).root), flush=True)
     print(tr("  地址     {}", address), flush=True)
     print(tr("  实例记录 {}", instance_path(root)), flush=True)
-    print(tr("  无 JavaScript；Ctrl-C 停止，或点页面上的「退出」"), flush=True)
+    print(tr("  页面     服务端渲染，一个内联脚本只负责工作台布局"), flush=True)
+    print(tr("  停止     Ctrl-C，或页面上的「退出」"), flush=True)
     open_browser(options, address)
     try:
         server.serve_forever()

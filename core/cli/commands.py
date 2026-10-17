@@ -6,6 +6,7 @@ builds the cross-reference tables under ``EditorCache/``, and ``export`` writes 
 (docs/cli.md).
 """
 
+import difflib
 import platform
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,11 +14,11 @@ from pathlib import Path
 from core import __version__ as core_version
 from core import convert, index as index_core, journal, refs as refs_core, textio, toml, xml
 from core.errors import FfError, SchemaError, XmlStructureError
-from core.schema import schema_for
+from core.schema import PROJECT_SCHEMAS, SCHEMAS, schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 from core.xml import XmlElement
 
-from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, SETTING_FILE, Scope, UsageError, entity_files
+from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, SETTING_FILE, Scope, UsageError, entity_files, resolve_scope
 
 
 SUFFIX_TOML = ".toml"
@@ -996,12 +997,21 @@ def cmd_deps(ctx: Context) -> Result:
     ]
     index = refs_core.TargetIndex(scope.root)
     resolved: list[str] = []
+    resolving = 0
     for item in incoming:
-        for target in index.find(item["kind"], item["value"]):
-            resolved.append(relative_of(scope, target))
+        targets = index.find(item["kind"], item["value"])
+        if targets:
+            resolving += 1
+            resolved.extend(relative_of(scope, target) for target in targets)
     shown = incoming[: row_limit(ctx)]
     rows = [[item["source"], item["kind"], item["document_path"]] for item in shown]
-    summary = f"{tally(len(shown), len(incoming))} incoming reference(s); resolved: {', '.join(sorted(set(resolved))) or 'none'}"
+    found = sorted(set(resolved))
+    summary = (
+        f"{tally(len(shown), len(incoming))} incoming reference(s); "
+        f"{resolving} of {len(incoming)} point at a file that is there"
+    )
+    if found:
+        summary += f": {', '.join(found)}"
     text = table_of(["source", "kind", "document_path"], rows, summary)
     return Result(
         {
@@ -1022,8 +1032,39 @@ def cmd_deps(ctx: Context) -> Result:
     )
 
 
+ASSET_KINDS = ("image", "sound", "uniform", "engine_sound")
+
+
+def other_root(raw: str, ctx: Context) -> Path:
+    """The root ``against=`` names: a directory, ``scope:path``, or a scope name.
+
+    A one-letter name before the colon is a drive letter rather than a scope, as in a diff
+    side (docs/cli.md section 4.10).
+    """
+    wanted = raw.replace("\\", "/").strip()
+    options = {key: value for key, value in ctx.options.items() if key not in ("against",)}
+    if ":" in wanted:
+        head = wanted.split(":", 1)[0]
+        if len(head) > 1 and all(character.isalnum() or character in "_-" for character in head):
+            return resolve_scope(head, options, ctx.cwd).root
+    candidate = Path(wanted)
+    if not candidate.is_absolute():
+        candidate = ctx.cwd / candidate
+    if candidate.is_dir():
+        return candidate
+    return resolve_scope(wanted, options, ctx.cwd).root
+
+
 def cmd_check(ctx: Context) -> Result:
-    """Load every selected entity, then report load errors, warnings and dangling references."""
+    """Load every selected entity, then report load errors, warnings and dangling references.
+
+    ``against=`` resolves references the project itself does not hold against a second root,
+    which is what an imported project needs; ``assets=1`` names the file a missing image or
+    sound would have to be; ``rosters=1`` folds the roster comparison in (docs/cli.md
+    section 4.6).
+    """
+    from core import roster as roster_core
+
     scope = ctx.scope
     files = filter_category(targets(ctx), ctx, scope)
     errors: list[dict] = []
@@ -1056,18 +1097,73 @@ def cmd_check(ctx: Context) -> Result:
         graph.add(document_path(scope, relative), document.root)
     limit = row_limit(ctx, default=CHECK_SAMPLES)
     index = refs_core.TargetIndex(scope.root)
-    dangling = [
-        {"source": item.source, "kind": item.kind, "value": item.value, "document_path": "/".join(item.path)}
-        for item in refs_core.unresolved(graph, index)
-    ]
+    against = ctx.options.get("against")
+    extra = refs_core.TargetIndex(other_root(against, ctx)) if against else None
+    assets = ctx.options.get("assets") == "1"
+    resolved_elsewhere = 0
+    dangling: list[dict] = []
+    for item in refs_core.unresolved(graph, index):
+        if extra is not None and extra.find(item.kind, item.value):
+            resolved_elsewhere += 1
+            continue
+        dangling.append(
+            {
+                "source": item.source,
+                "kind": item.kind,
+                "value": item.value,
+                "document_path": "/".join(item.path),
+                "expected": list(index.expected(item.kind, item.value)),
+            }
+        )
+    roster_report: dict | None = None
+    roster_rows: list[list[str]] = []
+    if ctx.options.get("rosters") == "1":
+        listed = {
+            relative: roster_core.names(roster_core.parse(textio.read_source(path).text))
+            for relative, path in roster_paths(scope)
+        }
+        gaps = roster_core.gaps(listed, roster_documents(scope))
+        roster_report = {
+            "files": len(listed),
+            "missing": len(gaps["missing"]),
+            "orphans": len(gaps["orphans"]),
+        }
+        roster_rows = [[f"{item['roster']}: {item['name']}", "no document"] for item in gaps["missing"]]
+        roster_rows += [[item["name"], "no roster names it"] for item in gaps["orphans"]]
+    # Warnings are issues too: the summary counts them, so the table has to name them.
+    # Otherwise a project can report "2 warning(s) in 1 file(s)" above an empty table.
+    shown_warned = warned if limit is None else warned[:limit]
+    shown_dangling = dangling if limit is None else dangling[:limit]
     rows = [[item["path"], item["error"]] for item in errors]
-    rows += [[item["source"], f"unresolved {item['kind']}={item['value']}"] for item in dangling[:limit]]
+    rows += [
+        [item["path"], warning] for item in shown_warned for warning in item["warnings"]
+    ]
+    for item in shown_dangling:
+        if assets and item["kind"] in ASSET_KINDS and item["expected"]:
+            issue = "missing " + " or ".join(item["expected"])
+        else:
+            issue = f"unresolved {item['kind']}={item['value']}"
+        rows.append([item["source"], issue])
+    rows += roster_rows
+    hidden = len(dangling) - len(shown_dangling)
+    if hidden:
+        rows.append(["...", f"{hidden} more dangling reference(s) not shown; raise limit= or pass limit=0"])
+    missing_assets = sum(1 for item in dangling if item["kind"] in ASSET_KINDS)
     summary = (
         f"{loaded}/{len(files)} loaded, {skipped} list file(s) skipped, {len(errors)} error(s), "
         f"{warnings_total} warning(s) in {warning_files} file(s), {len(dangling)} dangling reference(s)"
     )
+    if against:
+        summary += f", {resolved_elsewhere} answered by the other root"
+    if assets:
+        summary += f", {missing_assets} missing asset reference(s)"
+    if roster_report is not None:
+        summary += (
+            f", {roster_report['missing']} roster entry(s) no document answers, "
+            f"{roster_report['orphans']} document(s) no roster names"
+        )
     text = table_of(["file", "issue"], rows, summary)
-    code = 1 if errors or dangling else 0
+    code = 1 if errors or dangling or roster_rows else 0
     return Result(
         {
             "scope": scope.name,
@@ -1077,9 +1173,16 @@ def cmd_check(ctx: Context) -> Result:
             "errors": errors,
             "warnings_total": warnings_total,
             "warning_files": warning_files,
-            "warning_samples": warned[:limit],
-            "dangling": dangling[:limit],
+            "warning_samples": shown_warned,
+            "warnings_shown": sum(len(item["warnings"]) for item in shown_warned),
+            "dangling": shown_dangling,
             "dangling_total": len(dangling),
+            "dangling_shown": len(shown_dangling),
+            "truncated": bool(hidden),
+            "assets_missing": missing_assets,
+            "against": str(extra.root) if extra is not None else "",
+            "dangling_answered_elsewhere": resolved_elsewhere,
+            "rosters": roster_report,
             "ok": code == 0,
         },
         text,
@@ -1186,6 +1289,94 @@ def cmd_add(ctx: Context) -> Result:
     payload["scope"] = scope.name
     payload["root"] = root_tag
     return Result(payload, _document_text(payload, "added"))
+
+
+def _renamed_token(text: str, token: str) -> str:
+    """The document text with the root table's own ``name`` set to ``token``.
+
+    Only the first table's direct keys are searched: a later ``name`` belongs to a
+    sub-table or to an array entry, and rewriting one of those would change something
+    other than the name the document declares (docs/cli.md section 4.12).
+    """
+    lines = text.split("\n")
+    start = 0
+    for index, line in enumerate(lines):
+        if line.strip().startswith("["):
+            start = index + 1
+            break
+    for index in range(start, len(lines)):
+        if lines[index].strip().startswith("["):
+            break
+        key, separator, _ = lines[index].partition("=")
+        if separator and key.strip() == "name":
+            lines[index] = f"{key}= {toml.quote_string(token)}"
+            return "\n".join(lines)
+    raise UsageError(
+        "the source document declares no name to rename; the copy would keep the source token"
+    )
+
+
+def cmd_clone(ctx: Context) -> Result:
+    """Copy one entity document under a new token; needs --write.
+
+    The source may name another scope (``Firefight:Data/Weapons/WEAPON_X.txt``), which is
+    how a project borrows a document from the stock data; the copy lands in the current
+    scope unless ``into=`` names another one.  The new token is given up front, so a copy
+    never competes with the document it came from (docs/cli.md section 4.12).
+    """
+    from core import edit
+
+    source_scope, source_selector = split_side(ctx.selector, ctx)
+    token = (ctx.options.get("as") or "").strip()
+    if not token:
+        raise UsageError("clone needs as=<the new token>; it is the name the copy declares")
+    if any(character in token for character in "/\\:") or any(
+        character.isspace() for character in token
+    ):
+        raise UsageError(f"as= is one token without a path or a space, not {token!r}")
+    if ctx.options.get("write") != "1":
+        raise UsageError("clone needs --write; add --dry-run to inspect the copy without writing")
+
+    target = ctx.scope
+    into = ctx.options.get("into")
+    if into:
+        candidate = Path(into)
+        if candidate.is_dir():
+            target = resolve_scope("Mod", {"root": str(candidate)}, ctx.cwd)
+        else:
+            target = resolve_scope(into, {}, ctx.cwd)
+    if target.name == "Firefight":
+        raise UsageError("the stock scope is read-only; clone refuses to write under Firefight")
+
+    files = entity_files(source_scope, source_selector)
+    if len(files) != 1:
+        raise UsageError(
+            f"{source_selector!r} names {len(files)} file(s) in scope {source_scope.name}; "
+            "name one document"
+        )
+    origin_path = files[0]
+    origin_relative = relative_of(source_scope, origin_path)
+    if is_list_file(origin_relative, declared_lists(source_scope), origin_path):
+        raise UsageError(f"{origin_relative} is a list file; clone copies an entity document")
+    origin = load_document(origin_path, origin_relative)
+    text = origin.text if origin.format == "toml" else origin.toml_text()
+
+    relative = str(Path(origin_relative).with_name(f"{token}.toml"))
+    path = target.root / relative
+    project_root = edit.project_root_of(target.root)
+    try:
+        plan = edit.plan_create(path, relative, _renamed_token(text, token), entity=token)
+        payload = edit.apply_document(
+            plan,
+            project_root,
+            dry_run=ctx.options.get("dry-run") == "1",
+            actor=write_actor(ctx),
+        )
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    payload["scope"] = target.name
+    payload["source"] = f"{source_scope.name}:{origin_relative}"
+    return Result(payload, _document_text(payload, "cloned"))
 
 
 def cmd_remove(ctx: Context) -> Result:
@@ -1353,8 +1544,8 @@ def cmd_log(ctx: Context) -> Result:
     }
     actor = filters["actor"]
     outcome = filters["result"]
-    if actor is not None and actor not in ("cli", "mcp"):
-        raise UsageError(f"actor= is cli or mcp, not {actor!r}")
+    if actor is not None and actor not in journal.ACTORS:
+        raise UsageError(f"actor= is {', '.join(journal.ACTORS[:-1])} or {journal.ACTORS[-1]}, not {actor!r}")
     if outcome is not None and outcome not in journal.RESULTS:
         raise UsageError(f"result= is {', '.join(journal.RESULTS[:-1])} or {journal.RESULTS[-1]}, not {outcome!r}")
     events = journal.read_events(project_root)
@@ -1729,10 +1920,14 @@ def cmd_pack(ctx: Context) -> Result:
             rendered, file=pack_core.MOD_TXT, encoding=encoding, newline=""
         )
         if stock.is_file() and stock.read_bytes() != setting_data:
+            # Both directions are offered: changing mod.txt carries the content the settings
+            # file does not hold, while changing the settings file carries what mod.txt has.
             raise UsageError(
-                f"{stock}: the bytes differ from what {pack_core.SETTING_FILE} renders "
-                f"({stock.stat().st_size} vs {len(setting_data)} bytes); run "
-                f"'settings op=emit --write overwrite=1' to reconcile the two, then pack again"
+                f"{stock}: {stock.stat().st_size} bytes on disk, {len(setting_data)} rendered from "
+                f"{pack_core.SETTING_FILE}; the two disagree, so one of them would be lost. "
+                f"Run 'settings op=emit --write overwrite=1' to rewrite mod.txt from the settings "
+                f"file, or 'settings op=render --write overwrite=1' to rewrite the settings file "
+                f"from mod.txt, then pack again"
             )
         warnings.extend(emitted)
 
@@ -1832,6 +2027,13 @@ def cmd_pack(ctx: Context) -> Result:
         f"{len(skipped) + len(left_alone)} file(s) skipped; "
         f"check: {checked_errors} error(s), {dangling} dangling reference(s)"
     )
+    # A count is not enough: what was left out and what was reported has to be readable here,
+    # or a dropped .txt twin and a document that could not be rendered stay invisible.
+    notes = [f"skipped: {item['path']} ({item['reason']})" for item in [*skipped, *left_alone]]
+    notes += [f"warning: {item}" for item in warnings]
+    text = table_of(["member", "bytes"], rows, summary)
+    if notes:
+        text += "\n\n" + "\n".join(notes)
     return Result(
         {
             "scope": scope.name,
@@ -1849,7 +2051,7 @@ def cmd_pack(ctx: Context) -> Result:
             "check": {"errors": checked_errors, "dangling": dangling},
             "errors": errors,
         },
-        table_of(["member", "bytes"], rows, summary),
+        text,
         0,
     )
 
@@ -1934,6 +2136,703 @@ def _export_text(path: Path, relative: str) -> tuple[str, str, list[str], str]:
     return document.xml_text(warnings), document.encoding, list(document.warnings) + warnings, ""
 
 
+# --- diff and the round-trip check ------------------------------------------
+
+
+def stock_text(document: Document) -> str:
+    """The stock XML form of a document, whatever it is stored as.
+
+    Both sides of a comparison go through this, so a project ``.toml`` and the
+    ``.txt`` it was converted from are compared in the same shape.
+    """
+    return document.xml_text()
+
+
+def normalized(text: str) -> str:
+    """Text with one newline style, for a comparison that is about content."""
+    return textio.normalize_newlines(text)
+
+
+def first_difference(left: str, right: str) -> str:
+    """The first line that differs, named by its number."""
+    left_lines = left.splitlines()
+    right_lines = right.splitlines()
+    for index in range(max(len(left_lines), len(right_lines))):
+        here = left_lines[index] if index < len(left_lines) else None
+        there = right_lines[index] if index < len(right_lines) else None
+        if here != there:
+            return f"line {index + 1}: {here!r} -> {there!r}"
+    return ""
+
+
+def diff_lines(
+    left: str, right: str, left_label: str, right_label: str, limit: int | None
+) -> list[str]:
+    """Unified line diff of two texts, the body capped at ``limit`` lines."""
+    rows = list(
+        difflib.unified_diff(
+            left.splitlines(), right.splitlines(), left_label, right_label, lineterm=""
+        )
+    )
+    return rows if limit is None else rows[:limit]
+
+
+def split_side(raw: str, ctx: Context) -> tuple[Scope, str]:
+    """Split ``scope:path`` into a scope and a scope-relative path.
+
+    A one-letter name before the colon is a drive letter rather than a scope, so
+    an absolute Windows path stays a path (docs/cli.md section 4.10).
+    """
+    if ":" in raw:
+        name, rest = raw.split(":", 1)
+        if len(name) > 1 and all(character.isalnum() or character in "_-" for character in name):
+            if name == ctx.scope.name:
+                return ctx.scope, rest
+            # The sides name their own files; the diff's own options are not roots.
+            options = {
+                key: value
+                for key, value in ctx.options.items()
+                if key not in ("left", "right", "root", "mod")
+            }
+            return resolve_scope(name, options, ctx.cwd), rest
+    return ctx.scope, raw
+
+
+def side_files(scope: Scope, relative: str) -> tuple[list[Path], bool]:
+    """The files one side of a diff names, and whether that side is a directory."""
+    wanted = relative.replace("\\", "/").strip("/")
+    candidate = scope.root if wanted in ("", ".") else scope.root / wanted
+    if candidate.is_file():
+        return [candidate], False
+    if not candidate.is_dir():
+        raise UsageError(f"nothing at {relative!r} in scope {scope.name}")
+    prefix = "" if wanted in ("", ".") else wanted + "/"
+    found = [path for path in entity_files(scope) if relative_of(scope, path).startswith(prefix)]
+    return found, True
+
+
+def side_label(scope: Scope, relative: str) -> str:
+    """``Mod:Data/Weapons/X.toml``; an absolute path inside the scope loses its root."""
+    wanted = relative.replace(chr(92), "/").strip("/")
+    root = scope.root.as_posix().rstrip("/")
+    if wanted.startswith(root + "/"):
+        wanted = wanted[len(root) + 1 :]
+    return f"{scope.name}:{wanted}"
+
+
+# A working file wins over the stock file it came from when both are present.
+SUFFIX_ORDER = {".toml": 0, ".xml": 1, ".txt": 2}
+
+
+def stem_key(scope: Scope, path: Path) -> str:
+    """The entity path without its suffix, so ``X.txt`` and ``X.toml`` line up."""
+    return relative_of(scope, path).rsplit(".", 1)[0]
+
+
+def tree_index(scope: Scope, paths: list[Path]) -> dict[str, Path]:
+    """One entry per entity path, preferring the working file over the source."""
+    index: dict[str, Path] = {}
+    for path in sorted(
+        paths,
+        key=lambda item: (
+            stem_key(scope, item),
+            SUFFIX_ORDER.get(item.suffix.lower(), 9),
+            relative_of(scope, item),
+        ),
+    ):
+        index.setdefault(stem_key(scope, path), path)
+    return index
+
+
+def stock_text_of(path: Path, relative: str) -> tuple[str, str]:
+    """Stock XML for one document, or the reason it could not be read."""
+    try:
+        return normalized(stock_text(load_document(path, relative))), ""
+    except FfError as error:
+        return "", str(error)
+
+
+def cmd_verify(ctx: Context) -> Result:
+    """Read every selected document back and report what does not survive the trip.
+
+    A stock XML file is compared with the layout the editor writes back, which is
+    the layout the reader captured: a comment the reader drops shows up here.  A
+    TOML file is written back as stock XML, read again and compared as TOML, so a
+    file the editor only edits in place is not called lossy for its layout.  Line
+    endings are normalised first.  A clean run over a converted project is what
+    says the conversion can be packed back to what it came from (docs/cli.md
+    section 4.11).
+    """
+    limit = row_limit(ctx)
+    declared = declared_lists(ctx.scope)
+    items: list[dict[str, object]] = []
+    for path in targets(ctx):
+        relative = relative_of(ctx.scope, path)
+        if is_list_file(relative, declared, path):
+            # A plain-text table is never parsed, so it is copied back as it stands.
+            items.append(
+                {
+                    "path": relative,
+                    "format": "list",
+                    "result": "same",
+                    "first_difference": "",
+                    "warnings": [],
+                }
+            )
+            continue
+        try:
+            document = load_document(path, relative)
+        except FfError as error:
+            items.append(
+                {
+                    "path": relative,
+                    "format": "",
+                    "result": "unreadable",
+                    "first_difference": str(error),
+                    "warnings": [],
+                }
+            )
+            continue
+        source = normalized(document.text)
+        if document.format == "toml":
+            # A TOML file is written back as stock XML; reading that back and
+            # comparing the two TOML renderings leaves only content differences,
+            # so a file the editor never rewrote in full is not called lossy.
+            try:
+                rebuilt = convert.xml_to_toml(
+                    xml.parse(document.xml_text(), relative), schema_for(document.root_tag)
+                )
+            except FfError as error:
+                items.append(
+                    {
+                        "path": relative,
+                        "format": document.format,
+                        "result": "unreadable",
+                        "first_difference": str(error),
+                        "warnings": list(document.warnings),
+                    }
+                )
+                continue
+            source = normalized(toml.render(document.table))
+            rendered = normalized(toml.render(rebuilt))
+        else:
+            rendered = normalized(document.xml_text())
+        same = source == rendered
+        items.append(
+            {
+                "path": relative,
+                "format": document.format,
+                "result": "same" if same else "differs",
+                "first_difference": "" if same else first_difference(source, rendered),
+                "warnings": list(document.warnings),
+            }
+        )
+    differ = [item for item in items if item["result"] != "same"]
+    shown = differ if limit is None else differ[:limit]
+    summary = (
+        f"all {len(items)} document(s) round-trip without loss"
+        if items and not differ
+        else f"{tally(len(differ), len(items))} document(s) do not round-trip"
+    )
+    text = summary
+    if shown:
+        rows = [
+            [str(item["path"]), str(item["format"]), str(item["first_difference"])]
+            for item in shown
+        ]
+        text = table_of(["file", "format", "first difference"], rows, summary)
+    payload = {
+        "scope": ctx.scope.name,
+        "root": str(ctx.scope.root),
+        "files": len(items),
+        "same": len(items) - len(differ),
+        "differ": len(differ),
+        "items": shown,
+        "shown": len(shown),
+        "total": len(differ),
+        "ok": not differ,
+    }
+    return Result(payload, text, 1 if differ else 0)
+
+
+def cmd_diff(ctx: Context) -> Result:
+    """Compare two documents, or two trees lined up by their entity paths.
+
+    Both sides are rendered as stock XML first, so a project TOML and the file it
+    was converted from compare in the same shape; two directories are lined up by
+    entity path with the suffix dropped.  A difference of any kind — content, or a
+    document only one side carries — makes the exit code non-zero
+    (docs/cli.md section 4.10).
+    """
+    left_raw = ctx.options.get("left", "")
+    right_raw = ctx.options.get("right", "")
+    if not left_raw or not right_raw:
+        raise UsageError("diff needs both sides: left=<scope:path> right=<scope:path>")
+    left_scope, left_relative = split_side(left_raw, ctx)
+    right_scope, right_relative = split_side(right_raw, ctx)
+    left_files, left_is_dir = side_files(left_scope, left_relative)
+    right_files, right_is_dir = side_files(right_scope, right_relative)
+    if left_is_dir != right_is_dir:
+        raise UsageError("diff compares two files or two directories, not one of each")
+    limit = row_limit(ctx)
+    if not left_is_dir:
+        return _diff_documents(
+            ctx, left_scope, left_relative, left_files[0], right_scope, right_relative, right_files[0], limit
+        )
+    return _diff_trees(ctx, left_scope, left_files, right_scope, right_files, limit)
+
+
+def _diff_documents(
+    ctx: Context,
+    left_scope: Scope,
+    left_relative: str,
+    left_path: Path,
+    right_scope: Scope,
+    right_relative: str,
+    right_path: Path,
+    limit: int | None,
+) -> Result:
+    """Line diff of two single documents, rendered in the stock shape first."""
+    left_label = side_label(left_scope, left_relative)
+    right_label = side_label(right_scope, right_relative)
+    left, left_error = stock_text_of(left_path, relative_of(left_scope, left_path))
+    right, right_error = stock_text_of(right_path, relative_of(right_scope, right_path))
+    errors = {left_label: left_error, right_label: right_error}
+    if left_error or right_error:
+        text = "\n".join(f"{name}: {error}" for name, error in errors.items() if error)
+        return Result(
+            {
+                "scope": ctx.scope.name,
+                "left": left_label,
+                "right": right_label,
+                "same": False,
+                "errors": {name: error for name, error in errors.items() if error},
+                "ok": False,
+            },
+            text,
+            2,
+        )
+    same = left == right
+    text = f"{left_label} and {right_label} carry the same document"
+    if not same:
+        text = "\n".join(diff_lines(left, right, left_label, right_label, limit))
+    payload = {
+        "scope": ctx.scope.name,
+        "left": left_label,
+        "right": right_label,
+        "same": same,
+        "first_difference": "" if same else first_difference(left, right),
+        "ok": same,
+    }
+    return Result(payload, text, 0 if same else 1)
+
+
+def _diff_trees(
+    ctx: Context,
+    left_scope: Scope,
+    left_paths: list[Path],
+    right_scope: Scope,
+    right_paths: list[Path],
+    limit: int | None,
+) -> Result:
+    """Directory diff, lining the two sides up by entity path."""
+    left = tree_index(left_scope, left_paths)
+    right = tree_index(right_scope, right_paths)
+    identical = 0
+    differs: list[dict[str, str]] = []
+    only_left: list[str] = []
+    only_right: list[str] = []
+    for key in sorted(set(left) | set(right)):
+        if key not in left:
+            only_right.append(key)
+            continue
+        if key not in right:
+            only_left.append(key)
+            continue
+        here, here_error = stock_text_of(left[key], relative_of(left_scope, left[key]))
+        there, there_error = stock_text_of(right[key], relative_of(right_scope, right[key]))
+        if here_error or there_error:
+            differs.append({"path": key, "first_difference": here_error or there_error})
+            continue
+        if here == there:
+            identical += 1
+            continue
+        differs.append({"path": key, "first_difference": first_difference(here, there)})
+    rows = [[item["path"], "differs", item["first_difference"]] for item in differs]
+    rows.extend([key, "only on the left", ""] for key in only_left)
+    rows.extend([key, "only on the right", ""] for key in only_right)
+    summary = (
+        f"{identical} identical, {len(differs)} differ(s), "
+        f"{len(only_left)} only on the left, {len(only_right)} only on the right"
+    )
+    shown = rows if limit is None else rows[:limit]
+    ok = not differs and not only_left and not only_right
+    text = table_of(["document", "result", "first difference"], shown, summary) if shown else summary
+    payload = {
+        "scope": ctx.scope.name,
+        "left": side_label(left_scope, str(left_scope.root)),
+        "right": side_label(right_scope, str(right_scope.root)),
+        "identical": identical,
+        "differs": differs,
+        "only_left": only_left,
+        "only_right": only_right,
+        "shown": shown,
+        "ok": ok,
+    }
+    return Result(payload, text, 0 if ok else 1)
+
+
+def schema_fields(root_tag: str, table) -> list[dict]:
+    """Every declared field under one root element, in canonical emission order.
+
+    ``table`` is the loaded enum table; a field whose path has enum categories carries
+    the first category name and how many values that category holds, which is what a
+    ``set`` reports as its hint (docs/cli.md section 4.13).
+    """
+    from core import enums as enums_core
+
+    declared = schema_for(root_tag)
+    if declared is None:
+        return []
+    fields: list[dict] = []
+
+    def walk(node, prefix: tuple[str, ...]) -> None:
+        for child in node.children:
+            path = (*prefix, child.name)
+            categories = enums_core.categories_of(root_tag, path)
+            fields.append(
+                {
+                    "path": ".".join(path),
+                    "shape": child.shape,
+                    "type": child.type,
+                    "required": child.required,
+                    "enum": categories[0] if categories else "",
+                    "values": table.table_size(categories) if categories else 0,
+                }
+            )
+            if child.shape in ("table", "array"):
+                walk(child, (*path[:-1], f"{child.name}[]") if child.shape == "array" else path)
+
+    walk(declared.root, (root_tag,))
+    return fields
+
+
+def cmd_schema(ctx: Context) -> Result:
+    """List the declared fields and enum values of one root element; read-only.
+
+    ``schema weapon`` walks the declaration the editor validates against, so a document
+    can be filled in without guessing from a sample; ``schema enum=country`` lists one
+    enum table (docs/cli.md section 4.13).
+    """
+    from core import enums as enums_core
+
+    table = enums_core.load_enums(ctx.scope.project)
+    name = (ctx.options.get("enum") or "").strip()
+    if name:
+        values = sorted(table.values.get(name, ()))
+        limit = row_limit(ctx)
+        shown = values if limit is None else values[:limit]
+        payload = {
+            "enum": name,
+            "table": bool(values),
+            "count": len(values),
+            "shown": len(shown),
+            "values": shown,
+            "source": table.source,
+        }
+        return Result(
+            payload,
+            table_of(
+                ["value"],
+                [[value] for value in shown],
+                f"{name}: {tally(len(shown), len(values))} value(s)",
+            ),
+        )
+    root_tag = (ctx.selector or "").strip()
+    known = ", ".join(sorted(set(SCHEMAS) | set(PROJECT_SCHEMAS)))
+    if not root_tag:
+        raise UsageError(f"schema needs a root element or enum=<name>; the editor knows {known}")
+    fields = schema_fields(root_tag, table)
+    if not fields:
+        raise UsageError(f"no schema for {root_tag!r}; the editor knows {known}")
+    limit = row_limit(ctx)
+    shown = fields if limit is None else fields[:limit]
+    payload = {
+        "root": root_tag,
+        "count": len(fields),
+        "shown": len(shown),
+        "fields": shown,
+        "required": [item["path"] for item in fields if item["required"]],
+    }
+    rows = [
+        [
+            item["path"],
+            item["shape"],
+            item["type"],
+            "yes" if item["required"] else "-",
+            f"{item['enum']} ({item['values']})" if item["enum"] else "-",
+        ]
+        for item in shown
+    ]
+    return Result(
+        payload,
+        table_of(
+            ["field", "shape", "type", "required", "enum"],
+            rows,
+            f"{root_tag}: {tally(len(shown), len(fields))} field(s)",
+        ),
+    )
+
+
+def roster_paths(scope: Scope) -> list[tuple[str, Path]]:
+    """The roster files the project declares and that are on disk, in path order.
+
+    A roster is found by its file name: the project settings declare ``equipment_russian.txt``
+    and the file may sit anywhere under the project (docs/cli.md section 4.14).
+    """
+    declared = declared_lists(scope)
+    if not declared:
+        return []
+    found = []
+    for path in sorted(scope.root.rglob("*")):
+        if path.is_file() and path.name in declared:
+            found.append((relative_of(scope, path), path))
+    return found
+
+
+def roster_file(scope: Scope, selector: str) -> tuple[str, Path]:
+    """The one roster a selector names, by relative path, file name or file stem."""
+    wanted = selector.strip().replace("\\", "/").rstrip("/")
+    for relative, path in roster_paths(scope):
+        if wanted in (relative, path.name) or Path(relative).stem == wanted:
+            return relative, path
+    known = ", ".join(relative for relative, _ in roster_paths(scope)) or "nothing"
+    raise UsageError(f"no declared roster named {selector!r}; the project has {known}")
+
+
+ROSTER_CATEGORIES = ("infantry", "vehicle", "at_gun", "aircraft")
+
+
+def roster_documents(scope: Scope) -> dict[str, str]:
+    """The documents a roster entry can name, keyed by file stem.
+
+    Only units live in a roster: a weapon and an engine sound are pulled in by the document that
+    uses them, so counting them as unlisted would report every one of them as an orphan.
+    """
+    found: dict[str, str] = {}
+    for path in entity_files(scope, "all"):
+        if category_of_path(relative_of(scope, path)) in ROSTER_CATEGORIES:
+            found[path.stem] = relative_of(scope, path)
+    return found
+
+
+def cmd_roster(ctx: Context) -> Result:
+    """Read and edit the rosters the project declares; writes need --write.
+
+    A roster decides whether a unit reaches the game: the file lists document names, and a name
+    with no document behind it is a hole the game shows as a missing unit.  ``check`` reports
+    both directions — entries no document answers, and documents no roster names
+    (docs/cli.md section 4.14).
+    """
+    from core import edit, roster
+    from core.web import tables
+
+    scope = ctx.scope
+    selector = (ctx.selector or "").strip()
+    op = (ctx.options.get("op") or "").strip()
+    limit = row_limit(ctx)
+
+    if selector == "check" and not op:
+        listed: dict[str, list[str]] = {}
+        for relative, path in roster_paths(scope):
+            listed[relative] = roster.names(roster.parse(textio.read_source(path).text))
+        found = roster.gaps(listed, roster_documents(scope))
+        missing = found["missing"]
+        orphans = found["orphans"]
+        shown_missing = missing if limit is None else missing[:limit]
+        shown_orphans = orphans if limit is None else orphans[:limit]
+        rows = [[item["roster"], item["name"], "no document"] for item in shown_missing]
+        rows += [[item["name"], "", "no roster names it"] for item in shown_orphans]
+        payload = {
+            "scope": scope.name,
+            "count": len(missing) + len(orphans),
+            "shown": len(rows),
+            "total": len(rows),
+            "rosters": len(listed),
+            "entries": sum(len(entries) for entries in listed.values()),
+            "missing": shown_missing,
+            "missing_total": len(missing),
+            "orphans": shown_orphans,
+            "orphans_total": len(orphans),
+            "ok": not missing and not orphans,
+        }
+        return Result(
+            payload,
+            table_of(
+                ["roster", "entry", "problem"],
+                rows,
+                f"rosters: {len(listed)} file(s), {tally(len(rows), payload['count'])} problem(s)",
+            ),
+            1 if not payload["ok"] else 0,
+        )
+
+    if not selector:
+        if op:
+            raise UsageError(f"roster op={op} needs the roster to write to, e.g. roster equipment_russian.txt op={op}")
+        files = roster_paths(scope)
+        rows = []
+        counted = []
+        for relative, path in files:
+            entries = roster.names(roster.parse(textio.read_source(path).text))
+            counted.append({"path": relative, "entries": len(entries)})
+            rows.append([relative, str(len(entries)), path.name])
+        payload = {
+            "scope": scope.name,
+            "count": len(files),
+            "shown": len(rows),
+            "files": counted,
+        }
+        return Result(
+            payload,
+            table_of(
+                ["roster", "entries", "path"],
+                rows,
+                f"{len(files)} roster file(s) with {sum(item['entries'] for item in counted)} entry(ies)"
+                if files
+                else "the project declares no roster",
+            ),
+        )
+
+    relative, path = roster_file(scope, selector)
+    rows = roster.parse(textio.read_source(path).text)
+    entries = roster.names(rows)
+
+    if not op:
+        section = (ctx.options.get("section") or "").strip()
+        kept = [
+            row
+            for row in rows
+            if not row["blank"] and (not section or row["group"] == section or row["note"] == section)
+        ]
+        shown = kept if limit is None else kept[:limit]
+        payload = {
+            "scope": scope.name,
+            "path": relative,
+            "section": section,
+            "count": len(entries),
+            "entries": len(kept),
+            "shown": len(shown),
+            "total": len(kept),
+            "lines": shown,
+            "names": [row["value"] for row in shown],
+        }
+        return Result(
+            payload,
+            table_of(
+                ["line", "entry", "group", "note"],
+                [[str(row["line"]), row["value"], row["group"], row["note"]] for row in shown],
+                f"{relative}: {tally(len(shown), len(kept))} entry of {len(entries)}",
+            ),
+        )
+
+    if op not in ("add", "remove", "set"):
+        raise UsageError(f"op is add, remove or set, not {op!r}")
+    if ctx.options.get("write") != "1":
+        raise UsageError(
+            f"roster op={op} needs --write; add --dry-run to inspect the change without writing"
+        )
+
+    value = (ctx.options.get("value") or "").strip()
+    line_option = ctx.options.get("line")
+    if op == "add" and not value:
+        raise UsageError("roster op=add needs value=<the document name to list>")
+    if op in ("remove", "set") and not value and not line_option:
+        raise UsageError(f"roster op={op} needs value=<name> or line=<number>")
+    if op == "set" and not (ctx.options.get("as") or "").strip():
+        raise UsageError("roster op=set needs as=<the new document name>")
+
+    lines, encoding, newline = tables.read_rows(path)
+    if op == "add":
+        if value in entries:
+            raise UsageError(f"{value!r} is already on line {roster.line_of(rows, value)} of {relative}")
+        target = int(line_option) if line_option else len(lines) + 1
+        if target < 1 or target > len(lines) + 1:
+            raise UsageError(f"line {target} is not in 1..{len(lines) + 1}")
+        if target <= len(lines):
+            lines.insert(target - 1, value + newline)
+        else:
+            if lines and tables.ending(lines[-1]) == "":
+                lines[-1] = lines[-1] + newline
+            lines.append(value + newline)
+        before, after = "", value
+    elif op == "set":
+        target = int(line_option) if line_option else roster.line_of(rows, value)
+        if not target:
+            raise UsageError(f"{value!r} is not in {relative}")
+        if target < 1 or target > len(lines):
+            raise UsageError(f"line {target} is not in 1..{len(lines)}")
+        # Only the entry changes: the trailing note, the spacing before it and the ending stay,
+        # because a note names the group the entry belongs to.
+        raw = lines[target - 1]
+        ending = tables.ending(raw)
+        body = raw[: len(raw) - len(ending)] if ending else raw
+        entry_text, marker, note = body.partition(roster.COMMENT)
+        spacing = entry_text[len(entry_text.rstrip()) :]
+        new_value = (ctx.options.get("as") or "").strip()
+        lines[target - 1] = new_value + spacing + marker + note + ending
+        before, after = rows[target - 1]["value"], new_value
+    else:
+        target = int(line_option) if line_option else roster.line_of(rows, value)
+        if not target:
+            raise UsageError(f"{value!r} is not in {relative}")
+        try:
+            lines, before, after = tables.row_change(lines, "delete", target, "", newline)
+        except ValueError as error:
+            raise UsageError(str(error)) from None
+        after = ""
+
+    data = path.read_bytes()
+    had_bom = data.startswith(textio.BOM)
+    project_root = edit.project_root_of(scope.root)
+    # A roster is a plain-text list, so there is no entity document to read: the file name is
+    # what the journal records.
+    plan = edit.plan_render(
+        path,
+        relative,
+        tables.encode(lines, encoding, had_bom),
+        entity=path.stem,
+        newline="",
+        encoding=encoding,
+    )
+    try:
+        applied = edit.apply_document(
+            plan,
+            project_root,
+            dry_run=ctx.options.get("dry-run") == "1",
+            actor=write_actor(ctx),
+        )
+    except edit.EditRefused as error:
+        raise UsageError(str(error)) from None
+    payload = {
+        "scope": scope.name,
+        "path": relative,
+        "op": op,
+        "line": target,
+        "before": before,
+        "after": after,
+        "entries": len(entries) + (1 if op == "add" else -1 if op == "remove" else 0),
+        **applied,
+    }
+    dry = ctx.options.get("dry-run") == "1"
+    state = "would be" if dry else "is"
+    detail = f"{value!r} -> {after!r}" if op == "set" else f"{value!r}"
+    return Result(
+        payload,
+        f"{relative}: {detail} {state} on line {target} ({payload.get('bytes_before')} -> "
+        f"{payload.get('bytes_after')} bytes, result={op}, actor={write_actor(ctx)})",
+    )
+
+
 def cmd_version(ctx: Context) -> Result:
     """Version of the editor, the interpreter and the resolved scope."""
     payload = {
@@ -1965,9 +2864,12 @@ COMMANDS = {
     "refs": cmd_refs,
     "deps": cmd_deps,
     "check": cmd_check,
+    "schema": cmd_schema,
+    "roster": cmd_roster,
     "index": cmd_index,
     "init": cmd_init,
     "add": cmd_add,
+    "clone": cmd_clone,
     "remove": cmd_remove,
     "set": cmd_set,
     "convert": cmd_convert,
@@ -1977,6 +2879,8 @@ COMMANDS = {
     "redo": cmd_redo,
     "export": cmd_export,
     "pack": cmd_pack,
+    "diff": cmd_diff,
+    "verify": cmd_verify,
     "version": cmd_version,
     "web": cmd_web,
 }

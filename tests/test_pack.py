@@ -161,6 +161,22 @@ class PackTestCase(unittest.TestCase):
         self.assertFalse([name for name in members(ARCHIVE) if "WEAPON_BROKEN" in name])
         self.assertEqual(payload["check"], {"errors": 1, "dangling": 0})
 
+    def test_the_pack_output_names_what_it_left_out(self) -> None:
+        # The skipped count alone hides which file was dropped, and a dropped .txt twin is
+        # the case a reader has to notice.
+        self.ready()
+        code, out, err = run("Mod", "pack", f"to={OUT}", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertIn("skipped: Data/Weapons/WEAPON_SEED.txt (a toml document covers it)", out)
+        self.assertIn("skipped: mod.txt (rendered from ModSetting.toml)", out)
+
+    def test_the_pack_output_names_a_warning(self) -> None:
+        self.ready()
+        write(PROJECT / "Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")
+        code, out, err = run("Mod", "pack", f"to={OUT}", "--write", cwd=PROJECT)
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning: Data/Weapons/WEAPON_BROKEN.toml:", out)
+
     def test_strict_refuses_a_document_that_cannot_be_rendered(self) -> None:
         self.ready()
         write(PROJECT / "Data/Weapons/WEAPON_BROKEN.toml", "this is not toml\n")

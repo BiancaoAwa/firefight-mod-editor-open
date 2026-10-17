@@ -344,6 +344,96 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(payload["loaded"], 1)
         self.assertTrue(payload["ok"])
 
+    def noting_project(self, count: int = 3) -> Path:
+        """A project whose documents each carry one warning and one dangling sound."""
+        project = SCRATCH / "noting"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "noting"\n')
+        for index in range(1, count + 1):
+            write(
+                project / f"Data/WEAPON_NOTE_{index}.txt",
+                "<weapon>\n\t<!-- a note -->\n\t<name>note</name>\n\t<shoot>\n"
+                "\t\t<sound_shoot>no_such_sound</sound_shoot>\n\t</shoot>\n</weapon>\n",
+            )
+        return project
+
+    def test_check_prints_the_warnings_it_counts(self) -> None:
+        # A summary line that counts warnings above an empty table is what this guards.
+        project = self.noting_project()
+        code, out, err = run("Mod", "check", "--json", cwd=project)
+        self.assertEqual(code, 1, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["warnings_total"], 3)
+        self.assertEqual(payload["warnings_shown"], 3)
+        _, text, _ = run("Mod", "check", cwd=project)
+        for item in payload["warning_samples"]:
+            for warning in item["warnings"]:
+                self.assertIn(warning, text)
+
+    def test_a_capped_check_table_says_how_many_rows_are_missing(self) -> None:
+        project = self.noting_project()
+        code, out, err = run("Mod", "check", "limit=1", "--json", cwd=project)
+        self.assertEqual(code, 1, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["dangling_total"], 3)
+        self.assertEqual(payload["dangling_shown"], 1)
+        self.assertTrue(payload["truncated"])
+        _, text, _ = run("Mod", "check", "limit=1", cwd=project)
+        self.assertIn("2 more dangling reference(s) not shown", text)
+
+    def test_deps_counts_the_references_that_resolve(self) -> None:
+        code, out, err = run("Firefight", "deps", "value=WEAPON_PISTOL_WZ_35_VIS", self.stock())
+        self.assertEqual(code, 0, err)
+        self.assertIn("0 of 1 point at a file that is there", out)
+
+    def test_check_names_the_asset_file_that_is_missing(self) -> None:
+        # `unresolved sound=x` says a value did not match; `missing Sounds/x.ogg` says what to add.
+        project = self.noting_project()
+        code, payload, err = run_json("Mod", "check", "all", "assets=1", cwd=project)
+        self.assertEqual(code, 1, err)
+        self.assertEqual(payload["assets_missing"], 3)
+        _, text, _ = run("Mod", "check", "all", "assets=1", cwd=project)
+        self.assertIn("missing Sounds/no_such_sound.ogg", text)
+
+    def test_check_can_answer_a_reference_from_another_root(self) -> None:
+        # An imported project holds no stock weapon, so every one of them reads as dangling.
+        project = SCRATCH / "against"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "against"\n')
+        write(
+            project / "Data/Vehicles/TK3.txt",
+            DANGLING_XML.replace("WEAPON_PISTOL_WZ_35_VIS", "WEAPON_PISTOL_P38"),
+        )
+        code, payload, err = run_json("Mod", "check", "all", cwd=project)
+        self.assertEqual(code, 1, err)
+        self.assertEqual(payload["dangling_total"], 1)
+        code, payload, err = run_json("Mod", "check", "all", f"against={STOCK}", cwd=project)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["dangling_total"], 0)
+        self.assertEqual(payload["dangling_answered_elsewhere"], 1)
+        self.assertEqual(payload["against"], str(STOCK))
+
+    def test_check_folds_the_roster_comparison_in(self) -> None:
+        project = SCRATCH / "roster-check"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "roster-check"\n')
+        write(
+            project / "mod.txt",
+            "<mod>\n\t<nationality>\n\t\t<name>american</name>\n"
+            "\t\t<equipment>equipment_american.txt</equipment>\n\t</nationality>\n</mod>\n",
+        )
+        write(
+            project / "equipment_american.txt",
+            "// starts\nAmerican-Rifle Squad\nAmerican-Ghost Squad\n",
+        )
+        write(project / "Data/Infantry/American-Rifle Squad.txt", INFANTRY_XML)
+        code, payload, err = run_json("Mod", "check", "all", "rosters=1", cwd=project)
+        self.assertEqual(code, 1, err)
+        self.assertEqual(payload["rosters"], {"files": 1, "missing": 1, "orphans": 0})
+        _, text, _ = run("Mod", "check", "all", "rosters=1", cwd=project)
+        self.assertIn("equipment_american.txt: American-Ghost Squad  no document", text)
+        self.assertIn("1 roster entry(s) no document answers", text)
+
     def test_export_writes_stock_xml(self) -> None:
         destination = OUT / "stock"
         shutil.rmtree(destination, ignore_errors=True)
@@ -426,6 +516,244 @@ class CliTestCase(unittest.TestCase):
         code, out, _ = run("--json", "Firefight", "list", "Weapons", self.stock())
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(out)["count"], 1)
+
+    def test_verify_reads_exactly_the_documents_list_reports(self) -> None:
+        code, listed, _ = run_json("Firefight", "list", self.stock(), "limit=0")
+        self.assertEqual(code, 0)
+        code, payload, _ = run_json("Firefight", "verify", self.stock(), "limit=0")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["files"], listed["count"])
+        self.assertTrue(payload["ok"])
+
+    def test_verify_counts_a_plain_text_table_as_copied(self) -> None:
+        code, out, _ = run(
+            "Firefight", "verify", "equipment_american_WW2.txt", self.stock()
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("all 1 document(s) round-trip without loss", out)
+
+    def test_verify_reports_a_document_that_does_not_round_trip(self) -> None:
+        edge = PROJECT / "Data/Weapons/WEAPON_EDGE.toml"
+        write(edge, '[weapon]\nname = "Edge"\ntype = "WEAPON_PISTOL"\n\n[weapon.empty]\n')
+        try:
+            code, payload, _ = run_json("Mod", "verify", f"root={PROJECT}", "limit=0")
+            self.assertEqual(code, 1)
+            self.assertEqual(payload["differ"], 1)
+            item = payload["items"][0]
+            self.assertEqual(item["path"], "Data/Weapons/WEAPON_EDGE.toml")
+            self.assertEqual(item["format"], "toml")
+            self.assertTrue(str(item["first_difference"]).startswith("line 4"))
+        finally:
+            edge.unlink()
+
+    def test_diff_lines_the_two_forms_of_one_document(self) -> None:
+        code, out, _ = run(
+            "Firefight",
+            "diff",
+            "left=Data/Weapons/WEAPON_PISTOL_P38.txt",
+            "right=Mod:Data/Weapons/WEAPON_TEST_GUN.toml",
+            self.stock(),
+            cwd=PROJECT,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("--- Firefight:Data/Weapons/WEAPON_PISTOL_P38.txt", out)
+        self.assertIn("+++ Mod:Data/Weapons/WEAPON_TEST_GUN.toml", out)
+
+    def test_diff_of_a_document_with_itself_is_clean(self) -> None:
+        code, out, _ = run(
+            "Firefight",
+            "diff",
+            "left=Data/Weapons/WEAPON_PISTOL_P38.txt",
+            "right=Data/Weapons/WEAPON_PISTOL_P38.txt",
+            self.stock(),
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("carry the same document", out)
+
+    def test_diff_needs_both_sides(self) -> None:
+        code, _, err = run(
+            "Firefight", "diff", "left=Data/Weapons/WEAPON_PISTOL_P38.txt", self.stock()
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("diff needs both sides", err)
+
+    def test_diff_refuses_one_file_and_one_directory(self) -> None:
+        code, _, err = run(
+            "Firefight",
+            "diff",
+            "left=Data/Weapons/WEAPON_PISTOL_P38.txt",
+            "right=Data/Weapons",
+            self.stock(),
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not one of each", err)
+
+    def test_diff_of_two_trees_names_what_only_one_side_has(self) -> None:
+        code, payload, _ = run_json(
+            "Firefight",
+            "diff",
+            "left=Data/Vehicles",
+            "right=Data/Weapons",
+            self.stock(),
+            "limit=0",
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["identical"], 0)
+        self.assertEqual(payload["differs"], [])
+        self.assertEqual(payload["only_right"], ["Data/Weapons/WEAPON_PISTOL_P38"])
+        self.assertEqual(
+            sorted(payload["only_left"]),
+            ["Data/Vehicles/American-M2 Medium Tank", "Data/Vehicles/Hungarian-TK3"],
+        )
+
+    def test_diff_of_two_identical_trees_is_clean(self) -> None:
+        code, out, _ = run(
+            "Firefight", "diff", "left=Data/Vehicles", "right=Data/Vehicles", self.stock()
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("2 identical", out)
+
+    def test_schema_lists_the_declared_fields(self) -> None:
+        code, payload, _ = run_json("Firefight", "schema", "weapon", self.stock())
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["root"], "weapon")
+        fields = {item["path"]: item for item in payload["fields"]}
+        self.assertEqual(fields["weapon.name"]["shape"], "leaf")
+        self.assertEqual(fields["weapon.ammo"]["shape"], "table")
+        self.assertEqual(fields["weapon.type"]["enum"], "weapon_class")
+        self.assertGreater(fields["weapon.type"]["values"], 0)
+
+    def test_schema_marks_the_children_of_an_array(self) -> None:
+        # An array node is filled in with `set op=append`, so its children are not
+        # fields of the document itself; the `[]` in the path says so.
+        code, payload, _ = run_json("Firefight", "schema", "weapon", self.stock())
+        self.assertEqual(code, 0)
+        fields = {item["path"]: item for item in payload["fields"]}
+        self.assertEqual(fields["weapon.ammo.type"]["shape"], "array")
+        self.assertIn("weapon.ammo.type[].flavour", fields)
+        self.assertNotIn("weapon.ammo.type.flavour", fields)
+
+    def test_schema_lists_one_enum_table(self) -> None:
+        code, payload, _ = run_json("Firefight", "schema", "enum=country", self.stock())
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["table"])
+        self.assertGreater(payload["count"], 1)
+        self.assertEqual(payload["values"], sorted(payload["values"]))
+
+    def test_schema_caps_the_field_table(self) -> None:
+        code, payload, _ = run_json("Firefight", "schema", "weapon", self.stock(), "limit=3")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["shown"], 3)
+        self.assertGreater(payload["count"], 3)
+
+    def test_schema_without_a_root_exits_2(self) -> None:
+        code, _, err = run("Firefight", "schema", self.stock())
+        self.assertEqual(code, 2)
+        self.assertIn("root element", err)
+
+    def test_schema_of_an_unknown_root_exits_2(self) -> None:
+        code, _, err = run("Firefight", "schema", "nosuchroot", self.stock())
+        self.assertEqual(code, 2)
+        self.assertIn("no schema for", err)
+
+    def test_clone_copies_a_document_under_a_new_token(self) -> None:
+        target = PROJECT / "Data/Weapons/WEAPON_COPY.toml"
+        try:
+            code, payload, _ = run_json(
+                "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=WEAPON_COPY",
+                f"root={PROJECT}", "--write",
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["entity"], "WEAPON_COPY")
+            self.assertEqual(payload["path"], "Data/Weapons/WEAPON_COPY.toml")
+            text = target.read_text(encoding="utf-8")
+            self.assertIn('name = "WEAPON_COPY"', text)
+        finally:
+            target.unlink(missing_ok=True)
+
+    def test_clone_borrows_a_document_from_the_stock_scope(self) -> None:
+        target = PROJECT / "Data/Weapons/WEAPON_BORROWED.toml"
+        try:
+            code, payload, _ = run_json(
+                "Mod", "clone", "Firefight:Data/Weapons/WEAPON_PISTOL_P38.txt",
+                "as=WEAPON_BORROWED", f"root={PROJECT}", f"firefight={STOCK}", "--write",
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["source"], "Firefight:Data/Weapons/WEAPON_PISTOL_P38.txt")
+            text = target.read_text(encoding="utf-8")
+            self.assertIn('name = "WEAPON_BORROWED"', text)
+            self.assertIn("9x19mm Parabellum", text)
+        finally:
+            target.unlink(missing_ok=True)
+
+    def test_clone_into_another_scope_by_path(self) -> None:
+        other = WORKSPACE / "Mod/other-mod/Data/Weapons/WEAPON_ELSEWHERE.toml"
+        try:
+            code, payload, _ = run_json(
+                "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=WEAPON_ELSEWHERE",
+                f"root={PROJECT}", f"into={WORKSPACE / 'Mod/other-mod'}", "--write",
+            )
+            self.assertEqual(code, 0)
+            self.assertTrue(other.is_file())
+            self.assertIn('name = "WEAPON_ELSEWHERE"', other.read_text(encoding="utf-8"))
+        finally:
+            other.unlink(missing_ok=True)
+
+    def test_clone_a_dry_run_writes_nothing(self) -> None:
+        code, payload, _ = run_json(
+            "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=WEAPON_NOT_WRITTEN",
+            f"root={PROJECT}", "--write", "--dry-run",
+        )
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["dry_run"])
+        self.assertFalse((PROJECT / "Data/Weapons/WEAPON_NOT_WRITTEN.toml").exists())
+
+    def test_clone_refuses_a_document_that_is_already_there(self) -> None:
+        code, _, err = run(
+            "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=WEAPON_TEST_GUN",
+            f"root={PROJECT}", "--write",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("already there", err)
+
+    def test_clone_needs_a_token(self) -> None:
+        code, _, err = run(
+            "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", f"root={PROJECT}", "--write"
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("as=", err)
+
+    def test_clone_refuses_a_token_with_a_path(self) -> None:
+        code, _, err = run(
+            "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=../oops",
+            f"root={PROJECT}", "--write",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("one token", err)
+
+    def test_clone_needs_write(self) -> None:
+        code, _, err = run(
+            "Mod", "clone", "Data/Weapons/WEAPON_TEST_GUN.toml", "as=WEAPON_COPY",
+            f"root={PROJECT}", "--dry-run",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("needs --write", err)
+
+    def test_clone_refuses_the_stock_scope_as_the_target(self) -> None:
+        code, _, err = run(
+            "Firefight", "clone", "Data/Weapons/WEAPON_PISTOL_P38.txt", "as=WEAPON_COPY",
+            self.stock(), "--write",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("read-only", err)
+
+    def test_clone_refuses_a_list_file(self) -> None:
+        code, _, err = run(
+            "Mod", "clone", "Firefight:Data/equipment_american_WW2.txt", "as=LIST",
+            f"root={PROJECT}", f"firefight={STOCK}", "--write",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("list file", err)
 
 
 if __name__ == "__main__":
