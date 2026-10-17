@@ -23,10 +23,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from core.cli.scope import UsageError
+from core.web import nat
 from core.mcp import server as mcp_server
 from core.web.i18n import tr
 
-HOSTS = {"local": "127.0.0.1", "lan": "0.0.0.0"}
+HOSTS = {"local": "127.0.0.1", "lan": "0.0.0.0", "public": "0.0.0.0"}
 DEFAULT_PORT = 8790
 MAX_BODY = 1_000_000
 TOKEN_HEADER = "X-Ff-Token"
@@ -41,7 +42,7 @@ def bind_address(host: str) -> str:
     try:
         ipaddress.ip_address(host)
     except ValueError:
-        raise UsageError(tr("监听地址是 local、lan 或一个 IP 地址，不是 {}。", host)) from None
+        raise UsageError(tr("监听地址是 local、lan、public 或一个 IP 地址，不是 {}。", host)) from None
     return host
 
 
@@ -177,6 +178,7 @@ class McpService:
         self._state: dict = {}
         self._public: str | None = None
         self._public_checked = False
+        self._mapping: dict | None = None
 
     def state(self) -> dict:
         with self._lock:
@@ -184,6 +186,7 @@ class McpService:
             if state:
                 state["public"] = self._public
                 state["public_checked"] = self._public_checked
+                state["mapping"] = dict(self._mapping) if self._mapping else None
             return state
 
     def refresh_public(self) -> str | None:
@@ -236,12 +239,27 @@ class McpService:
             }
             self._public = None
             self._public_checked = False
+            self._mapping = {"mapped": False, "pending": True} if host == "public" else None
             threading.Thread(target=self._probe_public, name="mcp-public", daemon=True).start()
+            if host == "public":
+                threading.Thread(
+                    target=self._map_public, args=(chosen,), name="mcp-mapping", daemon=True
+                ).start()
             # The lock above is held here, so ``state()`` would deadlock on a plain Lock.
             opened = dict(self._state)
             opened["public"] = self._public
             opened["public_checked"] = self._public_checked
+            opened["mapping"] = dict(self._mapping) if self._mapping else None
             return opened
+
+    def _map_public(self, port: int) -> None:
+        """Ask the router for a mapping, then keep the answer for the page."""
+        try:
+            answer = nat.public_open(port)
+        except OSError as error:
+            answer = {"mapped": False, "reason": str(error)}
+        with self._lock:
+            self._mapping = answer
 
     def stop(self) -> dict:
         with self._lock:
@@ -253,6 +271,12 @@ class McpService:
             self._state = {}
             self._public = None
             self._public_checked = False
+            mapping, self._mapping = self._mapping, None
         server.shutdown()
         server.server_close()
+        if mapping and mapping.get("mapped"):
+            try:
+                nat.public_close(int(state.get("port") or 0))
+            except OSError:
+                pass
         return state

@@ -17,6 +17,15 @@
   there by a later process while it recomputes in the background; a write made
   from a page schedules the same recomputation, so the counts move on without a
   page waiting for a scan.
+* The MCP listener names three reach options instead of taking a bind address: `在本地开放`
+  binds this machine, `在内网开放` binds the local network, and `在公网开放` binds every
+  interface and asks the router to forward the port to this machine, through NAT-PMP first
+  and UPnP next (`core/web/nat.py`). The page reports what the router answered — source,
+  gateway, external address and lifetime — and, when the router's external address differs
+  from the one an outside service reads, says the machine sits behind two layers of NAT
+  instead of naming an address that cannot be dialled. Closing the listener drops the
+  mapping it opened. A router that answers neither protocol leaves the local and private
+  addresses working, and the page says so.
 * The editor command line: 34 commands over two scopes, `Firefight` for the
   game's own data and any named directory for a mod project. `init`, `import`,
   `list`, `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`,
