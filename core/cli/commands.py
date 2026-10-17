@@ -8,11 +8,12 @@ builds the cross-reference tables under ``EditorCache/``, and ``export`` writes 
 
 import difflib
 import platform
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
 from core import __version__ as core_version
-from core import convert, index as index_core, journal, refs as refs_core, textio, toml, xml
+from core import convert, index as index_core, journal, refs as refs_core, roster as roster_core, textio, toml, xml
 from core.errors import FfError, SchemaError, XmlStructureError
 from core.schema import PROJECT_SCHEMAS, SCHEMAS, schema_for
 from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
@@ -30,6 +31,17 @@ CATEGORY_BY_FOLDER = {
     "AT Guns": "at_gun",
     "Aircraft": "aircraft",
 }
+
+# Only units are named by a roster; a weapon or an engine sound is pulled in by the document
+# that uses it, so counting them as unlisted units would report every one of them as an orphan.
+ROSTER_CATEGORIES = ("infantry", "vehicle", "at_gun", "aircraft")
+
+
+def unit_folders() -> tuple[str, ...]:
+    """The ``Data/`` folders a roster entry can name, in the order the map declares them."""
+    return tuple(
+        folder for folder, category in CATEGORY_BY_FOLDER.items() if category in ROSTER_CATEGORIES
+    )
 
 
 @dataclass
@@ -98,6 +110,18 @@ def load_document(path: Path, relative: str | None = None) -> Document:
     """Read one entity file and build both views; raises the core errors as is."""
     warnings: list[str] = []
     source = textio.read_source(path, warnings)
+    return document_from_source(path, relative if relative is not None else path.name, source, warnings)
+
+
+def document_from_source(
+    path: Path, relative: str, source: textio.SourceText, warnings: list[str] | None = None
+) -> Document:
+    """Build both views from text that is already decoded, without a disk read.
+
+    ``batch`` uses this to carry a document forward from the text an earlier entry
+    would leave behind (docs/cli.md section 4.15).
+    """
+    warnings = warnings if warnings is not None else []
     if path.suffix.lower() == SUFFIX_TOML:
         table = toml.parse(source.text, str(path))
         root_tag = table.entries[0][0] if table.entries else ""
@@ -116,7 +140,7 @@ def load_document(path: Path, relative: str | None = None) -> Document:
         layout = parsed
     return Document(
         path=path,
-        relative=relative if relative is not None else path.name,
+        relative=relative,
         format=storage,
         text=source.text,
         table=table,
@@ -481,6 +505,47 @@ def stored_index(ctx: Context, scope: Scope):
     return index_tables, refs_tables
 
 
+def is_roster(relative: str, declared: set[str]) -> bool:
+    """Whether a list file is a unit roster: named like one and declared by the project.
+
+    Only the equipment lists name documents that must exist under ``Data/``; a surname list
+    names people, not files, so its entries are not references and would only read as noise
+    (docs/refs.md).  A file merely recognised by the "no XML root" fallback is not declared
+    and contributes nothing.
+    """
+    return relative.rsplit("/", 1)[-1] in declared and category_of_path(relative) == "equipment"
+
+
+def roster_entries(path: Path) -> list[tuple[int, str]]:
+    """The numbered entries of a plain-text roster; comments and blank lines are left out."""
+    try:
+        text = textio.read_source(path).text
+    except (FfError, OSError):
+        return []
+    return [(row["line"], row["value"]) for row in roster_core.parse(text) if row["value"]]
+
+
+def roster_references(scope: Scope, relative: str, path: Path, declared: set[str]) -> list[dict]:
+    """The entries of one plain-text roster, as references of that file.
+
+    An entry names a unit document, so it is a reference like the ones a leaf tag carries
+    and belongs in the same graph; the line it sits on is what the reference names instead
+    of a field path (docs/refs.md).
+    """
+    if not is_roster(relative, declared):
+        return []
+    source = document_path(scope, relative)
+    return [
+        {
+            "source": source,
+            "kind": refs_core.ROSTER_KIND,
+            "value": name,
+            "document_path": f"line {line}",
+        }
+        for line, name in roster_entries(path)
+    ]
+
+
 def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[dict], list[dict], str]:
     """The references of the selected files, from the stored tables or a fresh walk."""
     declared = declared_lists(scope)
@@ -492,6 +557,7 @@ def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[
         for path in files:
             relative = relative_of(scope, path)
             if is_list_file(relative, declared):
+                collected.extend(roster_references(scope, relative, path, declared))
                 continue
             lines = by_source.get(relative)
             if not isinstance(lines, list):
@@ -515,6 +581,7 @@ def reference_rows(ctx: Context, scope: Scope, files: list[Path]) -> tuple[list[
     for path in files:
         relative = relative_of(scope, path)
         if is_list_file(relative, declared, path):
+            collected.extend(roster_references(scope, relative, path, declared))
             continue
         try:
             document = load_document(path, relative)
@@ -559,7 +626,16 @@ def cmd_index(ctx: Context) -> Result:
     declared = declared_lists(scope)
     for relative, path in items:
         if is_list_file(relative, declared, path):
+            # A roster is not an XML document; it still contributes its entries, so the table
+            # answers for the units a project declares (docs/refs.md).
             skipped += 1
+            lines = [
+                index_core.signature(item["kind"], item["document_path"], item["value"])
+                for item in roster_references(scope, relative, path, declared)
+            ]
+            if lines:
+                by_source[relative] = lines
+            references += len(lines)
             continue
         try:
             document = load_document(path, relative)
@@ -983,19 +1059,14 @@ def cmd_deps(ctx: Context) -> Result:
     kind = ctx.options.get("kind")
     if not value:
         raise UsageError("name what to look for: value=<token>")
-    declared = declared_lists(scope)
-    files = [
-        path
-        for path in entity_files(scope)
-        if not is_list_file(relative_of(scope, path), declared)
-    ]
+    files = entity_files(scope)
     collected, errors, origin = reference_rows(ctx, scope, files)
     incoming = [
         item
         for item in collected
         if item["value"] == value and (kind is None or item["kind"] == kind)
     ]
-    index = refs_core.TargetIndex(scope.root)
+    index = refs_core.TargetIndex(scope.root, unit_folders=unit_folders())
     resolved: list[str] = []
     resolving = 0
     for item in incoming:
@@ -1038,11 +1109,14 @@ ASSET_KINDS = ("image", "sound", "uniform", "engine_sound")
 def other_root(raw: str, ctx: Context) -> Path:
     """The root ``against=`` names: a directory, ``scope:path``, or a scope name.
 
-    A one-letter name before the colon is a drive letter rather than a scope, as in a diff
-    side (docs/cli.md section 4.10).
+    ``stock`` is the installation the editor setting points at, which is the root an imported
+    project wants answered. A one-letter name before the colon is a drive letter rather than a
+    scope, as in a diff side (docs/cli.md section 4.10).
     """
     wanted = raw.replace("\\", "/").strip()
     options = {key: value for key, value in ctx.options.items() if key not in ("against",)}
+    if wanted.lower() == "stock":
+        return resolve_scope("Firefight", options, ctx.cwd).root
     if ":" in wanted:
         head = wanted.split(":", 1)[0]
         if len(head) > 1 and all(character.isalnum() or character in "_-" for character in head):
@@ -1078,7 +1152,11 @@ def cmd_check(ctx: Context) -> Result:
     for path in files:
         relative = relative_of(scope, path)
         if is_list_file(relative, declared, path):
+            # A roster is not an XML document, so it stays "skipped" in the counters, but the
+            # entries of a declared unit roster are references and join the graph (docs/refs.md).
             skipped += 1
+            if is_roster(relative, declared):
+                graph.add_roster(document_path(scope, relative), roster_entries(path))
             continue
         try:
             document = load_document(path, relative)
@@ -1096,7 +1174,7 @@ def cmd_check(ctx: Context) -> Result:
             warned.append({"path": relative, "warnings": list(document.warnings)})
         graph.add(document_path(scope, relative), document.root)
     limit = row_limit(ctx, default=CHECK_SAMPLES)
-    index = refs_core.TargetIndex(scope.root)
+    index = refs_core.TargetIndex(scope.root, unit_folders=unit_folders())
     against = ctx.options.get("against")
     extra = refs_core.TargetIndex(other_root(against, ctx)) if against else None
     assets = ctx.options.get("assets") == "1"
@@ -1149,10 +1227,16 @@ def cmd_check(ctx: Context) -> Result:
     if hidden:
         rows.append(["...", f"{hidden} more dangling reference(s) not shown; raise limit= or pass limit=0"])
     missing_assets = sum(1 for item in dangling if item["kind"] in ASSET_KINDS)
+    kinds: dict[str, int] = {}
+    for item in dangling:
+        kinds[item["kind"]] = kinds.get(item["kind"], 0) + 1
     summary = (
         f"{loaded}/{len(files)} loaded, {skipped} list file(s) skipped, {len(errors)} error(s), "
         f"{warnings_total} warning(s) in {warning_files} file(s), {len(dangling)} dangling reference(s)"
     )
+    if len(kinds) > 1:
+        ranked = sorted(kinds.items(), key=lambda pair: (-pair[1], pair[0]))
+        summary += ", by kind: " + ", ".join(f"{kind} {count}" for kind, count in ranked[:4])
     if against:
         summary += f", {resolved_elsewhere} answered by the other root"
     if assets:
@@ -1180,6 +1264,7 @@ def cmd_check(ctx: Context) -> Result:
             "dangling_shown": len(shown_dangling),
             "truncated": bool(hidden),
             "assets_missing": missing_assets,
+            "dangling_kinds": kinds,
             "against": str(extra.root) if extra is not None else "",
             "dangling_answered_elsewhere": resolved_elsewhere,
             "rosters": roster_report,
@@ -1242,6 +1327,196 @@ def _init_text(payload: dict) -> str:
         f"{payload['project']}: {payload['name']} {state} "
         f"({PROJECT_FILE} and an empty {DATA_FOLDER}/){tail}"
     )
+
+
+#: The trees an import brings across; the editor's own cache is not one of them.
+IMPORT_TREES = ("Data", "Images", "Sounds")
+#: The files an import brings across from the root of the mod it reads.
+IMPORT_FILES = ("mod.txt", "README.md", "LICENSE", PROJECT_FILE, SETTING_FILE)
+
+
+def _import_root(names: list[str]) -> str:
+    """The prefix inside an import source that holds the mod, ``""`` for the top.
+
+    An archive made by ``pack`` has everything under ``Mod/``; an extracted one often has a
+    directory of its own above that.  Both are accepted, matching the packager's own search
+    (docs/cli.md section 4.16).
+    """
+    if any(name.startswith("Data/") for name in names):
+        return ""
+    heads = sorted({name.split("/", 1)[0] for name in names})
+    for head in heads:
+        if any(name.startswith(f"{head}/Data/") for name in names):
+            return f"{head}/"
+    for head in heads:
+        if any(name.startswith(f"{head}/Mod/Data/") for name in names):
+            return f"{head}/Mod/"
+    return ""
+
+
+def _import_keeps(relative: str) -> bool:
+    """Whether one path inside a mod belongs in the project."""
+    return relative.split("/", 1)[0] in IMPORT_TREES or relative in IMPORT_FILES
+
+
+def _import_members(source: Path) -> tuple[list[tuple[str, bytes]], str, str]:
+    """Every file to copy out of a mod, the prefix it came from, and an error or ``""``."""
+    if source.is_file() and source.suffix.lower() == ".zip":
+        try:
+            with zipfile.ZipFile(source) as archive:
+                names = [name for name in archive.namelist() if not name.endswith("/")]
+                root = _import_root(names)
+                picked = [
+                    (name[len(root):], archive.read(name))
+                    for name in names
+                    if name.startswith(root) and _import_keeps(name[len(root):])
+                ]
+        except (OSError, zipfile.BadZipFile) as failure:
+            return [], "", f"{source}: {failure}"
+    elif source.is_dir():
+        names = sorted(path.relative_to(source).as_posix() for path in source.rglob("*") if path.is_file())
+        root = _import_root(names)
+        picked = [
+            (name[len(root):], (source / name).read_bytes())
+            for name in names
+            if name.startswith(root) and _import_keeps(name[len(root):])
+        ]
+    else:
+        return [], "", f"{source}: an import source is a directory or a .zip file"
+    if not any(relative.startswith(f"{DATA_FOLDER}/") for relative, _ in picked):
+        return [], root, f"{source}: no {DATA_FOLDER}/ folder inside; nothing to import"
+    return picked, root, ""
+
+
+def cmd_import(ctx: Context) -> Result:
+    """Create a project from a mod that already exists, as a directory or a zip.
+
+    The source is walked for a mod root — the directory holding ``Mod/`` or ``Data/``, or the
+    one holding it one level down, which is how an extracted archive usually looks.  The data
+    tree, ``Images/`` and ``Sounds/`` are copied byte for byte, ``mod.txt`` comes along when it
+    is there, and ``ModSetting.toml`` is rendered from it when the source does not already
+    carry one.  The destination must hold no project unless ``overwrite=1``, and nothing is
+    written without ``--write`` (docs/cli.md section 4.16).
+    """
+    from core import edit, journal, settings
+
+    if ctx.scope.name != "Mod":
+        raise UsageError(f"import creates a project under Mod, not {ctx.scope.name}")
+    raw = ctx.selector or ""
+    if not raw:
+        raise UsageError("import needs a source: import <directory or zip>")
+    target_raw = ctx.options.get("to")
+    if not target_raw:
+        raise UsageError("import needs a destination project: to=<directory>")
+    if ctx.options.get("write") != "1":
+        raise UsageError("import needs --write; add --dry-run to inspect the result without writing")
+    source = Path(raw)
+    if not source.exists():
+        raise UsageError(f"{source}: there is nothing to import from")
+    destination = Path(target_raw)
+    overwrite = ctx.options.get("overwrite")
+    replace = overwrite == "1"
+    keep = overwrite == "0"
+    dry_run = ctx.options.get("dry-run") == "1"
+    manifest = destination / PROJECT_FILE
+    if manifest.is_file() and not (replace or keep):
+        raise UsageError(
+            f"{manifest}: a project is already here; pass overwrite=1 to replace it, "
+            "or overwrite=0 to keep what is there"
+        )
+
+    members, root, error = _import_members(source)
+    if error:
+        raise UsageError(error)
+    copies = dict(members)
+
+    written: list[dict] = []
+    skipped: list[dict] = []
+    errors: list[dict] = []
+    for relative, data in members:
+        out = destination / Path(relative)
+        if out.is_file() and not replace:
+            skipped.append({"path": relative, "reason": "exists"})
+            continue
+        if dry_run:
+            written.append({"path": relative, "bytes": len(data)})
+            continue
+        try:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            journal.write_atomic(out, data)
+        except (FfError, OSError) as failure:
+            errors.append({"path": relative, "error": str(failure)})
+            continue
+        written.append({"path": relative, "bytes": len(data)})
+
+    copied = set(copies)
+    if settings.MOD_TXT in copies and SETTING_FILE not in copied:
+        target = destination / SETTING_FILE
+        if target.is_file() and not replace:
+            skipped.append({"path": SETTING_FILE, "reason": "exists"})
+        else:
+            try:
+                text, _encoding = textio.decode_source(copies[settings.MOD_TXT], settings.MOD_TXT)
+                table, _warnings = settings.render(text, settings.MOD_TXT)
+                rendered = toml.render(table)
+                if not dry_run:
+                    plan = edit.plan_render(target, SETTING_FILE, rendered, entity="mod_setting")
+                    edit.apply_document(plan, destination, actor=write_actor(ctx))
+                written.append({"path": SETTING_FILE, "bytes": len(rendered)})
+            except (FfError, ValueError) as failure:
+                errors.append({"path": SETTING_FILE, "error": str(failure)})
+
+    if PROJECT_FILE not in copied:
+        name = destination.name or "mod"
+        if manifest.is_file() and not replace:
+            skipped.append({"path": PROJECT_FILE, "reason": "exists"})
+        else:
+            try:
+                if not dry_run:
+                    skeleton = edit.project_skeleton(name)
+                    plan = (
+                        edit.plan_render(manifest, PROJECT_FILE, skeleton, entity=name)
+                        if manifest.is_file()
+                        else edit.plan_create(manifest, PROJECT_FILE, skeleton, entity=name)
+                    )
+                    edit.apply_document(plan, destination, actor=write_actor(ctx))
+                written.append({"path": PROJECT_FILE, "bytes": 0})
+            except FfError as failure:
+                errors.append({"path": PROJECT_FILE, "error": str(failure)})
+
+    limit = row_limit(ctx)
+    payload = {
+        "scope": ctx.scope.name,
+        "source": str(source),
+        "root": root,
+        "to": str(destination),
+        "overwrite": replace,
+        "dry_run": dry_run,
+        "count": len(written),
+        "shown": written if limit is None else written[:limit],
+        "files": len(copied),
+        "has_settings": SETTING_FILE in copied,
+        "skipped": skipped,
+        "errors": errors,
+        "ok": not errors,
+    }
+    return Result(payload, _import_text(payload), 1 if errors else 0)
+
+
+def _import_text(payload: dict) -> str:
+    """The summary line for an import, plus anything it left out."""
+    state = "planned for" if payload.get("dry_run") else "written to"
+    lines = [
+        f"{payload['source']}: {payload['count']} file(s) {state} {payload['to']} "
+        f"({payload['files']} file(s) in the source)"
+    ]
+    for item in payload.get("skipped", []):
+        lines.append(f"skipped: {item['path']} ({item['reason']})")
+    for item in payload.get("errors", []):
+        lines.append(f"error: {item['path']}: {item['error']}")
+    if not payload.get("ok"):
+        lines.append(f"{len(payload['errors'])} file(s) could not be written")
+    return "\n".join(lines)
 
 
 def cmd_add(ctx: Context) -> Result:
@@ -1516,6 +1791,200 @@ def _set_text(report: dict) -> str:
         rows.append(["event", report["event"]])
     state = "written" if report["written"] else "not written (dry run)"
     return table_of(["item", "value"], rows, f"{report['path']}: {state}")
+
+
+PATCH_KEYS = ("document", "field", "op", "value", "from")
+
+
+def read_patch(path: Path) -> list[dict[str, str]]:
+    """The ``[[edit]]`` entries of a batch patch, in the order they were written.
+
+    The document is ordinary TOML, so the same parser reads it and a misplaced
+    key is reported rather than ignored (docs/cli.md section 4.15).
+    """
+    source = textio.read_source(path)
+    table = toml.parse(source.text, str(path))
+    edits = table.get("edit")
+    if edits is None:
+        raise UsageError(f"{path.name}: no [[edit]] entry in the patch")
+    if not isinstance(edits, TomlArrayEntry):
+        raise UsageError(f"{path.name}: edit must be an array of tables, [[edit]]")
+    found: list[dict[str, str]] = []
+    for index, item in enumerate(edits.items, start=1):
+        if not isinstance(item, TomlTable):
+            raise UsageError(f"{path.name}: [[edit]] {index} is not a table")
+        entry: dict[str, str] = {}
+        for key, value in item.entries:
+            if key not in PATCH_KEYS:
+                raise UsageError(
+                    f"{path.name}: [[edit]] {index} has an unknown key {key!r}; the keys are {', '.join(PATCH_KEYS)}"
+                )
+            entry[key] = str(value.value) if isinstance(value, TomlValue) else ""
+        found.append(entry)
+    if not found:
+        raise UsageError(f"{path.name}: the patch has no [[edit]] entry")
+    return found
+
+
+def patch_index(name: str, index: int, raw: str | None) -> int | None:
+    """The entry an append copies, from a patch ``from`` value."""
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        raise UsageError(f"{name}: [[edit]] {index}: from needs an entry index, not {raw!r}") from None
+    if value < 0:
+        raise UsageError(f"{name}: [[edit]] {index}: from cannot be negative: {raw!r}")
+    return value
+
+
+def cmd_batch(ctx: Context) -> Result:
+    """Apply several field changes to several documents from one patch file.
+
+    Every entry is planned against the text the earlier entries would leave behind, so
+    one document can be changed more than once and is still written once.  Nothing is
+    written until the whole patch has been planned: a refused entry aborts the batch
+    and leaves every document as it was (docs/cli.md section 4.15).
+    """
+    from core import edit, enums as enums_core, journal
+
+    scope = ctx.scope
+    if scope.name == "Firefight":
+        raise UsageError("the stock scope is read-only; batch refuses to write under Firefight")
+    if ctx.options.get("write") != "1":
+        raise UsageError("batch needs --write; add --dry-run to inspect the changes without writing")
+    raw = ctx.selector
+    if raw in ("", "all"):
+        raise UsageError("batch needs a patch file: batch <file>")
+    patch = Path(raw)
+    if not patch.is_absolute():
+        patch = ctx.cwd / patch
+    if not patch.is_file():
+        raise UsageError(f"batch needs a patch file: {raw} is not there")
+    edits = read_patch(patch)
+
+    project_root = edit.project_root_of(scope.root)
+    enums = enums_core.load_enums(project_root)
+    declared = declared_enum_values(scope)
+    order: list[Path] = []
+    staged: dict[Path, dict] = {}
+    rows: list[dict] = []
+    for index, entry in enumerate(edits, start=1):
+        document_name = entry.get("document", "")
+        if not document_name:
+            raise UsageError(f"{patch.name}: [[edit]] {index} needs document=<path>")
+        field = entry.get("field", "")
+        if not field:
+            raise UsageError(f"{patch.name}: [[edit]] {index} needs field=<a.b.c>")
+        op = entry.get("op") or "set"
+        if op not in ("set", "append", "delete"):
+            raise UsageError(f"{patch.name}: [[edit]] {index}: op is set, append or delete, not {op!r}")
+        if op == "set" and "value" not in entry:
+            raise UsageError(f"{patch.name}: [[edit]] {index} needs value=<text>")
+        files = entity_files(scope, document_name)
+        if len(files) != 1:
+            raise UsageError(
+                f"{patch.name}: [[edit]] {index}: {document_name!r} names {len(files)} file(s); name one document"
+            )
+        path = files[0]
+        relative = relative_of(scope, path)
+        if path in staged:
+            # The earlier entries already decided what this file will hold, so
+            # the next one plans against that text instead of what is on disk.
+            source = staged[path]["after"]
+            document = document_from_source(path, relative, source)
+        else:
+            warnings: list[str] = []
+            source = textio.read_source(path, warnings)
+            document = document_from_source(path, relative, source, warnings)
+            order.append(path)
+        try:
+            if op == "set":
+                plan = edit.plan_set(
+                    document, field, entry["value"], enums=enums, declared=lambda: declared, source=source
+                )
+            else:
+                plan = edit.plan_entry(
+                    document, field, op, copy_from=patch_index(patch.name, index, entry.get("from")), source=source
+                )
+        except edit.EditRefused as error:
+            raise UsageError(f"{patch.name}: [[edit]] {index}: {error}") from None
+        data = plan.data
+        had_bom = data.startswith(textio.BOM)
+        body = data[len(textio.BOM):] if had_bom else data
+        text, encoding = textio.decode_source(body, str(path))
+        staged[path] = {
+            "data": data,
+            "entity": plan.entity,
+            "after": textio.SourceText(
+                path=path, text=textio.normalize_newlines(text), had_bom=had_bom, encoding=encoding, raw=text
+            ),
+        }
+        rows.append(
+            {
+                "edit": index,
+                "document": relative,
+                "field": field,
+                "op": op,
+                "before": plan.before,
+                "after": plan.after,
+                "bytes": [plan.size_before, len(data)],
+            }
+        )
+
+    dry_run = ctx.options.get("dry-run") == "1"
+    written: list[dict] = []
+    for path in order:
+        record = staged[path]
+        before = path.read_bytes()
+        staged_plan = edit.DocumentPlan(
+            result="set",
+            path=path,
+            relative=relative_of(scope, path),
+            entity=record["entity"],
+            data=record["data"],
+            before=f"{len(before)} byte(s)",
+            after=f"{len(record['data'])} byte(s)",
+            digest_before=journal.digest_of(before),
+            digest_after=journal.digest_of(record["data"]),
+            bytes_before=len(before),
+            before_data=before,
+        )
+        try:
+            written.append(edit.apply_document(staged_plan, project_root, dry_run=dry_run, actor=write_actor(ctx)))
+        except edit.EditRefused as error:
+            raise UsageError(str(error)) from None
+
+    limit = row_limit(ctx)
+    shown = rows if limit is None else rows[:limit]
+    payload = {
+        "scope": scope.name,
+        "patch": patch.name,
+        "edits": len(edits),
+        "documents": len(order),
+        "dry_run": dry_run,
+        "rows": shown,
+        "shown": len(shown),
+        "total": len(rows),
+        "written": written,
+        "ok": True,
+    }
+    return Result(payload, _batch_text(payload))
+
+
+def _batch_text(payload: dict) -> str:
+    """Rows of one batch invocation."""
+    rows = [
+        [str(item["edit"]), item["document"], item["field"], item["op"], item["before"], item["after"]]
+        for item in payload["rows"]
+    ]
+    state = "planned for" if payload["dry_run"] else "written to"
+    summary = (
+        f"{tally(payload['shown'], payload['total'])} edit(s) {state} "
+        f"{payload['documents']} document(s) from {payload['patch']}"
+    )
+    return table_of(["edit", "document", "field", "op", "before", "after"], rows, summary)
 
 
 def cmd_log(ctx: Context) -> Result:
@@ -2610,9 +3079,6 @@ def roster_file(scope: Scope, selector: str) -> tuple[str, Path]:
     raise UsageError(f"no declared roster named {selector!r}; the project has {known}")
 
 
-ROSTER_CATEGORIES = ("infantry", "vehicle", "at_gun", "aircraft")
-
-
 def roster_documents(scope: Scope) -> dict[str, str]:
     """The documents a roster entry can name, keyed by file stem.
 
@@ -2868,7 +3334,9 @@ COMMANDS = {
     "roster": cmd_roster,
     "index": cmd_index,
     "init": cmd_init,
+    "import": cmd_import,
     "add": cmd_add,
+    "batch": cmd_batch,
     "clone": cmd_clone,
     "remove": cmd_remove,
     "set": cmd_set,

@@ -143,7 +143,7 @@ def main(argv: list[str]) -> int:
         "来源：Sean O'Connor 的 Firefight 官网页面（windowsgames.co.uk），共 4 页，"
         "由浏览器「另存为」生成的 MHTML 存档。",
         "",
-        f"存档包：`C:\\Users\\BC_aw\\Downloads\\模组文档.zip`（5.3 MB，2026-10-11 02:44）",
+        f"存档包：`模组文档.zip`（5.3 MB，2026-10-11 02:44）",
         f"原件：`Firefight-Mod-Manager-Android\\FirefightMod\\_docs\\模组文档\\*.mht`（用户提供的浏览器存档）"
         f"　转换脚本：`firefight-mod-editor-open\\docs\\firefight-docs\\extract_docs_md.py`",
         f"记录时间：{stamp}",

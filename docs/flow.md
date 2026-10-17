@@ -23,7 +23,7 @@ flowchart TD
     end
 
     subgraph layer["The command layer"]
-        C1["core/cli/commands.py<br/>run_command, 27 commands"]
+        C1["core/cli/commands.py<br/>run_command, 29 commands"]
         C2["core/cli/specs.py<br/>the one tool table"]
         C3["core/cli/scope.py<br/>Mod, Firefight, &lt;name&gt;"]
     end
@@ -40,7 +40,7 @@ flowchart TD
     A1 -->|convert| B4
     A2 -->|"convert assets=1"| B5
     A1 -->|firefight scope| C1
-    C1 -->|init| B1
+    C1 -->|"init, import"| B1
     B3 -->|settings op=render| B2
     B2 -->|settings op=emit| B3
     B4 -->|set, add, remove| B4
@@ -118,11 +118,13 @@ and the tests can compare archives.
 These have no marker yet:
 
 * `init` writes `ModInformation.toml` and an empty `Data/` and nothing else; it reads no template and
-  imports no stock data.
+  imports no stock data. `import` (§4.16 of cli.md) is the other direction: it turns a mod that
+  already exists — a directory or a zip — into a project.
 * `Images/` and `Sounds/` are imported only when `convert` is asked for them with `assets=1`;
   references to them stay dangling until the files are imported or placed by hand.
 * `Maps/`, `Surnames/` and `equipment_*` lists are outside the schema.
 * a reference that does not resolve inside one scope is not retried against the stock
   corpus; the fallback is measured (882 of 912 references in one real project) but not
   implemented.
-* no batch edit.
+* `batch` applies a patch file to many documents, but the patch is written by hand and the
+  whole file is rewritten per document; there is no interactive multi-document editor.

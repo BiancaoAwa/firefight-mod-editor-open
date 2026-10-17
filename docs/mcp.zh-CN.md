@@ -39,7 +39,10 @@
 | `mcp_ff_stats` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_refs` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_deps` | `scope`、`value`、`kind`、`root`、`workspace` | 否 | 始终 |
-| `mcp_ff_check` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_check` | `scope`、`selector`、`assets`、`rosters`、`against`、`limit`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_schema` | `scope`、`element`、`enum`、`limit`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_diff` | `scope`、`left`、`right`、`limit`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_verify` | `scope`、`selector`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_export` | `scope`、`selector`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_set` | `scope`、`selector`、`field`、`value`、`op`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_add` | `scope`、`selector`、`type`、`from`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
@@ -51,14 +54,20 @@
 | `mcp_ff_redo` | `scope`、`count`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_init` | `scope`、`name`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 | `mcp_ff_pack` | `scope`、`to`、`overwrite`、`strict`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_batch` | `scope`、`patch`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_clone` | `scope`、`source`、`as`、`into`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_roster` | `scope`、`roster`、`op`、`section`、`value`、`line`、`as`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
+| `mcp_ff_import` | `scope`、`source`、`to`、`overwrite`、`dryRun`、`root`、`workspace` | 是 | 仅 `--write` |
 
-凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。`mcp_ff_set`、`mcp_ff_add`、`mcp_ff_remove`、`mcp_ff_index`、`mcp_ff_convert`、`mcp_ff_settings`、`mcp_ff_undo`、`mcp_ff_redo`、`mcp_ff_init` 与 `mcp_ff_pack` 都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视。
+凡命令会写文件的工具都只在 `--write` 下注册，`mcp_ff_export` 亦然：命令行的 `export` 因为目标目录是显式选项而不需要标志，但一个自称只读的服务不得暴露会写入的工具。每个写入工具都接受 `dryRun` 参数，映射到命令行的 `--dry-run`，因此写入可以在发生之前先检视；`mcp_ff_roster` 只在给出 `op` 时写入，不给则只读。
 
 `mcp_ff_settings` 承载工程原版设置文件的两个方向：`op=render` 读 `<工程>/mod.txt` 写 `ModSetting.toml`，`op=emit` 反向写回原版文件（docs/cli.zh-CN.md §4.7）。
 
-`mcp_ff_init` 在还不是工程的目录里建工程，`mcp_ff_pack` 生成可安装的模组 zip（docs/cli.zh-CN.md §4.9、§4.8）。
+`mcp_ff_init` 在还不是工程的目录里建工程，`mcp_ff_pack` 生成可安装的模组 zip（docs/cli.zh-CN.md §4.9、§4.8）。`mcp_ff_import` 由既有模组建工程，`mcp_ff_clone` 以新 token 复制一份文档（§4.16、§4.12），`mcp_ff_batch` 用补丁文件一次改多份文档（§4.15）。
 
-**一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
+`mcp_ff_check` 承载 docs/cli.zh-CN.md §6 描述的三道门：`assets` 给出缺失图片或声音本该落在的文件，`rosters` 把清单比对折进同一张表与同一个退出码，`against` 用第二个根库回答引用。`mcp_ff_schema`、`mcp_ff_diff`、`mcp_ff_verify` 只读，从不写入（docs/cli.zh-CN.md §4.13、§4.10、§4.11）。
+
+**一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。插件在编辑功能定稿后一次性同步，因此它的表有意落后于这一张：测试点名它尚缺的工具，凡是它已有的名字都必须一致。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
 
 ## 4. 资源与提示
 

@@ -30,6 +30,13 @@
 | `image` | `image` | 任意 | `Images/` 下按文件名或主干名匹配 |
 | `uniform` | `uniform` | 任意 | 目录 `Images/Uniforms/uniform_<值>/` |
 | `engine_sound` | `sound` | 任意 | 别名表，见 §4 |
+| `roster` | （单位清单的一行） | — | `Data/` 各单位文件夹下按主干名匹配的文档 |
+
+有一类引用不来自叶子标签。单位清单——工程在 `mod.txt` 或 `ModSetting.toml` 里声明的装备表——每行一条，
+每条点名一份单位文档。这些条目同样是引用：`roster` 引用进入同一张图，因此 `refs` 会列出它们，
+`deps <单位>` 能查出点名该单位的清单，`check` 会把「没有任何文档回应的条目」报成悬空引用而不是盲区
+（见 docs/cli.md §4.6）。这条引用点名的是它所在的行号，而不是字段路径。姓氏清单**不是**这类清单：
+它点名的是人名而不是文件，其条目只会成为噪声，因此只有装备表会产生引用。
 
 两条规则必须带上上下文才准确：
 
@@ -52,6 +59,9 @@
   `Plane-Ilyushin Il-2 Sturmovik.png`，磁盘上的文件却是 `Plane-Ilyushin IL-10.png` 与
   `Plane-Ilyushin IL-2 Sturmovik.png`。两者都存在时精确大小写匹配优先。
 * 武器、声音与制服查找直接访问文件系统，大小写敏感性取决于平台；只有内存中的图像索引需要显式折叠大小写。
+* `roster` 条目按文件主干名在 `Data/` 的单位文件夹（`Infantry`、`Vehicles`、`AT Guns`、`Aircraft`）里解析。
+  武器文件夹刻意不在其中：武器由使用它的文档引入，任何清单条目都不可能指它。文件夹列表由调用方传入，
+  使 `core/cli/commands.py` 保持为唯一声明类别的地方。
 
 ## 3. 实测覆盖
 
@@ -90,10 +100,12 @@ references_in(root: XmlElement, source: str) -> tuple[Reference, ...]
 
 RefGraph()
   .add(source, element) -> int                # 返回贡献的引用数
+  .add_references(found) -> int               # 同上，用于在别处构造好的引用
+  .add_roster(source, entries) -> int         # 单位清单的（行号, 名字）对
   .references() / .for_source(source) / .for_target(kind, value)
   .targets(kind=None) / .sources()
 
-TargetIndex(root: Path)
+TargetIndex(root: Path, *, unit_folders=UNIT_FOLDERS)
   .find(kind, value) -> tuple[Path, ...]      # 空即未解析；未知类别抛异常
 
 unresolved(graph, index, kind=None) -> tuple[Reference, ...]
@@ -107,5 +119,7 @@ summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
   负责。
 * 比较是精确的，仅在 §2 所述之处折叠大小写；不支持通配或模式目标。
 
-测试：`tests/test_refs.py`（21 条）；全套为 `python -m unittest discover -s tests -t .`（写作时 309 条）。
+测试：`tests/test_refs.py`（21 条）；全套为 `python -m unittest discover -s tests -t .`。
+`roster` 类别由 `tests/test_cli.py` 覆盖（已声明的条目有文档与无文档各一、清单的 `refs`、被点名单位的 `deps`、
+以及姓氏清单不贡献引用）。
 

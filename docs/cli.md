@@ -69,7 +69,9 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `diff` | | compare two documents, or two trees lined up by entity path; read-only (§4.10) |
 | `roster` | | read the rosters the settings declare, or check the entries against the documents; `op=` needs `--write` (§4.14) |
 | `set` | | change one field of one document, or add and delete array entries; needs `--write` (§4.1) |
+| `batch` | | apply the edits of a patch file, in order, to many documents; needs `--write` (§4.15) |
 | `init` | | create a project: `ModInformation.toml` and an empty `Data/`; needs `--write` (§4.9) |
+| `import` | | make a project out of a mod that already exists, a directory or a zip; needs `--write` (§4.16) |
 | `add` | `new` | create one entity document, from the schema skeleton or `from=<path>`; needs `--write` (§4.5) |
 | `clone` | | copy one entity document under a new token, from this project or from another scope; needs `--write` (§4.12) |
 | `remove` | `rm` | delete one entity document; needs `--write` (§4.5) |
@@ -85,7 +87,8 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `version` | | editor version, interpreter, resolved scopes |
 
 Options: `root=`, `workspace=`, `to=` (the `export` destination, the project `convert`
-writes into, or the directory `pack` leaves the archive in — §4.8), `as=` (the reading form
+writes into, the directory `pack` leaves the archive in — §4.8 — or the project `import`
+creates, §4.16), `as=` (the reading form
 for `show`, the entity token for `clone` — §4.12), `into=` (the scope directory an imported
 `clone` writes under, §4.12), `enum=` (`schema` prints the fields that use one enum, §4.13),
 `field=`,
@@ -99,12 +102,12 @@ project has load errors or dangling references, §4.8), `assets=1` (`convert` al
 scope's `Images/` and `Sounds/` trees, §4.3; `check` names the file a missing image or sound
 would have to be, §6), `rosters=1` (`check` also compares the rosters against the documents,
 §4.14), `against=<root>` (`check` answers references this project does not hold from a second
-root — a scope name, `scope:path`, or a directory, §6), `ignore_case=1`, `overwrite=1` (`1` replaces a file that is already there,
+root — a scope name, `scope:path`, or a directory, §6), `ignore_case=1`, `overwrite=1` (`1` replaces a file, or a whole project, that is already there,
 `0` leaves it; `export` and `pack` replace by default, `convert` and `settings` skip by
-default), `--json`. `init`, `set`, `add`, `clone`, `remove`, `index`, `settings`, `convert`,
-`pack`, `roster`, `undo` and `redo` also take the bare flags `--write` (write the change) and
-`--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take an
-optional count as well (§4.2).
+default; `import` needs one of the two when the destination is already a project, §4.16), `--json`. `init`, `import`, `set`, `batch`, `add`, `clone`, `remove`, `index`, `settings`,
+`convert`, `pack`, `roster`, `undo` and `redo` also take the bare flags `--write` (write the
+change) and `--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take
+an optional count as well (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
@@ -290,6 +293,10 @@ python -m core.cli Mod index [selector] --write [--dry-run]
 * The plain-text tables — the names the project declares under `<equipment>` and `<surnames>`,
   and the `equipment_*` / `surnames_*` conventions — plus `.txt` files with no root element and
   unreadable files are counted as skipped; they are not errors.
+* The entries of a declared **unit roster** (an `equipment_*` list) are references of kind
+  `roster`, so the tables carry them beside the ones inside XML documents and `deps <unit>`
+  answers from the index too. A surname list contributes nothing: it names people, not files
+  (docs/refs.md §1).
 
 ### 4.7 Translating between `mod.txt` and `ModSetting.toml`
 
@@ -493,6 +500,9 @@ the entry sits in.
   `orphans` names a unit no roster lists, which is a document the game cannot reach, and carries
   its `path`. Only units count as orphans: a weapon or an engine sound is pulled in by the
   document that uses them, so counting those would report every one of them.
+* The entries are also part of the reference graph (§4.6): a unit an `equipment_*` list names
+  but no document answers is reported by `check` as a dangling reference of kind `roster`, and
+  `deps <unit>` names the roster and the line that lists it.
 * The three writes are `op=add` (append the entry, or insert it at `line=`), `op=set` (replace
   the entry on `line=` with `as=<name>`, or replace the one named by `value=`) and `op=remove`
   (drop the entry named by `value=` or the line given as `line=`). Each is planned and then
@@ -501,6 +511,74 @@ the entry sits in.
   `--write`, as everywhere else.
 * The file's encoding, byte-order mark and line endings are kept: an entry is written with the
   ending the file already uses, and the rest of the file is untouched.
+
+### 4.15 `batch` — several edits in one run
+
+```
+python -m core.cli Mod batch <patch.toml> --write [--dry-run] [--json]
+```
+
+A patch is a TOML file holding an array of `[[edit]]` entries. Each entry names the document, the
+field and what to do:
+
+```toml
+[[edit]]
+document = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+field = "name"
+value = "P38 Neu"
+
+[[edit]]
+document = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+field = "ammo.type"
+op = "append"
+```
+
+* `document` accepts what any selector accepts: a relative path, a file name or a file stem, and
+  it must name exactly one document.
+* `value` is required by `op = "set"`, which is the default; `op = "append"` and `op = "delete"`
+  are the array-of-tables operations of §4.1, and `from=0` copies an existing entry the way
+  `set op=append from=0` does.
+* Entries are applied in the order they appear, and later entries to the same document are
+  planned against the text the earlier ones would leave behind, so the `before` and `after` of
+  every row name what that edit really changes.
+* Nothing is written unless every entry plans: the first entry that cannot be planned stops the
+  run, the message names it (`patch.toml: [[edit]] 2: ...`), and no document is touched. A run
+  that succeeds writes each document once and records one journal record per document, so
+  `undo <n>` puts every document it wrote back.
+* `--dry-run` reports the rows, the planned byte counts and the documents without writing. It
+  still needs `--write`, as everywhere else.
+* The payload carries `patch`, `edits`, `documents`, `rows` (`edit`, `document`, `field`, `op`,
+  `before`, `after`, `bytes`) and `written`, the same per-document report `set` returns.
+
+### 4.16 `import` — make a project out of a mod that already exists
+
+```
+python -m core.cli Mod import <directory or zip> to=<dir> --write [--dry-run] [--json]
+```
+
+`init` (§4.9) makes an empty project; `import` makes one from a mod that already exists, which is
+the other half of the import/export pair. The source is a directory or a `.zip`, and the mod root
+inside it is found the way the packager looks for it: everything under `Mod/`, the mod root at the
+top of the source, or one directory of its own above that — which is how an extracted archive
+usually looks.
+
+* `Data/`, `Images/` and `Sounds/` are copied byte for byte, as are `mod.txt`, `README.md`,
+  `LICENSE`, `ModInformation.toml` and `ModSetting.toml` when the source carries them.
+  `EditorCache/` and anything hidden is left behind: it belongs to the editor, not to the mod.
+* `ModSetting.toml` is rendered from the source's `mod.txt` when the source does not already
+  carry one, the same translation `settings op=render` performs (§4.7).
+* `ModInformation.toml` is written from the schema skeleton, named after the destination
+  directory, when the source does not already carry one.
+* The destination must hold no `ModInformation.toml` unless one of the two overwrite values is
+  given: `overwrite=1` replaces what is there, `overwrite=0` keeps every file that is already
+  there and reports each one as `exists`.
+* A source with no `Data/` folder inside is refused, and so is a source that is not there.
+* No journal record is written per copied file: several thousand records would drown the log, and
+  the copied bytes are still in the source. The rendered `ModSetting.toml` and the written
+  `ModInformation.toml` do go through `core.edit` and are recorded like any other write.
+* The payload carries `source`, `root` (the prefix inside the source that held the mod), `to`,
+  `overwrite`, `dry_run`, `count`, `shown` (`path`, `bytes`), `files` (how many files the source
+  offered), `has_settings`, `skipped` and `errors`.
 
 ## 5. Exit codes
 
@@ -532,9 +610,18 @@ the payload carries its three counts under `rosters`. `against=<root>` answers a
 project itself does not hold from a second root — the stock installation for an imported
 project, given as a scope name, `scope:path`, or a directory — so a reference that resolves
 there is not dangling; the payload reports how many were answered that way
-(`dangling_answered_elsewhere`) and which root answered (`against`). Measured on WW3 with the
-stock root as `against=`: 911 dangling references become 29, with 882 answered by the other
-root, and 235 of the 911 want an asset file that is not in the project.
+(`dangling_answered_elsewhere`) and which root answered (`against`). `against=stock` names the
+installation the editor setting points at, which is what an imported project wants. Measured on
+WW3 with the stock root as `against=`: 911 dangling references become 29, with 882 answered by
+the other root, and 235 of the 911 want an asset file that is not in the project. When more than
+one kind is dangling, the summary also names the counts by kind and the payload carries them
+under `dangling_kinds`.
+
+The entries of a declared unit roster are references (§4.6), so a unit an `equipment_*` list
+names but no document answers appears as an ordinary dangling reference of kind `roster`, with
+the line it sits on as its `document_path`. Without that, a roster entry pointing at a unit
+that does not exist would be invisible to `check` unless `rosters=1` was given. Measured on
+WW3: 276 roster entries over 12 rosters, none of them unresolved, so the count stays at 911.
 
 ## 7. Measured on real data (2026-10-10)
 
@@ -584,12 +671,13 @@ and prints the address it bound.
 ## 9. Limits of this slice
 
 * A write is one field, one array entry, one document (`add`, `remove`) or one whole selection
-  (`convert`, `settings`, `index`, `pack`). There is no batch edit that applies several
-  changes to several documents in one invocation. The log and the baseline are per project,
-  and `Firefight` is never written.
+  (`convert`, `settings`, `index`, `pack`). `batch` (§4.15) applies several changes to several
+  documents in one invocation, but the patch is written as text and each document is still
+  written as a whole. The log and the baseline are per project, and `Firefight` is never written.
 * `pack` builds the mod-zip. The stock-baseline comparison and the APK packaging of
-  docs/project-layout.md §5 are not implemented, and no command creates a project: `ModInformation.toml`
-  is written by hand. `Mod/mod.txt` in the archive comes from `ModSetting.toml` when that
+  docs/project-layout.md §5 are not implemented. `init` (§4.9) writes a `ModInformation.toml`
+  and an empty `Data/`; it reads no template and imports nothing from the stock data.
+  `Mod/mod.txt` in the archive comes from `ModSetting.toml` when that
   file is there; without it the existing `Mod/mod.txt` is copied as it stands.
 * `add` writes the schema skeleton of the document root, which leaves arrays out (their empty
   form would not be readable back); a document that needs array entries is created with

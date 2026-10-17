@@ -31,6 +31,16 @@ ambiguous, its parent tag.
 | `image` | `image` | any | file under `Images/` by name or stem |
 | `uniform` | `uniform` | any | directory `Images/Uniforms/uniform_<value>/` |
 | `engine_sound` | `sound` | any | alias table, see §4 |
+| `roster` | (a line of a unit roster) | — | a document under the unit folders of `Data/`, by stem |
+
+One kind does not come from a leaf tag. A unit roster — an equipment list the project
+declares in `mod.txt` or `ModSetting.toml` — carries one entry per line, and each entry names
+a unit document. Those entries are references too: `roster` references belong to the same
+graph, so `refs` lists them, `deps <unit>` finds the roster that names a unit, and `check`
+reports an entry no document answers as a dangling reference rather than as a blind spot
+(docs/cli.md §4.6). The reference names the line it sits on instead of a field path. A
+surname list is *not* a roster: it names people, not files, and its entries would only read
+as noise, so only equipment lists contribute.
 
 Two rules need their context to stay honest:
 
@@ -57,6 +67,11 @@ differs.
   and `Plane-Ilyushin IL-2 Sturmovik.png`. Exact-case matches win when both exist.
 - Weapon, sound and uniform lookups probe the filesystem directly, so their case sensitivity
   is the platform's; only the in-memory image index has to fold case explicitly.
+- A `roster` entry resolves against the unit folders of `Data/` (`Infantry`, `Vehicles`,
+  `AT Guns`, `Aircraft`) by file stem. The weapon folder is deliberately out of that set: a
+  weapon is pulled in by the document that uses it, so no roster entry can mean one. The
+  folder list is passed in, so `core/cli/commands.py` stays the one place that names the
+  categories.
 
 ## 3. Measured coverage
 
@@ -99,10 +114,12 @@ references_in(root: XmlElement, source: str) -> tuple[Reference, ...]
 
 RefGraph()
   .add(source, element) -> int                # returns references contributed
+  .add_references(found) -> int               # the same, for references built elsewhere
+  .add_roster(source, entries) -> int         # (line, name) pairs of a unit roster
   .references() / .for_source(source) / .for_target(kind, value)
   .targets(kind=None) / .sources()
 
-TargetIndex(root: Path)
+TargetIndex(root: Path, *, unit_folders=UNIT_FOLDERS)
   .find(kind, value) -> tuple[Path, ...]      # empty means unresolved; unknown kind raises
 
 unresolved(graph, index, kind=None) -> tuple[Reference, ...]
@@ -119,5 +136,7 @@ summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
 - Comparisons are exact and case-folded only where §2 says so; no glob or wildcard targets.
 
 Tests: `tests/test_refs.py` (21 cases); the full suite is `python -m unittest discover -s tests
--t .` (309 cases at the time of writing).
+-t .`. The `roster` kind is covered by `tests/test_cli.py`
+(a declared entry with and without a document, `refs` of a roster, `deps` of a named unit, and
+a surname list contributing nothing).
 

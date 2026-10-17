@@ -19,10 +19,12 @@ that runs the same commands, writing ones included, in Chinese or English ([web.
 `/edit` lists every field of a document with its own input box, `/ops` offers each writing command
 as a form and runs it with `--write --dry-run` before offering the write, and `/log` shows the
 event log with the undo and redo forms. `init` creates a
-project in an empty directory ([cli.md](docs/cli.md) §4.9). `export` reproduces a stock file
+project in an empty directory ([cli.md](docs/cli.md) §4.9), and `import` makes one out of a mod
+that already exists, a directory or a zip ([cli.md](docs/cli.md) §4.16). `export` reproduces a stock file
 byte for byte, layout included — 1840 of 1840 files on the installed game
-(`tools/export_fidelity.py`). [flow.md](docs/flow.md) shows how the pieces fit together. No
-batch edit yet.
+(`tools/export_fidelity.py`). [flow.md](docs/flow.md) shows how the pieces fit together. `batch`
+applies a patch file of several edits to many documents in one run ([cli.md](docs/cli.md)
+§4.15); interactive multi-document editing is still missing.
 
 ## Quick start
 
@@ -65,6 +67,44 @@ The **editor folder** a release ships — launchers, `skills/`, `docs/`, `core/`
 a bundled `Firefight/` data copy and `Mod/` — is specified in
 [project-layout.md](docs/project-layout.md) §10; the repository above is the source tree and
 deliberately has a different shape.
+
+## Installing a release
+
+A release is the editor folder described in [project-layout.md](docs/project-layout.md) §10:
+`core/`, `docs/` and `launcher/` beside the entry points, plus `Mod/` for the projects, `Logs/`
+for the run logs, `EditorCache/` for the editor's own state, `Firefight/` for a data copy, and
+`Setting.toml` for the editor setting. Unpack it anywhere and keep those folders together: the
+entry points look for `core/` beside themselves or one or two levels up.
+
+Requirements: Windows, PowerShell 5.1 or PowerShell 7, and a Python 3.12 interpreter. The
+launchers find the interpreter in this order — `FF_PYTHON`, then
+`%DSH_HOME%\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`, then `python` on
+`PATH`. Setting `FF_PYTHON` to an interpreter of your own is enough to use a different one.
+
+| Entry point | What it starts |
+|---|---|
+| `StartWebUI.cmd` | the web UI in a window, with the launcher watching it; takes `-Scope`, `-Port`, `-Project`, `-NoBrowser` |
+| `StartWebUI(Basic).cmd` | the same server in the foreground, no window and no watchdog |
+| `Start(McpOnly).cmd` | the stdio MCP server, for an AI client to spawn |
+| `StopAll.cmd` | stops the editor the launcher started |
+| `ff-start.cmd` | prints what the launcher would do, without doing it |
+
+`Setting.toml` is where the game installation and the project area are named:
+
+```toml
+firefight = "D:/Games/Firefight"   # the directory holding Data/, Images/ and Sounds/
+workspace = "D:/Editor"            # project area; Mod/<name>/ under it
+```
+
+With neither key set, `Firefight` is looked for in the editor's own `Firefight/` copy and the
+project is the nearest ancestor of the working directory that has `ModInformation.toml`. A
+project is created with `import` (from an existing mod or a zip) or with `init`, run from the
+editor folder:
+
+```
+python -m core.cli Mod import "D:/Downloads/some-mod.zip" to="D:/Editor/Mod/SomeMod" --write
+python -m core.cli Mod init "root=D:/Editor/Mod/NewMod" name="NewMod" --write
+```
 
 ## Tests
 

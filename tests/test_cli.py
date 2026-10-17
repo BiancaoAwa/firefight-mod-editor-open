@@ -413,6 +413,41 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(payload["dangling_answered_elsewhere"], 1)
         self.assertEqual(payload["against"], str(STOCK))
 
+    def test_check_against_stock_uses_the_editor_setting(self) -> None:
+        project = SCRATCH / "against-stock"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "against-stock"\n')
+        write(
+            project / "Data/Vehicles/TK3.txt",
+            DANGLING_XML.replace("WEAPON_PISTOL_WZ_35_VIS", "WEAPON_PISTOL_P38"),
+        )
+        config = SCRATCH / "Setting.toml"
+        write(config, f'firefight = "{STOCK.as_posix()}"\n')
+        try:
+            code, payload, err = run_json("Mod", "check", "all", "against=stock", cwd=project)
+            self.assertEqual(code, 0, err)
+            self.assertEqual(payload["dangling_answered_elsewhere"], 1)
+            self.assertEqual(payload["against"], str(STOCK))
+        finally:
+            config.unlink()
+
+    def test_check_counts_the_dangling_references_by_kind(self) -> None:
+        project = SCRATCH / "kinds"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "kinds"\n')
+        write(project / "Data/Weapons/WEAPON_A.txt", DANGLING_XML)
+        write(
+            project / "Data/Weapons/WEAPON_B.txt",
+            '<weapon>\n\t<name>B</name>\n\t<shoot>\n\t\t<sound_shoot>no_such_sound</sound_shoot>\n\t</shoot>\n</weapon>\n',
+        )
+        code, payload, err = run_json("Mod", "check", "all", cwd=project)
+        self.assertEqual(code, 1, err)
+        self.assertEqual(sum(payload["dangling_kinds"].values()), payload["dangling_total"])
+        self.assertGreater(len(payload["dangling_kinds"]), 1)
+        code, text, err = run("Mod", "check", "all", cwd=project)
+        self.assertEqual(code, 1, err)
+        self.assertIn("by kind:", text)
+
     def test_check_folds_the_roster_comparison_in(self) -> None:
         project = SCRATCH / "roster-check"
         shutil.rmtree(project, ignore_errors=True)
@@ -754,6 +789,193 @@ class CliTestCase(unittest.TestCase):
         )
         self.assertEqual(code, 2)
         self.assertIn("list file", err)
+
+    def batch_project(self) -> Path:
+        """A project of its own for one test, with two documents to edit."""
+        project = SCRATCH / "batch" / self._testMethodName
+        write(project / "ModInformation.toml", 'name = "Batch Mod"\n')
+        write(project / "Data/Weapons/WEAPON_ONE.txt", WEAPON_XML)
+        write(project / "Data/Weapons/WEAPON_TWO.txt", WEAPON_XML.replace("P38 Pistol", "P38 Twin"))
+        table = convert.xml_to_toml(xml.parse(WEAPON_XML, "fixture"), schema.schema_for("weapon"))
+        write(project / "Data/Weapons/WEAPON_TOML.toml", toml.render(table))
+        return project
+
+    def patch_file(self, project: Path, name: str, entries: list[list[str]]) -> Path:
+        """Write a patch file: one ``[[edit]]`` table per entry."""
+        lines: list[str] = []
+        for entry in entries:
+            lines.append("[[edit]]")
+            lines.extend(entry)
+            lines.append("")
+        path = project / name
+        write(path, "\n".join(lines))
+        return path
+
+    def one_name(self, name: str = "Step One") -> list[str]:
+        return ['document = "Data/Weapons/WEAPON_ONE.txt"', 'field = "name"', f'value = "{name}"']
+
+    def two_names(self) -> list[list[str]]:
+        return [
+            self.one_name("First"),
+            ['document = "Data/Weapons/WEAPON_TWO.txt"', 'field = "name"', 'value = "Second"'],
+        ]
+
+    def test_batch_applies_edits_to_several_documents(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "two.toml", self.two_names())
+        code, payload, err = run_json("Mod", "batch", str(patch), f"root={project}", "--write")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["edits"], 2)
+        self.assertEqual(payload["documents"], 2)
+        self.assertIn("First", (project / "Data/Weapons/WEAPON_ONE.txt").read_text("cp1252"))
+        self.assertIn("Second", (project / "Data/Weapons/WEAPON_TWO.txt").read_text("cp1252"))
+
+    def test_batch_plans_an_edit_against_the_earlier_one(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "chain.toml", [self.one_name("Step One"), self.one_name("Step Two")])
+        code, payload, err = run_json("Mod", "batch", str(patch), f"root={project}", "--write")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["documents"], 1)
+        self.assertEqual(payload["rows"][1]["before"], "Step One")
+        body = (project / "Data/Weapons/WEAPON_ONE.txt").read_text("cp1252")
+        self.assertIn("Step Two", body)
+        self.assertNotIn("Step One", body)
+
+    def test_batch_stages_array_entries(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(
+            project,
+            "entries.toml",
+            [
+                ['document = "Data/Weapons/WEAPON_TOML.toml"', 'field = "ammo.type"', 'op = "append"'],
+                ['document = "Data/Weapons/WEAPON_TOML.toml"', 'field = "ammo.type.1.flavour"', 'value = "FLAVOUR_AP"'],
+            ],
+        )
+        code, payload, err = run_json("Mod", "batch", str(patch), f"root={project}", "--write")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["rows"][0]["after"], "ammo.type.1")
+        self.assertIn("FLAVOUR_AP", (project / "Data/Weapons/WEAPON_TOML.toml").read_text("cp1252"))
+
+    def test_batch_needs_write(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "nowrite.toml", [self.one_name("Nope")])
+        code, _, err = run("Mod", "batch", str(patch), f"root={project}")
+        self.assertEqual(code, 2)
+        self.assertIn("--write", err)
+
+    def test_a_batch_dry_run_leaves_the_documents_alone(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "dry.toml", [self.one_name("Nope")])
+        before = (project / "Data/Weapons/WEAPON_ONE.txt").read_bytes()
+        code, payload, err = run_json("Mod", "batch", str(patch), f"root={project}", "--write", "--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual((project / "Data/Weapons/WEAPON_ONE.txt").read_bytes(), before)
+
+    def test_batch_records_one_entry_per_document(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "log.toml", self.two_names())
+        run_json("Mod", "batch", str(patch), f"root={project}", "--write")
+        _, log, _ = run_json("Mod", "log", f"root={project}")
+        written = [row for row in log["events"] if row.get("result") == "set"]
+        self.assertEqual(
+            sorted(row["document"] for row in written),
+            ["Data/Weapons/WEAPON_ONE.txt", "Data/Weapons/WEAPON_TWO.txt"],
+        )
+        self.assertEqual({row["actor"] for row in written}, {"cli"})
+
+    def test_batch_stops_at_a_bad_entry_and_writes_nothing(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(
+            project,
+            "bad.toml",
+            [
+                self.one_name("Fine"),
+                ['document = "Data/Weapons/WEAPON_ONE.txt"', 'field = "no.such.field"', 'value = "x"'],
+            ],
+        )
+        before = (project / "Data/Weapons/WEAPON_ONE.txt").read_bytes()
+        code, _, err = run("Mod", "batch", str(patch), f"root={project}", "--write")
+        self.assertEqual(code, 2)
+        self.assertIn("[[edit]] 2", err)
+        self.assertEqual((project / "Data/Weapons/WEAPON_ONE.txt").read_bytes(), before)
+
+    def test_batch_can_undo_every_document_it_wrote(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "undo.toml", self.two_names())
+        run_json("Mod", "batch", str(patch), f"root={project}", "--write")
+        code, _, err = run("Mod", "undo", "2", f"root={project}", "--write")
+        self.assertEqual(code, 0, err)
+        self.assertIn("P38 Pistol", (project / "Data/Weapons/WEAPON_ONE.txt").read_text("cp1252"))
+        self.assertIn("P38 Twin", (project / "Data/Weapons/WEAPON_TWO.txt").read_text("cp1252"))
+
+    def test_batch_names_the_patch_and_the_counts(self) -> None:
+        project = self.batch_project()
+        patch = self.patch_file(project, "text.toml", self.two_names())
+        code, out, err = run("Mod", "batch", str(patch), f"root={project}", "--write")
+        self.assertEqual(code, 0, err)
+        self.assertIn("2 edit(s)", out)
+        self.assertIn("2 document(s)", out)
+
+    def test_batch_refuses_a_patch_that_is_not_there(self) -> None:
+        code, _, err = run("Mod", "batch", str(SCRATCH / "nope.toml"), f"root={PROJECT}", "--write")
+        self.assertEqual(code, 2)
+        self.assertIn("nope.toml", err)
+
+    def roster_project(self) -> Path:
+        """A project that declares one unit roster: one entry has a document, one does not."""
+        project = SCRATCH / "roster-refs"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "roster refs"\n')
+        write(
+            project / "mod.txt",
+            "<mod>\n\t<name>Roster Refs</name>\n\t<nationality>\n\t\t<name>NATION_AMERICAN</name>\n"
+            "\t\t<equipment>equipment_american.txt</equipment>\n\t</nationality>\n</mod>\n",
+        )
+        write(
+            project / "Data/equipment_american.txt",
+            "// units\nRifle Squad\t\t// the one that is there\nGhost Squad\n",
+        )
+        write(project / "Data/Infantry/Rifle Squad.txt", "<squad>\n\t<name>Rifle Squad</name>\n</squad>\n")
+        return project
+
+    def test_a_roster_entry_without_a_document_is_a_dangling_reference(self) -> None:
+        # Before the roster joined the graph, a missing unit was invisible to check.
+        project = self.roster_project()
+        code, payload, _ = run_json("Mod", "check", cwd=project)
+        self.assertEqual(code, 1)
+        names = [item["value"] for item in payload["dangling"]]
+        self.assertEqual(names, ["Ghost Squad"])
+        self.assertEqual(payload["dangling"][0]["kind"], "roster")
+        _, text, _ = run("Mod", "check", cwd=project)
+        self.assertIn("Data/equipment_american.txt", text)
+
+    def test_a_roster_entry_that_has_a_document_is_not_dangling(self) -> None:
+        project = self.roster_project()
+        _, payload, _ = run_json("Mod", "check", cwd=project)
+        self.assertNotIn("Rifle Squad", [item["value"] for item in payload["dangling"]])
+
+    def test_refs_of_a_roster_read_its_entries(self) -> None:
+        project = self.roster_project()
+        code, payload, err = run_json("Mod", "refs", "Data/equipment_american.txt", cwd=project)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["by_kind"], {"roster": 2})
+        self.assertEqual([item["document_path"] for item in payload["references"]], ["line 2", "line 3"])
+
+    def test_deps_finds_the_roster_that_names_a_unit(self) -> None:
+        project = self.roster_project()
+        code, payload, err = run_json("Mod", "deps", "Rifle Squad", cwd=project)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["references"][0]["kind"], "roster")
+        self.assertEqual(payload["resolved"], ["Data/Infantry/Rifle Squad.txt"])
+
+    def test_a_surname_list_is_not_a_unit_roster(self) -> None:
+        # A surname list names people, not files; counting its entries would be noise.
+        project = self.roster_project()
+        write(project / "Data/surnames_american.txt", "Smith\nJones\n")
+        _, payload, _ = run_json("Mod", "refs", "Data/surnames_american.txt", cwd=project)
+        self.assertEqual(payload["count"], 0)
 
 
 if __name__ == "__main__":

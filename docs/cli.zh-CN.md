@@ -61,7 +61,9 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `diff` | | 比较两个文档，或按实体路径对齐的两棵目录树；只读（§4.10） |
 | `roster` | | 读取工程设置声明的清单，或把清单条目与文档对账；`op=` 需要 `--write`（§4.14） |
 | `set` | | 修改一个字段，或增删数组项；需要 `--write`（§4.1） |
+| `batch` | | 按补丁文件里的顺序，把多条改动施加到多份文档；需要 `--write`（§4.15） |
 | `init` | | 新建工程：`ModInformation.toml` 与空的 `Data/`；需要 `--write`（§4.9） |
+| `import` | | 把已存在的模组（目录或 zip）变成工程；需要 `--write`（§4.16） |
 | `add` | `new` | 新建一个实体文档，内容取自 schema 骨架或 `from=<路径>`；需要 `--write`（§4.5） |
 | `clone` | | 以新名称复制一个实体文档，来源可以是本工程或其他作用域；需要 `--write`（§4.12） |
 | `remove` | `rm` | 删除一个实体文档；需要 `--write`（§4.5） |
@@ -76,7 +78,8 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `web` | `serve` | 在 `127.0.0.1` 上发布页面，直到 Ctrl-C（§4.4，见 docs/web.md） |
 | `version` | | 编辑器版本、解释器、已解析的作用域 |
 
-选项：`root=`、`workspace=`、`to=`（`export` 的目标目录、`convert` 写入的工程目录，或 `pack` 放置压缩包的目录，§4.8）、
+选项：`root=`、`workspace=`、`to=`（`export` 的目标目录、`convert` 写入的工程目录、`pack` 放置压缩包的目录，§4.8，
+或 `import` 建出的工程目录，§4.16）、
 `as=`（`show` 的读取形式，或 `clone` 的实体名称，§4.12）、`into=`（导入式 `clone` 写入的作用域目录，§4.12）、
 `enum=`（`schema` 打印使用某张枚举表的字段，§4.13）、`field=`、`type=`、`kind=`、`path=`、`left=`、`right=`（`diff` 的两侧，§4.10）、`name=`（`init` 写入的模组名，§4.9）、`op=`、`from=`（`set op=append`
 用下标，`add` 用文档路径）、`limit=`（默认 200 行；`0` 表示全部）、`document=`、`actor=`、`result=`、`since=`、`until=`
@@ -85,8 +88,8 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 拒绝写出，§4.8）、`assets=1`（`convert` 另把作用域的 `Images/` 与 `Sounds/` 两棵树复制进来，§4.3；`check` 则点名
 缺失的图片或声音应该在哪个文件，§6）、`rosters=1`（`check` 同时把清单与文档做双向比对，§4.14）、
 `against=<根目录>`（`check` 把本工程没有的引用拿到第二个根下解析：作用域名、`scope:path` 或目录，§6）、
-`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
-默认跳过）、`--json`；`init`、`set`、`add`、`clone`、`remove`、`index`、`settings`、`convert`、`pack`、`roster`、`undo` 与 `redo`
+`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件或整个工程，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
+默认跳过；`import` 在目标已是工程时必须给出其中之一，§4.16）、`--json`；`init`、`import`、`set`、`batch`、`add`、`clone`、`remove`、`index`、`settings`、`convert`、`pack`、`roster`、`undo` 与 `redo`
 另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个
 可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
@@ -214,6 +217,7 @@ python -m core.cli Mod index [选择器] --write [--dry-run]
   改动一个字节，指纹就不同，`refs` 与 `deps` 随即忽略两张表、重新遍历文档。载荷会写明这批行来自哪一侧
   （`origin` 为 `index` 或 `scan`），两张表只是某一次查询的缓存，不是第二个事实源。
 * 纯文本表格——工程在 `<equipment>`、`<surnames>` 下点名的名字，以及 `equipment_*`、`surnames_*` 命名约定——与没有根元素的 `.txt`、读不了的文件都计入跳过，不算错误。
+* 被声明的**单位清单**（`equipment_*` 列表）的条目是类别为 `roster` 的引用，因此这些表会把它们与 XML 文档里的引用并列存放，`deps <单位>` 也能从索引作答。姓氏清单不贡献任何引用：它点名的是人名而不是文件（docs/refs.md §1）。
 
 ### 4.7 在原版 `mod.txt` 与 `ModSetting.toml` 之间转换
 
@@ -362,11 +366,68 @@ python -m core.cli Mod roster <清单> op=remove value=<名称> [line=<n>] --wri
 * `roster check` 双向对账，任一侧非空即退出码 1。`missing` 给出一条清单里没有任何文档应答的条目——游戏里表现为
   缺失单位；`orphans` 给出没有任何清单登记的 unit，即游戏够不到的文档，并带其 `path`。只有 unit 计入孤儿：武器与
   引擎音效由使用它们的文档引入，若一并计入会把它们全部报成未登记。
+* 条目同时进入引用图（§4.6）：`equipment_*` 清单点名而没有任何文档应答的单位，会由 `check` 报成类别 `roster`
+  的悬空引用，`deps <单位>` 会指出点名它的清单与行号。
 * 三个写操作是 `op=add`（追加条目，或用 `line=` 插到指定行）、`op=set`（把 `line=` 那一行改写成 `as=<名称>`，
   或改写 `value=` 指定的条目）与 `op=remove`（删除 `value=` 指定的条目，或 `line=` 指定的行）。每个写入都先计划、
   再经与其他改动相同的写入器应用，因此会记账、`undo` 能把字节放回，`--dry-run` 只报告不写。与其他命令一样，
   试运行同样需要 `--write`。
 * 文件的编码、BOM 与换行保持不变：条目按文件既有的行尾写入，其余部分原样不动。
+
+### 4.15 `batch` —— 一次运行施加多条改动
+
+```
+python -m core.cli Mod batch <补丁.toml> --write [--dry-run] [--json]
+```
+
+补丁是一份 TOML 文件，里面是 `[[edit]]` 数组的条目。每条给出文档、字段与要做的事：
+
+```toml
+[[edit]]
+document = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+field = "name"
+value = "P38 Neu"
+
+[[edit]]
+document = "Data/Weapons/WEAPON_PISTOL_P38.toml"
+field = "ammo.type"
+op = "append"
+```
+
+* `document` 接受任何选择项的写法：相对路径、文件名或文件名主干，且必须恰好指到一份文档。
+* `value` 由 `op = "set"`（默认）要求；`op = "append"` 与 `op = "delete"` 是 §4.1 的数组表操作，
+  `from=0` 的写法与 `set op=append from=0` 相同，用来复制已有条目。
+* 条目按出现顺序施加；同一份文档的后续条目按前面条目将要留下的文本作计划，因此每行的 `before` 与 `after`
+  都是这次改动真实的改前改后值。
+* 只要有一条无法计划就什么都不写：第一条计划失败的条目会终止整次运行，错误信息点名它
+  （`补丁.toml: [[edit]] 2: ...`），且不触碰任何文档。成功的运行每份文档只写一次，并每份文档记一条日志，
+  因此 `undo <n>` 能把这次写过的每份文档都放回。
+* `--dry-run` 报告各行、计划字节数与文档清单而不写入。与其他命令一样，它同样需要 `--write`。
+* 载荷给出 `patch`、`edits`、`documents`、`rows`（`edit`、`document`、`field`、`op`、`before`、`after`、`bytes`）
+  与 `written`，后者与 `set` 返回的逐文档报告相同。
+
+### 4.16 `import` —— 把已存在的模组变成工程
+
+```
+python -m core.cli Mod import <目录或 zip> to=<目录> --write [--dry-run] [--json]
+```
+
+`init`（§4.9）建空工程，`import` 把已存在的模组变成工程，两者是导入/导出配对的两半。来源是目录或
+`.zip`，其中的模组根按打包器同样的规则查找：全部在 `Mod/` 下、模组根就在来源顶层，或者其外还套一层
+目录——解压出来的压缩包通常就是最后这种。
+
+* `Data/`、`Images/` 与 `Sounds/` 逐字节复制；来源带有的 `mod.txt`、`README.md`、`LICENSE`、
+  `ModInformation.toml` 与 `ModSetting.toml` 同样复制。`EditorCache/` 与隐藏项留在原处：它们属于
+  编辑器，不属于模组。
+* 来源不带 `ModSetting.toml` 时，由来源的 `mod.txt` 渲染出来，与 `settings op=render`（§4.7）同一套翻译。
+* 来源不带 `ModInformation.toml` 时，按 schema 骨架写出，名字取目标目录名。
+* 目标目录已含 `ModInformation.toml` 时必须给出两个覆盖值之一：`overwrite=1` 覆盖，`overwrite=0`
+  保留每个已存在的文件并逐条报 `exists`。
+* 来源里没有 `Data/` 文件夹会被拒绝，来源不存在同样被拒绝。
+* 逐字节复制不写事件记录：几千条记录会淹没日志，而复制过去的字节在来源里仍有。渲染出的
+  `ModSetting.toml` 与写出的 `ModInformation.toml` 与其他写入一样走 `core.edit` 并记账。
+* 载荷键：`source`、`root`（来源里装着模组的前缀）、`to`、`overwrite`、`dry_run`、`count`、
+  `shown`（`path`、`bytes`）、`files`（来源提供的文件数）、`has_settings`、`skipped`、`errors`。
 
 ## 5. 退出码
 
@@ -392,8 +453,14 @@ python -m core.cli Mod roster <清单> op=remove value=<名称> [line=<n>] --wri
 把 §4.14 的双向清单比对并进同一张表与同一个退出码，载荷在 `rosters` 下给出三个计数。`against=<根目录>`
 把本工程没有的引用拿到第二个根下解析——导入的工程就是拿原版安装目录当第二个根，写法可以是作用域名、
 `scope:path` 或目录——在那里解析到的引用不算悬空；载荷报告有多少条这样被解答
-（`dangling_answered_elsewhere`）以及是哪个根（`against`）。WW3 实测（以原版根为 `against=`）：911 条悬空
-变成 29 条，其中 882 条被另一个根解答；911 条里有 235 条要找的资源文件不在工程里。
+（`dangling_answered_elsewhere`）以及是哪个根（`against`）。`against=stock` 指编辑器设置里记着的原版安装
+目录，导入而来的工程用的就是它。WW3 实测（以原版根为 `against=`）：911 条悬空
+变成 29 条，其中 882 条被另一个根解答；911 条里有 235 条要找的资源文件不在工程里。悬空引用的类别
+不止一种时，摘要会按类别给出计数，载荷里的 `dangling_kinds` 是同一份数据。
+
+被声明的单位清单的条目也是引用（§4.6），因此一条点名了并不存在的单位的装备表条目，会作为类别 `roster`
+的普通悬空引用出现，其 `document_path` 是它所在的行号。没有这一条时，指向不存在单位的清单条目只有给出
+`rosters=1` 才看得见。WW3 实测：12 张清单共 276 条条目，全部可解析，故计数仍为 911。
 
 ## 7. 真实数据实测（2026-10-10）
 
@@ -437,10 +504,11 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 ## 9. 本部分的限制
 
 * 一次写入是「一个字段、一个数组项、一个文档（`add`、`remove`）或一整个选择范围（`convert`、`settings`、`index`、`pack`）」。
-  没有一次调用里对多个文档施加多处改动的批量编辑。日志与基线属于单个工程，`Firefight` 永不被写入。
-* `pack` 生成模组 zip。docs/project-layout.md §5 的 stock 基线比对与 APK 打包未实现；也没有创建工程的命令，
-  `ModInformation.toml` 需手写。压缩包里的 `Mod/mod.txt` 在该文件存在时来自 `ModSetting.toml`；不存在时按原样复制现有的
-  `Mod/mod.txt`。
+  `batch`（§4.15）能在一次调用里对多个文档施加多处改动，但补丁以文本书写，且每份文档仍按整份写入。
+  日志与基线属于单个工程，`Firefight` 永不被写入。
+* `pack` 生成模组 zip。docs/project-layout.md §5 的 stock 基线比对与 APK 打包未实现。`init`（§4.9）写出
+  `ModInformation.toml` 与空的 `Data/`，不读模板、也不从原版数据导入任何内容。压缩包里的 `Mod/mod.txt` 在该文件存在时
+  来自 `ModSetting.toml`；不存在时按原样复制现有的 `Mod/mod.txt`。
 * `add` 写的是文档根元素的 schema 骨架，数组被略去（它们的空形态无法被读回）；需要数组项的文档用
   `from=<已有文档>` 或 `convert` 建立，随后用 `set op=append` 填。
 * 只有编辑器声明了 schema 的根才能被新建与编辑：`weapon`、`squad`、`aircraft`、`mod` 与 `mod_setting`。`vehicle` 与

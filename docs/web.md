@@ -232,13 +232,16 @@ does not write anything itself: its form posts to `/ops` with `command=set`, the
 field path and the new value, so a save from this page passes the same check step as any other
 write. The page also links to `/ops` for a change that needs more than one option, and to `/log`.
 
-`/ops` is the whole writing side as a form: `set`, `add`, `remove`, `index`, `convert`,
-`settings`, `export`, `pack`, `init`, `undo` and `redo` — the eleven commands that can change
-something. Without `command=` it is a table with one link per command, each naming what the
+`/ops` is the whole writing side as a form: `set`, `batch`, `add`, `clone`, `remove`, `index`,
+`convert`, `settings`, `roster`, `export`, `pack`, `init`, `import`, `undo` and `redo` — the
+fifteen commands that can change something. Without `command=` it is a table with one link per
+command, each naming what the
 command does and whether it takes a document. A command argument gives its form; the fields come
 from the command's own options, so a checkbox is a flag (`overwrite=`, `assets=`, `strict=`) and
 a `select` is an enumeration (`op=` of `set` is `append`/`delete`, `op=` of `settings` is
-`render`/`emit`).
+`render`/`emit`, `op=` of `roster` is `add`/`set`/`remove`). `undo` and `redo` name their count
+in the document field, because that count is the command's positional selector rather than an
+option.
 
 Nothing is written on the first pass. With `confirm=1` the page prints the equivalent `ff` line
 and then the real result of running it with `--write --dry-run`, which is why it can promise that
@@ -251,6 +254,17 @@ write link, because the write would be refused in exactly the same way. The two 
 because the UI is GET-only: a link can be prefetched or followed by accident, and a write stays
 one deliberate click away from the page that shows what it would do. The command's own gate is
 still the last word.
+
+When the check step runs `set`, the page prints the change as a table first — the document, the
+field path, the value now and the value after — above the raw output. The raw output is the
+command's own answer; the table is only a reading of it, and it is left out when the command
+reports its dry run in another shape.
+
+The write link carries the digest the check step recorded (`expect=`). The write compares it with
+the documents as they are when the link is followed and refuses when they differ, so a file edited
+in the meantime is not overwritten by a decision made before the edit; the page says so and asks
+for a fresh check. The same protection exists on the command line, where a plan is applied only
+while the document is still the one it was planned from ([cli.md](cli.md) §4).
 
 `/log` prints the event log with the filters the `log` command takes and the undo and redo forms
 beside it; those forms lead into `/ops`, so undoing is checked like everything else.
@@ -317,6 +331,10 @@ A row keeps whatever ending the document already uses, a comment is never counte
 delete leaves the orphaned newline behind rather than reformatting the file. Comments and blank
 lines show as markers, never as editable entries.
 
+The check step shows the row as it is now and as it would be, and the write link carries the digest
+of the file the check read, so a table edited from a shell in between is refused rather than
+overwritten (§2.1).
+
 ### 2.5 The source page
 
 `/edit` edits one field at a time, which is the wrong shape for a document that has no schema or
@@ -331,7 +349,9 @@ table page does, so it lands in the event log and `undo` restores it.
 
 Before and after the write the page runs `check` on that document and prints the result. It never
 blocks on it — a document that does not load is the document someone came here to fix. The save is
-the same two steps as everywhere else: a check that touches nothing, then the write.
+the same two steps as everywhere else: a check that touches nothing, then the write. The check step
+prints a line diff of the file as it is and as it would be, and the write link carries the digest it
+was planned from (§2.1).
 
 One limit comes from the interface rather than the editor: the UI answers GET only, so the edited
 text travels in the query string, and files larger than 16000 bytes are refused with that number
@@ -420,7 +440,7 @@ is a refusal before the body is read.
 ## 5. Tests
 
 ```
-python -m unittest tests.test_web          # 144 tests, ~28 s
+python -m unittest tests.test_web          # 150 tests, ~32 s
 python -m unittest discover -s tests -t .  # run the suite
 ```
 
@@ -435,8 +455,8 @@ command's own gate (a `set` without `--write` is refused with `set needs --write
 document is left alone), and the instance record (an answering instance is reused, a stale one
 is ignored, and a clean stop removes it). The writing pages add their own cases: `/edit` lists
 every field of a document with one input box each and links the save through `/ops`; `/ops`
-lists the eleven writing commands and carries a required parameter for each of the eight that
-have one; a form names a parameter once; the check step runs `--write --dry-run` and leaves the
+lists the fifteen writing commands and answers the check step of every one of them, even when the
+form is empty; a form names a parameter once; the check step runs `--write --dry-run` and leaves the
 project untouched, prints the equivalent `ff` line, and drops no `write=1` link; a command that
 refuses the check offers no write link and reports the refusal; `write=1` then changes the
 document, appends an event and lets `/log` show it, undo included; `/pack` with `strict=1` on a
@@ -451,7 +471,10 @@ command line, and undo restores the file); and `/source` opens a document as its
 nothing before a path is given, refuses a suffix it does not edit, refuses a path outside the
 project, refuses a file over the limit with the limit named, reports a check that writes nothing,
 writes a UTF-8 file with a BOM back with its BOM and a CRLF file back with CRLF, offers no write
-link when the text did not change, and logs the change as `actor=web`. The MCP panel adds its own
+link when the text did not change, and logs the change as `actor=web`. The check step now shows the
+change before it is offered: `/ops` prints the field, the value now and the value after, `/tables`
+prints the row as it is and as it would be, `/source` prints a line diff, and a write link followed
+after the document changed on disk is refused with the other writer's bytes left in place. The MCP panel adds its own
 cases: `/mcp` names every tool of the specification table and prints the command line and the client
 block, a read-only trial answers with a JSON-RPC result and no error, a name the server does not
 register and arguments that are not JSON are reported as such, and a writing tool is run with

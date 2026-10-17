@@ -62,7 +62,10 @@ the table below lists the names this server answers to.
 | `mcp_ff_stats` | `scope`, `selector`, `root`, `workspace` | no | always |
 | `mcp_ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
 | `mcp_ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
-| `mcp_ff_check` | `scope`, `selector`, `root`, `workspace` | no | always |
+| `mcp_ff_check` | `scope`, `selector`, `assets`, `rosters`, `against`, `limit`, `root`, `workspace` | no | always |
+| `mcp_ff_schema` | `scope`, `element`, `enum`, `limit`, `root`, `workspace` | no | always |
+| `mcp_ff_diff` | `scope`, `left`, `right`, `limit`, `root`, `workspace` | no | always |
+| `mcp_ff_verify` | `scope`, `selector`, `limit`, `root`, `workspace` | no | always |
 | `mcp_ff_export` | `scope`, `selector`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_set` | `scope`, `selector`, `field`, `value`, `op`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_add` | `scope`, `selector`, `type`, `from`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
@@ -74,27 +77,39 @@ the table below lists the names this server answers to.
 | `mcp_ff_redo` | `scope`, `count`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_init` | `scope`, `name`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 | `mcp_ff_pack` | `scope`, `to`, `overwrite`, `strict`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_batch` | `scope`, `patch`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_clone` | `scope`, `source`, `as`, `into`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_roster` | `scope`, `roster`, `op`, `section`, `value`, `line`, `as`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
+| `mcp_ff_import` | `scope`, `source`, `to`, `overwrite`, `dryRun`, `root`, `workspace` | yes | only with `--write` |
 
 Every tool whose command writes files is registered only with `--write`, `mcp_ff_export` included:
 the CLI's `export` needs no flag because its destination is an explicit option, but a server
-that reports itself read-only must not expose a tool that writes. `mcp_ff_set`, `mcp_ff_add`,
-`mcp_ff_remove`, `mcp_ff_index`, `mcp_ff_convert`, `mcp_ff_settings`, `mcp_ff_undo`,
-`mcp_ff_redo`, `mcp_ff_init` and `mcp_ff_pack` take a `dryRun` parameter that maps to the CLI's
-`--dry-run`, so a write can be inspected before it happens.
+that reports itself read-only must not expose a tool that writes. Every writing tool takes a
+`dryRun` parameter that maps to the CLI's `--dry-run`, so a write can be inspected before it
+happens; `mcp_ff_roster` writes only when `op` is given, and reports without one.
 
 `mcp_ff_settings` carries the two directions of the project's stock settings file: `op=render`
 reads `<project>/mod.txt` and writes `ModSetting.toml`, `op=emit` writes the stock file
 back (docs/cli.md §4.7).
 
 `mcp_ff_init` creates a project in a directory that need not be one yet, and `mcp_ff_pack`
-builds the installable mod-zip (docs/cli.md §4.9, §4.8).
+builds the installable mod-zip (docs/cli.md §4.9, §4.8). `mcp_ff_import` builds a project out
+of a mod that already exists, `mcp_ff_clone` copies one document under a new token
+(§4.16, §4.12), and `mcp_ff_batch` applies a patch file to several documents at once (§4.15).
+
+`mcp_ff_check` carries the three gates §6 of docs/cli.md describes: `assets` names the file a
+missing image or sound would have to be, `rosters` folds the roster comparison into the same
+table and exit code, and `against` answers references from a second root. `mcp_ff_schema`,
+`mcp_ff_diff` and `mcp_ff_verify` are read-only and never write (docs/cli.md §4.13, §4.10, §4.11).
 
 **One specification.** The tool table is one Python specification table, `core/cli/specs.py`,
 which the MCP server renders `tools/list` from and turns a call into a CLI invocation; the
 plugin's `lib/specs.js` is its cross-repository twin. A snapshot test asserts that `tools/list`
 names, parameter names and required-ness equal the plugin table, and that read-only mode
-exposes no write tool. Cross-repository consistency is enforced by that test plus this
-document; no shared build is introduced. Feeding the CLI help and the web UI from the same
+exposes no write tool. The plugin is updated in one batch once the editing features settle, so
+its table lags behind this one on purpose: the test names the tools it is still missing, and
+every name it does carry must match. Cross-repository consistency is enforced by that test plus
+this document; no shared build is introduced. Feeding the CLI help and the web UI from the same
 table is later work: the command line lists commands, not tools, and the web UI builds a form
 per command.
 

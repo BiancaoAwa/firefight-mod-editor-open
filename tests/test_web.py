@@ -708,8 +708,30 @@ class WebTestCase(unittest.TestCase):
     def test_ops_lists_every_writing_command(self) -> None:
         status, body = self.fetch("/ops")
         self.assertEqual(status, 200, body[:400])
-        for command in ("set", "add", "remove", "index", "convert", "settings", "export", "pack", "init", "undo", "redo"):
+        for command in ("set", "batch", "add", "clone", "remove", "index", "convert", "settings",
+                        "roster", "export", "pack", "init", "import", "undo", "redo"):
             self.assertIn(f"command={command}", body, f"/ops does not offer {command}")
+
+    def test_every_offered_command_answers_its_check_step(self) -> None:
+        """The check step has to render for every command, even with nothing filled in.
+
+        A payload key that is a count in one command and a list in another made the index
+        check step fail with a server error; the page answers an unfilled form instead.
+        """
+        project = SCRATCH / "ops-project"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Ops Mod"\n\tversion_name = "0.0.1"\n')
+        write(project / "Data" / "Weapons" / "WEAPON_OPS.txt", WEAPON_XML)
+        try:
+            with self.running(project) as base:
+                for command in ("set", "batch", "add", "clone", "remove", "index", "convert",
+                                "settings", "roster", "export", "pack", "init", "import", "undo",
+                                "redo"):
+                    status, body = self.fetch_from(base, "/ops", command=command, confirm="1")
+                    self.assertEqual(status, 200, f"{command}: {body[:300]}")
+                    self.assertIn("只检查不写入", body, command)
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
 
     def test_ops_rejects_a_command_that_cannot_write(self) -> None:
         status, body = self.fetch("/ops", command="rmdir")
@@ -738,6 +760,61 @@ class WebTestCase(unittest.TestCase):
                 self.assertEqual(status, 200, body[:400])
                 self.assertIn("写入结果", body)
                 self.assertIn(b"Ops Pistol", document.read_bytes())
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+    def test_the_check_step_shows_a_semantic_diff(self) -> None:
+        """The page shows what changes, field by field, not only that something would."""
+        project = SCRATCH / "ops-diff"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Diff Mod"\n')
+        write(project / "Data" / "Weapons" / "WEAPON_DIFF.txt", WEAPON_XML)
+        try:
+            with self.running(project) as base:
+                status, body = self.fetch_from(
+                    base,
+                    "/ops",
+                    command="set",
+                    selector="Data/Weapons/WEAPON_DIFF.txt",
+                    field="name",
+                    value="Diff Pistol",
+                    confirm="1",
+                )
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("现在", body)
+                self.assertIn("操作后", body)
+                self.assertIn("name", body)
+                self.assertIn("P38 Pistol", body)
+                self.assertIn("Diff Pistol", body)
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+    def test_a_write_is_refused_when_the_document_changed_after_the_check(self) -> None:
+        """The check records the bytes it planned from; the write compares them again."""
+        project = SCRATCH / "ops-conflict"
+        shutil.rmtree(project, ignore_errors=True)
+        write(project / "ModInformation.toml", '[mod]\n\tname = "Conflict Mod"\n')
+        document = project / "Data" / "Weapons" / "WEAPON_CONFLICT.txt"
+        write(document, WEAPON_XML)
+        try:
+            with self.running(project) as base:
+                asked = {
+                    "command": "set",
+                    "selector": "Data/Weapons/WEAPON_CONFLICT.txt",
+                    "field": "name",
+                    "value": "Conflict Pistol",
+                    "confirm": "1",
+                }
+                status, body = self.fetch_from(base, "/ops", **asked)
+                self.assertEqual(status, 200, body[:400])
+                found = re.search(r"expect=([0-9a-f]{32})", body)
+                self.assertIsNotNone(found, "the check step offers no digest to write against")
+                write(document, WEAPON_XML.replace("P38 Pistol", "Someone Else"))
+                status, body = self.fetch_from(base, "/ops", **asked, write="1", expect=found.group(1))
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("已经改变", body)
+                self.assertNotIn("写入结果", body)
+                self.assertIn("Someone Else", document.read_text("cp1252"), "the write went through anyway")
         finally:
             shutil.rmtree(project, ignore_errors=True)
 
@@ -1320,6 +1397,64 @@ class WebTestCase(unittest.TestCase):
         finally:
             shutil.rmtree(project, ignore_errors=True)
 
+    def test_the_table_page_refuses_a_write_after_the_file_changed(self) -> None:
+        project = self.table_project()
+        document = project / "Data" / "equipment_demo.txt"
+        try:
+            with self.running(project) as base:
+                asked = {"path": "Data/equipment_demo.txt", "op": "set", "line": "2",
+                         "value": "Marksman.txt", "confirm": "1"}
+                status, body = self.fetch_from(base, "/tables", **asked)
+                self.assertEqual(status, 200, body[:400])
+                found = re.search(r"expect=([0-9a-f]{32})", body)
+                self.assertIsNotNone(found, "the check step offers no digest")
+                document.write_bytes(b"// demo list\nSomeone Else.txt\n")
+                status, body = self.fetch_from(base, "/tables", **asked, write="1", expect=found.group(1))
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("已经改变", body)
+                self.assertNotIn("写入结果", body)
+                self.assertIn(b"Someone Else.txt", document.read_bytes())
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+    def test_the_source_page_shows_a_line_diff(self) -> None:
+        project = self.table_project()
+        try:
+            with self.running(project) as base:
+                edited = WEAPON_XML.replace("P38 Pistol", "P38 Carbine")
+                status, body = self.fetch_from(
+                    base, "/source", path="Data/Weapons/WEAPON_TABLE.txt", text=edited, confirm="1"
+                )
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("差异", body)
+                self.assertIn("-", body)
+                self.assertIn("P38 Carbine", body)
+                found = re.search(r"expect=([0-9a-f]{32})", body)
+                self.assertIsNotNone(found, "the check step offers no digest")
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+    def test_a_source_save_is_refused_when_the_document_changed_after_the_check(self) -> None:
+        """The source page records the bytes it planned from; the write compares them again."""
+        project = self.table_project()
+        document = project / "Data" / "Weapons" / "WEAPON_TABLE.txt"
+        try:
+            with self.running(project) as base:
+                edited = WEAPON_XML.replace("P38 Pistol", "P38 Carbine")
+                asked = {"path": "Data/Weapons/WEAPON_TABLE.txt", "text": edited, "confirm": "1"}
+                status, body = self.fetch_from(base, "/source", **asked)
+                self.assertEqual(status, 200, body[:400])
+                found = re.search(r"expect=([0-9a-f]{32})", body)
+                self.assertIsNotNone(found, "the check step offers no digest to write against")
+                write(document, WEAPON_XML.replace("P38 Pistol", "Someone Else"))
+                status, body = self.fetch_from(base, "/source", **asked, write="1", expect=found.group(1))
+                self.assertEqual(status, 200, body[:400])
+                self.assertIn("已经改变", body)
+                self.assertNotIn("写入结果", body)
+                self.assertIn("Someone Else", document.read_text("cp1252"), "the write went through anyway")
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
     def test_a_source_save_writes_nothing_before_the_write_step(self) -> None:
         project = self.table_project()
         document = project / "Data" / "Weapons" / "WEAPON_TABLE.txt"
@@ -1540,7 +1675,11 @@ class WebTestCase(unittest.TestCase):
             return probe.getsockname()[1]
 
     def call_listener(self, url: str, message: dict, token: str = "") -> tuple[int, str]:
-        """POST one JSON-RPC message at the listener, as an MCP client would."""
+        """POST one JSON-RPC message at the listener, as an MCP client would.
+
+        A refusal may arrive as a status code or, on Windows, as the connection being
+        closed before the answer is read; both mean the message was not served.
+        """
         request = urllib.request.Request(url, data=json.dumps(message).encode("utf-8"), method="POST")
         request.add_header("Content-Type", "application/json")
         if token:
@@ -1550,6 +1689,8 @@ class WebTestCase(unittest.TestCase):
                 return response.status, response.read().decode("utf-8")
         except urllib.error.HTTPError as error:
             return error.code, error.read().decode("utf-8")
+        except (ConnectionError, urllib.error.URLError):
+            return 0, ""
 
     def tool_names_of(self, answer: str) -> list[str]:
         return [tool["name"] for tool in json.loads(answer)["result"]["tools"]]
@@ -1577,10 +1718,17 @@ class WebTestCase(unittest.TestCase):
 
         # the token is its own door: without it nothing is answered, and it serves only messages
         status, _ = self.call_listener(state["url"], {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
-        self.assertEqual(status, 403)
-        with self.assertRaises(urllib.error.HTTPError) as caught:
+        self.assertIn(status, {0, 403}, "the listener served a message that carried no token")
+        # A GET is refused: the answer is 405, and on Windows the client can observe the
+        # server closing the connection instead of reading it. Both are the same refusal.
+        refusal = "answered"
+        try:
             urllib.request.urlopen(state["url"], timeout=20)
-        self.assertEqual(caught.exception.code, 405)
+        except urllib.error.HTTPError as error:
+            refusal = f"http {error.code}"
+        except (ConnectionError, urllib.error.URLError):
+            refusal = "hung up"
+        self.assertIn(refusal, {"http 405", "hung up"})
 
         status, _ = self.status_of(self.no_redirect(), f"{self.base}/mcpstop")
         self.assertEqual(status, 302)

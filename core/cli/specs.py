@@ -146,6 +146,42 @@ ASSETS = Parameter(
     "convert: also copy the scope's Images/ and Sounds/ trees into the project, byte for byte. Off by default, because a stock scope carries the game's own artwork.",
     target="assets",
 )
+CHECK_ASSETS = Parameter(
+    "assets",
+    "boolean",
+    "check: name the file a missing image, sound or uniform would have to be, instead of the value that did not match.",
+    target="assets",
+)
+ROSTERS = Parameter(
+    "rosters",
+    "boolean",
+    "check: also compare the rosters the project declares against the documents, both ways, in the same table and exit code.",
+    target="rosters",
+)
+AGAINST = Parameter(
+    "against",
+    "string",
+    "check: a second root that answers a reference the project does not hold, given as a directory, a scope name or `stock` for the installation in the editor setting.",
+    target="against",
+)
+AS = Parameter(
+    "as",
+    "string",
+    "clone: the token the copy declares. roster op=set: the new entry.",
+    target="as",
+)
+INTO = Parameter(
+    "into",
+    "string",
+    "clone: the scope or directory the copy lands in; the current scope by default.",
+    target="into",
+)
+TO = Parameter(
+    "to",
+    "string",
+    "Directory the command writes into, passed as to=<directory>; the project directory by default.",
+    target="to",
+)
 SELECTOR = Parameter("selector", "string", "Optional folder or path prefix, for example Weapons or Data/Weapons.", target="selector")
 
 
@@ -280,6 +316,59 @@ TOOLS: tuple[ToolSpec, ...] = (
         parameters=(
             SCOPE,
             Parameter("selector", "string", "Optional entity or folder to check instead of the whole scope.", target="selector"),
+            CHECK_ASSETS,
+            ROSTERS,
+            AGAINST,
+            LIMIT,
+            ROOT,
+            WORKSPACE,
+        ),
+    ),
+    ToolSpec(
+        name="ff_schema",
+        command="schema",
+        description=(
+            "List the declared fields of one root element, or the values of one named enum table. "
+            "Read-only: it reads the same declaration the editor validates against."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("element", "string", "Root element to describe, for example weapon or squad; omit it when enum names a table.", target="selector"),
+            Parameter("enum", "string", "Named enum table to list instead of a root element's fields, for example country.", target="enum"),
+            LIMIT,
+            ROOT,
+            WORKSPACE,
+        ),
+    ),
+    ToolSpec(
+        name="ff_diff",
+        command="diff",
+        description=(
+            "Compare two documents, or two trees lined up by entity path. Both sides are rendered "
+            "as stock XML first, so a project TOML and the file it came from compare in one shape. "
+            "A difference makes the exit code non-zero; it is a result, not a tool failure."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("left", "string", "One side, as a path or scope:path.", target="left", required=True),
+            Parameter("right", "string", "The other side, as a path or scope:path.", target="right", required=True),
+            LIMIT,
+            ROOT,
+            WORKSPACE,
+        ),
+    ),
+    ToolSpec(
+        name="ff_verify",
+        command="verify",
+        description=(
+            "Read every selected document back and report what does not survive the round trip. "
+            "A clean run over a converted project says the conversion can be packed back to what "
+            "it came from. Read-only."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("selector", "string", "Optional entity or folder to verify instead of the whole scope.", target="selector"),
+            LIMIT,
             ROOT,
             WORKSPACE,
         ),
@@ -477,6 +566,90 @@ TOOLS: tuple[ToolSpec, ...] = (
             Parameter("to", "string", "Directory the archive goes into, passed as to=<directory>; the project directory by default.", target="to"),
             OVERWRITE,
             STRICT,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_batch",
+        command="batch",
+        description=(
+            "Apply several field changes to several documents from one patch file. Every entry is "
+            "planned against the text the earlier entries would leave behind, and nothing is written "
+            "until the whole patch has been planned: a refused entry leaves every document as it was. "
+            "This writes."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("patch", "string", "Path of the patch file: a TOML array of tables named edit, each with document, field and value, or op = append or delete.", target="selector", required=True),
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_clone",
+        command="clone",
+        description=(
+            "Copy one document under a new token. The source may name another scope, which is how a "
+            "project borrows a document from the stock data; the new token is given up front, so the "
+            "copy never competes with the document it came from. This writes."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("source", "string", "Entity path of the document to copy, optionally as scope:path to borrow it from another scope.", target="selector", required=True),
+            AS,
+            INTO,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_roster",
+        command="roster",
+        description=(
+            "Read and edit the rosters the project declares. A roster lists the document names that "
+            "reach the game, so an entry with no document behind it is a hole the game shows as a "
+            "missing unit. This writes when an operation is given."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("roster", "string", "Roster file or name to read or edit; the word check compares every roster against the documents.", target="selector"),
+            Parameter("op", "string", "add appends an entry, set rewrites the entry line names or value names, remove drops it. Without it the rosters are listed.", target="op", enum=("add", "set", "remove")),
+            Parameter("section", "string", "Only the entries of this group or note, for example tanks or vehicles.", target="section"),
+            Parameter("value", "string", "The entry to edit or remove. Omit it when line names the entry.", target="value", allow_empty=True),
+            Parameter("line", "integer", "Number of the entry line, counting comments and blank lines.", target="line"),
+            AS,
+            DRY_RUN,
+            ROOT,
+            WORKSPACE,
+        ),
+        writes=True,
+        concurrency_safe=False,
+    ),
+    ToolSpec(
+        name="ff_import",
+        command="import",
+        description=(
+            "Create a project from a mod that already exists, given as a directory or a zip. The "
+            "source is walked for its mod root, the data tree and Images/ and Sounds/ are copied byte "
+            "for byte, mod.txt comes along, and ModSetting.toml is rendered when the source carries "
+            "none. This writes; a destination that already holds a project is refused unless overwrite "
+            "is true."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("source", "string", "Directory or zip file to import from.", target="selector", required=True),
+            TO,
+            OVERWRITE,
             DRY_RUN,
             ROOT,
             WORKSPACE,

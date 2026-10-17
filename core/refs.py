@@ -41,7 +41,13 @@ REFERENCE_RULES: tuple[RefRule, ...] = (
 # single token.  Tokens missing from this table stay unresolved.
 ENGINE_SOUND_ALIASES: dict[str, str] = {"SOUND_PROPELLER": "Sounds/Engines/plane_propeller.ogg"}
 
-KINDS: tuple[str, ...] = tuple(dict.fromkeys(rule.kind for rule in REFERENCE_RULES))
+# A plain-text roster names the units a project offers; an entry is a file stem under one
+# of the unit folders, so it is a reference like any other and belongs in the same graph.
+ROSTER_KIND = "roster"
+
+UNIT_FOLDERS: tuple[str, ...] = ("Infantry", "Vehicles", "AT Guns", "Aircraft")
+
+KINDS: tuple[str, ...] = tuple(dict.fromkeys(rule.kind for rule in REFERENCE_RULES)) + (ROSTER_KIND,)
 
 
 @dataclass(frozen=True)
@@ -88,12 +94,21 @@ class RefGraph:
 
     def add(self, source: str, element: XmlElement) -> int:
         """Index one document; returns how many references it contributed."""
-        found = references_in(element, source)
+        return self.add_references(references_in(element, source))
+
+    def add_references(self, found: tuple[Reference, ...]) -> int:
+        """Index prepared references; returns how many were added."""
         for reference in found:
             self._references.append(reference)
             self._by_source.setdefault(reference.source, []).append(reference)
             self._by_target.setdefault((reference.kind, reference.value), []).append(reference)
         return len(found)
+
+    def add_roster(self, source: str, entries: list[tuple[int, str]]) -> int:
+        """Index the entries of one plain-text roster as ``roster`` references."""
+        return self.add_references(
+            tuple(Reference(source, (f"line {line}",), ROSTER_KIND, name) for line, name in entries)
+        )
 
     def references(self) -> tuple[Reference, ...]:
         """Every reference of the scope, in insertion order."""
@@ -119,9 +134,11 @@ class RefGraph:
 class TargetIndex:
     """Maps reference values onto files under one scope root."""
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, unit_folders: tuple[str, ...] = UNIT_FOLDERS) -> None:
         self.root = Path(root)
+        self.unit_folders = tuple(unit_folders)
         self._images: tuple[dict[str, tuple[Path, ...]], dict[str, tuple[Path, ...]]] | None = None
+        self._units: dict[str, tuple[Path, ...]] | None = None
 
     def find(self, kind: str, value: str) -> tuple[Path, ...]:
         """Targets for one value; empty means the reference is unresolved."""
@@ -143,6 +160,8 @@ class TargetIndex:
                 return ()
             path = self.root / relative
             return (path,) if path.is_file() else ()
+        if kind == ROSTER_KIND:
+            return self._unit_index().get(value, ())
         raise ValueError(f"unknown reference kind: {kind}")
 
     def expected(self, kind: str, value: str) -> tuple[str, ...]:
@@ -163,7 +182,25 @@ class TargetIndex:
         if kind == "engine_sound":
             relative = ENGINE_SOUND_ALIASES.get(value)
             return (relative,) if relative else ()
+        if kind == ROSTER_KIND:
+            return (f"Data/**/{value}.toml", f"Data/**/{value}.txt")
         raise ValueError(f"unknown reference kind: {kind}")
+
+    def _unit_index(self) -> dict[str, tuple[Path, ...]]:
+        """Files of the unit folders, keyed by the name a roster entry would carry.
+
+        Only units live in a roster: a weapon is pulled in by the document that uses it, so
+        resolving an entry against the weapons folder would answer a name no roster can mean.
+        """
+        if self._units is None:
+            found: dict[str, list[Path]] = {}
+            for folder in self.unit_folders:
+                base = self.root / "Data" / folder
+                for path in sorted(base.rglob("*")) if base.is_dir() else ():
+                    if path.is_file():
+                        found.setdefault(path.stem, []).append(path)
+            self._units = {name: tuple(paths) for name, paths in found.items()}
+        return self._units
 
     def _image_index(self) -> tuple[dict[str, tuple[Path, ...]], dict[str, tuple[Path, ...]]]:
         """Exact and casefolded name/stem indexes over ``Images/``, built once.

@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph layer["命令层"]
-        C1["core/cli/commands.py<br/>run_command，27 条命令"]
+        C1["core/cli/commands.py<br/>run_command，29 条命令"]
         C2["core/cli/specs.py<br/>唯一一张工具表"]
         C3["core/cli/scope.py<br/>Mod、Firefight、&lt;名称&gt;"]
     end
@@ -39,6 +39,7 @@ flowchart TD
     A1 -->|convert| B4
     A2 -->|"convert assets=1"| B5
     A1 -->|firefight 作用域| C1
+    C1 -->|"init、import"| B1
     B3 -->|settings op=render| B2
     B2 -->|settings op=emit| B3
     B4 -->|set、add、remove| B4
@@ -112,9 +113,10 @@ flowchart TD
 
 以下尚无标记：
 
-* `init` 只写出 `ModInformation.toml` 与空的 `Data/`，不读模板、不导入原版数据。
+* `init` 只写出 `ModInformation.toml` 与空的 `Data/`，不读模板、不导入原版数据。`import`（cli.md §4.16）
+  是另一个方向：把已存在的模组——目录或 zip——变成工程。
 * `Images/` 与 `Sounds/` 只在 `convert` 带 `assets=1` 时导入；指向它们的引用在导入或手工放置文件前一直是悬空引用。
 * `Maps/`、`Surnames/` 与 `equipment_*` 清单不在 schema 范围内。
 * 在某一个作用域内解析不到的引用不会再向原版语料回退；该回退已测量（某个真实工程
   912 条中 882 条可解析）但未实现。
-* 没有批量编辑。
+* `batch` 能把一份补丁施加到多份文档，但补丁需手写，且每份文档仍按整份重写；没有交互式的多文档编辑器。
