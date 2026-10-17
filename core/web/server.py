@@ -3307,7 +3307,10 @@ class Handler(BaseHTTPRequestHandler):
                 state["public"] = public
                 state["public_checked"] = True
             body += h3(tr("对外地址"))
-            pooled = [(tr("内网"), mono(address)) for address in state.get("addresses") or []]
+            pooled = [
+                (tr("本机") if "//127." in address or address.startswith("127.") else tr("内网"), mono(address))
+                for address in state.get("addresses") or []
+            ]
             if public:
                 pooled.append((tr("公网"), mono(f"http://{public}:{state['port']}/")))
             body += kv(pooled)

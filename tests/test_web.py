@@ -2062,6 +2062,7 @@ class WebTestCase(unittest.TestCase):
         self.assertEqual(status, 200, page[:400])
         self.assertIn("对外地址", page)
         self.assertIn("直接复制", page)
+        self.assertIn("本机", page)
         self.assertIn('class="copy"', page)
         self.assertIn(f"127.0.0.1:{port}", page)
         self.assertIn(f"203.0.113.7:{port}", page)
@@ -2080,6 +2081,26 @@ class WebTestCase(unittest.TestCase):
         self.assertEqual(status, 200, page[:400])
         self.assertIn("公网地址没有查到", page)
         self.assertIn("再查一次", page)
+
+    def test_the_listener_offers_only_addresses_a_client_can_dial(self) -> None:
+        """A remote client cannot dial the loopback address, so it is not one of the offers."""
+        probe = mock.MagicMock()
+        probe.getsockname.return_value = ("192.168.1.5", 51000)
+        with mock.patch.object(mcp_listener.socket, "socket", return_value=probe), mock.patch.object(
+            mcp_listener.socket,
+            "getaddrinfo",
+            return_value=[(None, None, None, None, ("127.0.0.1", 0)), (None, None, None, None, ("192.168.1.5", 0))],
+        ):
+            self.assertEqual(mcp_listener.local_addresses("0.0.0.0"), ["192.168.1.5", "127.0.0.1"])
+
+    def test_the_listener_falls_back_to_the_loopback_address(self) -> None:
+        """With no other interface, the page still names the one address this machine has."""
+        probe = mock.MagicMock()
+        probe.getsockname.return_value = ("127.0.0.1", 51000)
+        with mock.patch.object(mcp_listener.socket, "socket", return_value=probe), mock.patch.object(
+            mcp_listener.socket, "getaddrinfo", return_value=[]
+        ):
+            self.assertEqual(mcp_listener.local_addresses("0.0.0.0"), ["127.0.0.1"])
 
     def test_the_public_address_is_read_from_a_service(self) -> None:
         answer = mock.MagicMock()

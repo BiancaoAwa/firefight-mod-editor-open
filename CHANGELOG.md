@@ -241,6 +241,9 @@
 
 ### Fixed
 
+* The MCP panel drops the wildcard address, lists every address another machine can
+  dial and puts the loopback last labelled `本机`; the address row names the first
+  dialable address instead of `0.0.0.0`.
 * `/list` paginates past the command's 200-row cap, so every entity of a large
   project is reachable; the page slices the rows itself.
 * `is_plain_text` decides from the first non-blank character before it parses a
