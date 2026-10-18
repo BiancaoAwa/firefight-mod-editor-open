@@ -12,9 +12,9 @@
 `pack`（[cli.md](docs/cli.zh-CN.md) §4.8）、MCP 服务
 `python -m core.mcp`（它把命令暴露为工具、资源与提示，见 [mcp.md](docs/mcp.zh-CN.md)），以及跑同一批命令
 （含写入类）的中英双语 Web 界面（[web.md](docs/web.zh-CN.md)）：`/edit` 把整份文档当文本编辑——TOML、XML 与
-纯文本走同一个文本框，编码、BOM 与换行照实显示，写入前先给出差异；`/list` 的实体表连同装备表与清单文件在同一页；
+纯文本走同一个文本框，编码、BOM 与换行照实显示，写入前先给出差异；`/list` 的实体表连同已声明的单位表在同一页；
 `/log` 显示事件日志并带撤销与重做表单；`/cmd` 是一条命令行加写入命令表单，MCP 工具表与参考说明是这一页的另外两个模式。
-`export` 能按字节复现原版文件（含排版），在已安装的游戏数据上是 1840/1840
+`export` 能按字节复现原版文件（含排版），`tools/export_fidelity.py` 在已安装的游戏数据上验证
 （见 `tools/export_fidelity.py`）。`init` 在空目录里创建工程（[cli.md](docs/cli.zh-CN.md) §4.9），`import` 则把已存在的
 模组——目录或 zip——变成工程（[cli.md](docs/cli.zh-CN.md) §4.16）。各部分如何衔接见
 [flow.md](docs/flow.zh-CN.md)。`batch` 能用一份补丁在一次运行里把多条改动施加到多份文档
@@ -69,7 +69,7 @@ tools/    辅助工具：往返与保真度脚本、FirefightModPackager、
 
 | 入口点 | 启动什么 |
 |---|---|
-| `StartWebUI.cmd` | 窗口模式下的 Web 界面，启动器会看护它；接受 `-Scope`、`-Port`、`-Project`、`-NoBrowser` |
+| `StartWebUI.cmd` | 窗口模式下的 Web 界面，启动器会看护它；接受 `-Scope`、`-Port`、`-Project`、`-NoBrowser`、`-Browser`、`-Foreground` |
 | `StartWebUI(Basic).cmd` | 同一个服务器，前台运行，无窗口也无看护 |
 | `Start(McpOnly).cmd` | stdio MCP 服务，供 AI 客户端拉起 |
 | `StopAll.cmd` | 停掉启动器启动的编辑器 |
@@ -96,8 +96,7 @@ python -m core.cli Mod init "root=D:/Editor/Mod/NewMod" name="NewMod" --write
 python -m unittest discover -s tests -t .      # 不联网、不需要游戏安装
 ```
 
-需要真实语料的测试用例是针对原版安装与已发布的 WW3 工程手工运行的，实测数字见
-[cli.md](docs/cli.zh-CN.md) §7。两个脚本需要游戏目录：
+需要真实语料的测试用例是针对原版安装与已发布的 WW3 工程手工运行的。两个脚本需要游戏目录：
 
 ```
 python tools/m1_roundtrip.py  --data "<游戏>/Data"          # XML -> TOML -> XML，语义等价
@@ -108,14 +107,13 @@ python tools/export_fidelity.py --data "<游戏>/Data"        # 导出与源文�
 
 | 文档 | 内容 |
 |---|---|
-| [cli.md](docs/cli.zh-CN.md) | 命令行：作用域、选择器、命令、选项、退出码、实测结果 |
+| [cli.md](docs/cli.zh-CN.md) | 命令行：作用域、选择器、命令、选项、退出码 |
 | [web.md](docs/web.zh-CN.md) | 本地 Web 界面：路由、选项、设计规则、限制 |
 | [project-layout.md](docs/project-layout.zh-CN.md) | 工程布局、命令行规范、权限、事件日志、依赖策略 |
 | [mcp.md](docs/mcp.zh-CN.md) | AI MCP 交付面：协议修订、工具、资源、权限、错误映射 |
-| [refs.md](docs/refs.zh-CN.md) | 引用规则与覆盖情况 |
+| [refs.md](docs/refs.zh-CN.md) | 引用规则、解析与 API |
 | [toml-mapping.md](docs/toml-mapping.zh-CN.md) | 原版 XML 如何映射到 TOML 编辑模型 |
-| [m1-design.md](docs/m1-design.md) | 数据内核设计 |
-| [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md) | 各版本新增、变更与已知限制 |
+| [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md) | 各版本新增、变更与修正 |
 
 ## 制作模组
 

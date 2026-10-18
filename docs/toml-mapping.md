@@ -1,8 +1,8 @@
 > Language: **English** | [中文](toml-mapping.zh-CN.md)
 
-# XML ↔ TOML mapping specification (draft v0)
+# XML ↔ TOML mapping specification
 
-> Status: merged into `main`, with the M1 refinements noted in [m1-design.md](m1-design.md). This document defines the bidirectional mapping that M1 implements.
+> This document defines the bidirectional mapping between the game's XML and the editor's TOML.
 > The underlying facts are measured on the installed game data.
 
 ## 1. General principles
@@ -27,11 +27,11 @@ Stock XML has **no attributes, no namespaces and no mixed content** (measured), 
 
 Leaf or branch is decided by whether the element has children: children mean a table, no children mean a scalar.
 **That decision is fixed by the schema**, not by a single file's data, so that one field cannot take different shapes in different files.
-**The schema is keyed by parent path, never by tag name alone**: `type` is a leaf directly under `weapon` and under `description`, but an array of tables under `ammo` (up to 7 per instance), and `weapon` is an array of tables under `man`/`turret`/`fixed_weapon` yet a single table under `atgun`/`hmg`/`mortar`/`recoilless_rifle`. A tag-name-keyed schema would assign at least one of those the wrong shape. Measurements are in [m1-design.md](m1-design.md) §2.3 and §2.4.
+**The schema is keyed by parent path, never by tag name alone**: `type` is a leaf directly under `weapon` and under `description`, but an array of tables under `ammo`, and `weapon` is an array of tables under `man`/`turret`/`fixed_weapon` yet a single table under `atgun`/`hmg`/`mortar`/`recoilless_rifle`. A tag-name-keyed schema would assign at least one of those the wrong shape; the shapes were measured on the stock corpus.
 
-**Empty elements** (measured: 70 in the corpus, `<name></name>` 37 and `<dimensions></dimensions>` 33) are the empty string as a scalar when the schema calls the field a leaf, and an empty table when the schema calls it a table. `weapon/dimensions` is the one field that is written both ways, and it is declared a table, so its 33 empty instances render back as `<dimensions></dimensions>` ([m1-design.md](m1-design.md) §2.6).
+**Empty elements** (measured: the corpus writes every one of them as `<tag></tag>`) are the empty string as a scalar when the schema calls the field a leaf, and an empty table when the schema calls it a table. `weapon/dimensions` is the one field that is written both ways, and it is declared a table, so its empty instances render back as `<dimensions></dimensions>`.
 
-**Arrays of tables are the only array form M1 needs**: no leaf repeats inside one parent instance anywhere in the corpus ([m1-design.md](m1-design.md) §2.5), so the subset in §6 needs no scalar arrays.
+**Arrays of tables are the only array form M1 needs**: no leaf repeats inside one parent instance anywhere in the corpus, so the subset in §6 needs no scalar arrays.
 
 ### 2.1 Key name rules
 
@@ -57,7 +57,7 @@ Export to the stock standard **re-renders from the value's content**, so type in
 Fixed-point risk: decimals such as `<mass>0.12</mass>` **must be echoed back verbatim** and must never become `0.12000000000000001`.
 The implementation keeps the original string alongside the parsed value and re-renders only after an edit; this is one of the core fidelity points of M1.
 
-The table above describes what the syntax would allow. **The schema overrides it for the fields where the generic test would corrupt the source** ([m1-design.md](m1-design.md) §3.8): a pinned `str` field keeps its text even when it looks numeric (`armour` values like `30@12` and `20`), a pinned `bool` field is exactly the `yes`/`no` set, and every other field is `auto`, meaning the original literal is kept and re-rendered verbatim. A field may therefore hold `RELOAD_AUTOMATIC` in one file and `0` in another without either being rewritten.
+The table above describes what the syntax would allow. **The schema overrides it for the fields where the generic test would corrupt the source**: a pinned `str` field keeps its text even when it looks numeric (`armour` values like `30@12` and `20`), a pinned `bool` field is exactly the `yes`/`no` set, and every other field is `auto`, meaning the original literal is kept and re-rendered verbatim. A field may therefore hold `RELOAD_AUTOMATIC` in one file and `0` in another without either being rewritten.
 
 > Dimensions and mass: length units in the data files are **cm** and mass is in **kg** (taken from the pre-existing reference material; not re-verified in M0).
 
@@ -71,9 +71,9 @@ Conventions (conservative export, tolerant import):
 * **Between siblings of different names**: export renders in **stock order** and never rearranges on its own. An unedited entity goes through snapshot echo and therefore keeps its original order naturally.
 * **The import side does not validate order**: any arrangement of sibling blocks must parse successfully.
 
-**TOML text order is a canonical order chosen by the writer, not a copy of the source order.** Measured: in **807 of 1792** files the source order places a leaf after a branch, and TOML does not allow a bare key after a sub-table header (see [m1-design.md](m1-design.md) §2.1). The canonical order is leaves first, then single-instance sub-tables, then arrays of tables, each group following schema order. The difference is safe because sibling order carries no semantics; the comparison used to verify it is defined in §8 item 1.
+**TOML text order is a canonical order chosen by the writer, not a copy of the source order.** Measured: a stock file often places a leaf after a branch, and TOML does not allow a bare key after a sub-table header. The canonical order is leaves first, then single-instance sub-tables, then arrays of tables, each group in the order the entries were stored (for a document converted from XML, the order they first appeared in the file). The difference is safe because sibling order carries no semantics.
 
-**XML export order is the source order.** The layout captured by the reader (§4.1) is authoritative, so `export` walks children in the order they appeared in the file and reproduces it byte for byte. Measured over the stock corpus on 2026-10-11: 1840 of 1840 files come back identical (`tools/export_fidelity.py`). Only a document that has no source text — a `.toml` project file — is rendered by the canonical writer, where siblings follow first-appearance order as stored in the TOML (which, for a file converted from XML, is the source order).
+**XML export order is the source order.** The layout captured by the reader (§4.1) is authoritative, so `export` walks children in the order they appeared in the file and reproduces it byte for byte. Measured over the stock corpus: every file comes back identical (`tools/export_fidelity.py`). Only a document that has no source text — a `.toml` project file — is rendered by the canonical writer, where siblings follow first-appearance order as stored in the TOML (which, for a file converted from XML, is the source order).
 
 ### 4.1 Layout (blank lines, indentation, comments, newlines)
 
@@ -90,10 +90,10 @@ Consequence for editing: a value change keeps the whole file's layout; a structu
 
 | Case | Treatment |
 |---|---|
-| `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); optionally collected into `EditorCache/notes.toml` on first import for human inspection |
-| Bare `&` (16 stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
+| `//` comments | Not modelled in TOML, but **kept as part of the captured layout and written back by `export`** (§4.1); `EditorCache/notes.toml` is reserved for such a collection and is not written yet |
+| Bare `&` (a few stock files) | Read as an ordinary character on import and **written back as a bare `&`** on export (converting it to `&amp;` would change the string the game actually reads, which is not semantically equivalent) |
 | Numeric tags `<1>` in `mod.txt` | See §2.1; `ModSetting.toml` is implemented separately |
-| Line endings | Normalised on import; **export keeps the newline style of the source file** (revised 2026-10-11). Stock is CRLF in 1824 of 1840 files and LF in the other 16, and all 1840 now come back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
+| Line endings | Normalised on import; **export keeps the newline style of the source file**. Stock is mostly CRLF and some files are LF; every stock file now comes back byte-identical. A document without source text (a `.toml` project file) is written CRLF |
 | Indentation | Export keeps the source indentation (tabs, depth equal to element nesting depth); an element without captured layout falls back to tabs at its nesting depth |
 | Blank lines | Authored grouping, captured per element as part of its `prefix` (§4.1) and reproduced as-is |
 | `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO in [project-layout.md](project-layout.md) §4) |
@@ -103,11 +103,11 @@ Consequence for editing: a value change keeps the whole file's layout; a structu
 `core.convert.toml_to_xml(table, newline="\r\n", indent="\t")` writes the shape the stock corpus
 uses, so a document written from TOML alone reads like a shipped one:
 
-* no `<?xml …?>` declaration line — 0 of 1840 stock documents carry one;
+* no `<?xml …?>` declaration line — no stock document carries one;
 * one element per line, tab indentation at the nesting depth, no blank lines;
-* an empty element is written `<tag></tag>` — 0 stock documents use `<tag/>`;
+* an empty element is written `<tag></tag>` — no stock document uses `<tag/>`;
 * text is written as stored, so a bare `&` stays bare; `<`, `>` and `?` are not escaped;
-* no start tag carries attributes — 0 stock documents use any.
+* no start tag carries attributes — no stock document uses any.
 
 Reading is more tolerant than writing: a start tag with attributes is read by its name and its
 attributes are held as written (`XmlElement.raw_tag`) so an export reproduces them byte for byte,
@@ -115,9 +115,8 @@ a `<![CDATA[…]]>` block keeps its marker and contributes its inner text to the
 give a warning that the TOML view does not carry them. Neither shape exists in the stock corpus,
 so neither is ever written.
 
-The two parameters exist for callers that need another shape — tests use them to prove the
-defaults are the stock ones:
-
+The two parameters exist for callers that need another shape; the defaults are the ones the
+shipped corpus uses, and `tests/test_convert.py` pins them with `newline="\n"` and two spaces.
 
 ## 6. Scope of the in-house TOML implementation (`core/toml`)
 
@@ -139,7 +138,7 @@ Following the "specialised for this editor" requirement, only the subset this ed
 
 Rationale: none of these has a counterpart in the stock data structures, and raising an error is safer than the silent corruption that half-support would cause.
 
-The exclusions are measured, not assumed: no stock file repeats a leaf inside one parent instance ([m1-design.md](m1-design.md) §2.5), so a scalar array is never needed to represent stock data. `mod.txt` is the one file that would need it, and its schema is deferred to project-file support for exactly this reason ([m1-design.md](m1-design.md) §2.7).
+The exclusions are measured, not assumed: no stock file repeats a leaf inside one parent instance, so a scalar array is never needed to represent stock data. `mod.txt` is the one file that would need it, and its schema is deferred to project-file support for exactly this reason .
 
 ## 7. Mapping examples
 
@@ -295,13 +294,4 @@ The source excerpt also establishes two facts:
 
 * **`//` comments occur inside elements** (at the end of the `<armour>` line) and form part of that element's text → discarded on import, optionally replayed on export.
 * **The angle in `armour` may be omitted** (`<side>20</side>` has no `@`). Every `armour` leaf value is therefore handled **as a string**, with no numeric decomposition, which makes export risk-free.
-
-## 8. M1 acceptance criteria
-
-1. **XML → TOML → XML**: run over **all 1840 files** and produce XML that is **semantically equivalent** to stock. The comparison is defined as: parse both sides permissively into element trees, compare **siblings of different names as an unordered multiset** and **repeated blocks of the same name as an ordered sequence**; compare tag names, nesting and leaf text exactly, with a bare `&` never equal to `&amp;`. The count of files whose rendered order happens to equal the source order is reported as information, not as a gate. Rationale for the refinement in [m1-design.md](m1-design.md) §3.6. Since 2026-10-11 that count is 1840 of 1840 and a stronger gate is in place: see item 6.
-2. **TOML → XML → TOML**: lossless at field level, including fixed-point decimals such as `0.12`, `yes/no` values and mixed-case keys.
-3. The round trip must **cover the 16 files containing a bare `&`, the 59 aircraft and the single `recoilless_rifle`** (boundary samples).
-4. Encoding: every exported file must encode in the encoding it was read with — UTF-8 strict first, cp1252 fallback, ASCII reported as cp1252 (0 failures). Stock data is not uniformly cp1252: 13 files store `×` as UTF-8. cp1252 encodability of the export is recorded as information, not as a gate.
-5. The in-house TOML implementation **must raise an error rather than degrade silently** on unsupported syntax (with unit tests).
-6. **Byte fidelity (added 2026-10-11)**: `export` reproduces a file read from disk **byte for byte**, including sibling order, blank lines, indentation, `//` comments and newline style, because the reader captures the source layout (§4.1). Gate: `python tools/export_fidelity.py --data "<Firefight>/Data"` exits non-zero unless every file is identical (1840 of 1840 on the stock corpus), and `tests/test_roundtrip_bytes.py` pins the individual layout cases (CRLF, LF, missing trailing newline, trailing blank line, comment before an element, inline branch, multiline leaf, self-closing element, declaration, deep indentation, cp1252 text, stray text). The semantic criterion of item 1 stays the floor and must keep holding for documents rendered without source layout (a `.toml` project file).
 

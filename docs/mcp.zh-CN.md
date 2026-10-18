@@ -2,7 +2,7 @@
 
 # AI MCP 交付面
 
-本文档规定随编辑器仓库一起交付的 MCP 服务：交付面及其边界（§1）、传输与应答的协议修订（§2）、工具面与唯一来源（§3）、资源与提示（§4）、权限（§5）、错误映射（§6）、入口与客户端接线（§7）、验证方式（§8）、明确不做的事（§9）。服务在各自的实现 PR 中落地。
+本文档规定随编辑器仓库一起交付的 MCP 服务：交付面及其边界（§1）、传输与应答的协议修订（§2）、工具面与唯一来源（§3）、资源与提示（§4）、权限（§5）、错误映射（§6）、入口与客户端接线（§7）、非目标（§8）。
 
 ## 1. 交付面与边界
 
@@ -24,7 +24,7 @@
 * **`initialize`**（2025-06-18 与 2025-11-25 修订）：经典握手，其后跟随 `notifications/initialized`；协商出的修订在 `initialize` 结果中回显。
 * **`server/discover`**（2026-07-28 无状态修订）：无握手、无会话标识。每个请求的 `_meta` 携带 `io.modelcontextprotocol/protocolVersion`、`clientCapabilities` 与 `clientInfo`；每个结果携带 `_meta.serverInfo` 与显式 `resultType`（`"complete"`，需要补充输入时为 `"input_required"`）。版本不受支持时返回 `UnsupportedProtocolVersionError`（`-32022`）。
 
-实现的子集：`tools`、`resources`、`prompts`。不实现、且以「方法不存在」如实应答而不是静默忽略：Streamable HTTP 与 SSE 传输、OAuth 或任何鉴权、`sampling`、`roots`、`logging`（上游已弃用）、任务、`subscriptions/listen`。真实客户端实际接受的修订属实测事实，记入 §8。
+实现的子集：`tools`、`resources`、`prompts`。不实现、且以「方法不存在」如实应答而不是静默忽略：Streamable HTTP 与 SSE 传输、OAuth 或任何鉴权、`sampling`、`roots`、`logging`（上游已弃用）、任务、`subscriptions/listen`。真实客户端实际接受的修订属实测事实。
 
 ## 3. 工具面与唯一来源
 
@@ -37,6 +37,7 @@
 | `mcp_ff_get` | `scope`、`selector`、`field`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_find` | `scope`、`selector`、`tag`、`value`、`path`、`ignoreCase`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_stats` | `scope`、`selector`、`root`、`workspace` | 否 | 始终 |
+| `mcp_ff_log` | `scope`、`document`、`actor`、`limit`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_refs` | `scope`、`selector`、`kind`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_deps` | `scope`、`value`、`kind`、`root`、`workspace` | 否 | 始终 |
 | `mcp_ff_check` | `scope`、`selector`、`assets`、`rosters`、`against`、`limit`、`root`、`workspace` | 否 | 始终 |
@@ -72,7 +73,7 @@
 
 `mcp_ff_check` 承载 docs/cli.zh-CN.md §6 描述的三道门：`assets` 给出缺失图片或声音本该落在的文件，`rosters` 把清单比对折进同一张表与同一个退出码，`against` 用第二个根库回答引用。`mcp_ff_schema`、`mcp_ff_diff`、`mcp_ff_verify` 只读，从不写入（docs/cli.zh-CN.md §4.13、§4.10、§4.11）。
 
-**一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。插件在编辑功能定稿后一次性同步，因此它的表有意落后于这一张：测试点名它尚缺的工具，凡是它已有的名字都必须一致。跨仓一致性由该测试与本文档保证，不引入共享构建。让命令行帮助与 Web 界面也读取同一张表属于后续工作：命令行列的是命令而不是工具，Web 界面按命令生成表单。
+**一份规格。** 工具表是唯一的 Python 规格表 `core/cli/specs.py`：MCP 服务据它渲染 `tools/list`，并把一次调用转成命令行调用；插件的 `lib/specs.js` 是它的跨仓对应物。快照测试断言 `tools/list` 的工具名、参数名与必填性与插件表一致，并断言只读模式下不出现写入工具。插件在编辑功能定稿后一次性同步，因此它的表有意落后于这一张：测试点名它尚缺的工具，凡是它已有的名字都必须一致。跨仓一致性由该测试与本文档保证，不引入共享构建。命令注册表 `core/registry.py` 供命令行帮助与 Web 写入表单读取；MCP 工具表仍是独立的规格表，因为工具列的是参数而命令列的是选项，且插件镜像的是工具表而不是注册表。
 
 ## 4. 资源与提示
 
@@ -104,13 +105,10 @@
 | 方法未知或工具名未知 | `-32601` method not found |
 | 参数缺失或非法、资源不存在 | `-32602` invalid params（2026-07-28 把资源不存在从 `-32002` 移到这里） |
 | 服务端意外故障 | `-32603` internal error |
+| 整行不是 JSON | `-32700` parse error |
 | 权限门或作用域规则拒绝写入 | `-32000` |
-| `EditorCache/lock` 被其他写者持有 | `-32001` |
-| 暂存后文档被磁盘上改动 | `-32003` |
-| 值无法用文档编码表示 | `-32004` |
-| 值被 schema 拒绝 | `-32005` |
 
-`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。四个写入拒绝码——`-32001` 锁被持有、`-32003` 暂存后文档被改动、`-32004` 值无法表示、`-32005` 值被 schema 拒绝——随写入工具一并落地，因为只有这些调用会抛出它们；`-32000` 已经实现，因为作用域规则同样适用于 `mcp_ff_export`。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
+`-32000`–`-32019` 保留给实现自定义码；`-32020`–`-32099` 属规范码，不复用。目前只抛出 `-32000`：作用域规则同样适用于 `mcp_ff_export`，而权限门或日志拒绝的写入以工具级失败返回，因为命令在进程内执行并报命令行退出码。四个写入拒绝码——`-32001` 锁被持有、`-32003` 暂存后文档被改动、`-32004` 值无法表示、`-32005` 值被 schema 拒绝——只是保留号，尚未抛出；将来若改为用它们应答，号码仍然可用。命令自身抛出的错误（悬空引用、语法错误）属工具级失败：结果带 `isError: true`，负载保持命令行形状，含退出码（`0` 成功、`1` 命令失败、`2` 用法拒绝）。协议通道与工具通道因此可区分：客户端能分辨「调用失败」与「调用执行并报告了问题」。
 
 ## 7. 入口与分发
 
@@ -119,17 +117,7 @@
 * DSH 接线使用 profile 的 MCP 客户端条目：`transport: stdio`、`serverName`、`command`（解释器）、`cwd`（编辑器文件夹）与 `args`（`-m core.mcp`，仅在需要写入时再加 `--write`）。
 * 通用客户端在其自身配置块里填入同样三项：命令、工作目录、参数。不涉及网络监听、端口或 token。
 
-## 8. 验证方式
-
-1. **转录测试。** 测试套件以子进程启动服务，把脚本化的请求序列写入其 stdin，断言 stdout 的行：经典握手（中间夹 `notifications/initialized`）、无状态的 `server/discover` 族、`tools/list`、一次只读工具调用、一次被拒绝的写入、一行格式错误的内容与一个不支持的协议修订。
-2. **快照测试。** `tools/list` 的工具名、参数名与必填性等于 `dsh-firefight-mod-tools` `lib/specs.js`；工具名集合在编辑器仓库内也按精确相等断言，任一仓库改名都会让测试失败。该跨仓比较在找不到该检出时跳过（可用 `FIREFIGHT_PLUGIN_SPECS` 指向其 `lib/specs.js`）。
-3. **只读模式。** `tools/list` 中不出现写入工具，直接调用写入工具按未知工具拒绝。
-4. **fail-closed。** 被拒绝的写入不触碰文件、锁目录与事件日志。该用例目前对 `mcp_ff_export` 验证：库存作用域与其目标目录均未被改动；锁与事件日志两个用例随写入工具落地。
-5. **真实客户端手测。** 对真实 MCP 客户端手跑一次，记录被接受的协议修订与确切的启动配置。该次实测完成后结果补入本节；在此之前被接受的修订属未验证。
-
-编辑器仓库内已实测：`tests/test_mcp.py` 的 18 个用例，覆盖两个协议族、精确的工具集、`--write` 注册、库存作用域拒绝、带命令行退出码的工具级失败形状、资源、提示、命令行选项与插件快照（跨仓那一半在 `ffplugin/lib/specs.js` 可达时真跑）。
-
-## 9. 非目标
+## 8. 非目标
 
 * 不做 HTTP 监听、SSE 传输、端口或 token；不做远程访问。
 * 除 `--write` 之外不设鉴权或授权层。

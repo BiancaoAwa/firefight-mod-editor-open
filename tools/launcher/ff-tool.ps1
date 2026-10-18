@@ -313,7 +313,7 @@ function Start-Tool {
     Write-Info 'to query another project, pass root=<that directory> (a real path, not a placeholder)'
     Write-Info 'a `Mod` scope needs -Project <dir with ModInformation.toml> when the window starts'
     Write-Info 'stop the tool with:  stop'
-    Write-Info ("open the pages in their own window:  web-open   (http://127.0.0.1:{0}/)" -f $Port)
+    Write-Info ("open the pages in their own window:  web-open   (port {0})" -f $(if ($Port -gt 0) { $Port } else { "auto" }))
     Write-Info 'web-open starts the UI hidden and leaves this prompt free (nothing to close but the page)'
     Write-Info 'in-shell shortcuts: status | stop | restart | ff-start | web | web-open | ff <CLI args> | ff-help'
     Write-Info '  (`start` is PowerShell''s own Start-Process alias, so start is typed ff-start)'
@@ -360,7 +360,12 @@ function Start-Web {
     Write-Info ("cli      python -m core.cli  (" + $Cli + ")")
     Write-Info ("scope    " + $scope)
     Write-Info ("root     " + (Get-WebRootText $scope))
-    Write-Info ("url      http://127.0.0.1:{0}/" -f $Port)
+    if ($Port -gt 0) {
+        Write-Info ("url      http://127.0.0.1:{0}/" -f $Port)
+    } else {
+        # no port named: the CLI takes the first free port and prints the address it bound
+        Write-Info ("url      the first free port at or above {0}; the server prints the address" -f $script:DefaultPort)
+    }
     Write-Info 'this window stays busy while the server runs - press Ctrl-C to stop it'
     Write-Info 'the server is read-only and only binds 127.0.0.1'
     $argv = Get-CliArgv $call
@@ -371,7 +376,8 @@ function Start-Web {
     Write-Log "exit=$code"
     Write-Head 'web ui stopped'
     if ($code -eq 0) { Write-Ok ("server stopped (exit {0})" -f $code) }
-    else { Write-Bad ("server exited with {0} - is port {1} already in use?" -f $code, $Port) }
+    elseif ($Port -gt 0) { Write-Bad ("server exited with {0} - is port {1} already in use?" -f $code, $Port) }
+    else { Write-Bad ("server exited with {0}" -f $code) }
     Write-Info 'start it again with:  web'
     return $code
 }

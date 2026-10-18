@@ -54,5 +54,41 @@ class ErrorModelTest(unittest.TestCase):
         self.assertIn("cp1252", str(exc))
 
 
+class ErrorRuleTest(unittest.TestCase):
+    """The exit code and the page status of an error come from the table."""
+
+    def test_a_usage_error_is_a_bad_request_and_exit_two(self):
+        from core.cli.scope import UsageError
+
+        rule = errors.rule_for(UsageError("scope Mod needs a command"))
+        self.assertEqual((rule.exit_code, rule.http_status), (2, 400))
+        self.assertEqual(rule.title, "用法错误")
+        self.assertTrue(rule.usage_hint)
+
+    def test_an_editor_error_is_exit_one_and_a_server_error(self):
+        rule = errors.rule_for(errors.FfError("cannot read the file"))
+        self.assertEqual((rule.exit_code, rule.http_status), (1, 500))
+        self.assertEqual(rule.title, "读取失败")
+        self.assertFalse(rule.usage_hint)
+
+    def test_a_subclass_inherits_the_rule_of_its_base(self):
+        rule = errors.rule_for(errors.TextDecodeError("a.txt", 3))
+        self.assertEqual(rule, errors.rule_for(errors.FfError("x")))
+
+    def test_an_unexpected_error_falls_back_without_a_usage_hint(self):
+        rule = errors.rule_for(ValueError("not a number"))
+        self.assertEqual(rule, errors.FALLBACK)
+        self.assertEqual((rule.exit_code, rule.http_status), (1, 500))
+        self.assertFalse(rule.usage_hint)
+
+    def test_every_title_is_translated(self):
+        from core.web import i18n
+
+        titles = [rule.title for _, rule in errors.RULES] + [errors.FALLBACK.title]
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertIn(title, i18n.ENGLISH)
+
+
 if __name__ == "__main__":
     unittest.main()

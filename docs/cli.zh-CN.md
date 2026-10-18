@@ -4,7 +4,7 @@
 
 状态：**除三个写入者外只读**。`set` 修改一个工程文档的一个字段，`undo` 与 `redo` 按日志记录回退与重做，`export` 把原版 XML
 写入调用方指定的目录；其余命令只打印结果。写入者都只改动它们触及的内容：`set` 按字段保证（§4.1），`undo` 与 `redo` 写入
-记录下来的字节而非重新序列化的结果（§4.2），`export` 按文件保证（顺序、空行、缩进、注释与换行风格，见 §9 与
+记录下来的字节而非重新序列化的结果（§4.2），`export` 按文件保证（顺序、空行、缩进、注释与换行风格，见 §8 与
 toml-mapping §4）。`web` 把同样的结果作为页面发布在 `127.0.0.1`，页面跑的就是同一批命令，写入类命令也一样（见
 docs/web.md）。没有打包：该阶段尚不存在。
 
@@ -59,6 +59,7 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 | `schema` | | 一个根元素的声明字段，或一张枚举表；只读（§4.13） |
 | `verify` | | 把每个选中的文档读回并报告哪些不能原样还原；只读（§4.11） |
 | `build` | `to=` | 一次跑完索引、检查、打包；哪一步失败就停在哪一步（§4.17） |
+| `doctor` | | 报告本机设置、游戏目录、工程文件与缓存目录；只读（§4.18） |
 | `audit` | | 逐份文档往返校验，再带两个门禁跑一次检查；只读（§4.17） |
 | `adopt` | `<目录或 zip>` `to=` | 由既有模组建成工程并建索引（§4.17） |
 | `unpack` | `to=` | 把工程写回原版 XML 与文本（§4.17） |
@@ -93,16 +94,16 @@ python -m core.cli <作用域> <命令> [选择器] [key=value ...] [--json]
 拒绝写出，§4.8）、`assets=1`（`convert` 另把作用域的 `Images/` 与 `Sounds/` 两棵树复制进来，§4.3；`check` 则点名
 缺失的图片或声音应该在哪个文件，§6）、`rosters=1`（`check` 同时把清单与文档做双向比对，§4.14）、
 `against=<根目录>`（`check` 把本工程没有的引用拿到第二个根下解析：作用域名、`scope:path` 或目录，§6）、
-`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件或整个工程，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
-默认跳过；`import` 在目标已是工程时必须给出其中之一，§4.16）、`--json`；`init`、`import`、`set`、`batch`、`add`、`clone`、`remove`、`index`、`settings`、`convert`、`pack`、`roster`、`undo` 与 `redo`
-另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；`undo` 与 `redo` 接受一个
-可选计数（§4.2）。
+`all=1`（`find` 一次搜索工程与原版数据，并给出各作用域的命中数，§4.19）、`ignore_case=1`、`overwrite=1`（`1` 覆盖已存在的文件或整个工程，`0` 保留；`export` 与 `pack` 默认覆盖，`convert` 与 `settings`
+默认跳过；`import` 在目标已是工程时必须给出其中之一，§4.16）、`--json`；下表凡标为写入的命令——`init`、`import`、
+`set`、`batch`、`add`、`clone`、`remove`、`index`、`settings`、`convert`、`export`、`pack`、`build`、`adopt`、`unpack`、`run`、
+`roster`、`undo` 与 `redo`——另有两个裸标志 `--write`（写入改动）与 `--dry-run`（只报告、不写任何东西，§4.1、§4.3）；
+`undo` 与 `redo` 接受一个可选计数（§4.2）。
 未知选项、未知作用域与不存在的路径都算用法错误。`key=value` 选项顺序任意；`--json` 可以出现在任意位置。
 
 `web` 另有五个选项：`port=`（显式指定端口；不给时复用已在运行的实例，否则取 8765 及以上的第一个空闲端口，§4.4）、
 `token=<文本>`（设置后每个 URL 都必须带 `?t=<文本>`）、`pagesize=`（默认每页 200 行）、
-`lang=zh|en`（每个页面起始所用的语言，之后页面跟随 `?lang=`，§4.4）、`browser=1`（打开默认浏览器，
-而不只是打印地址）。
+`lang=zh|en`（每个页面起始所用的语言，之后页面跟随 `?lang=`，§4.4）与 `browser=1`（打开默认浏览器，而不只是打印地址）。
 
 ### 4.1 写一个字段
 
@@ -132,9 +133,12 @@ python -m core.cli Mod set <文档> field=<数组>.<n> op=delete --write [--dry-
 
 ### 4.2 事件日志、撤销与重做
 
+`pending=1` 列出 `undo` 会触及的那些改动，最新的在前，逐条给出文档、实体、字段与这次恢复要写回的字节数；
+不写任何文件，位置计数限制行数。
+
 ```
-python -m core.cli Mod log [计数] [document=<文本>] [field=<文本>] [actor=cli|mcp]
-                       [result=set|add|remove|undo|redo] [since=<时间戳>] [until=<时间戳>] [--json]
+python -m core.cli Mod log [计数] [document=<文本>] [field=<文本>] [actor=cli|mcp|web]
+                       [result=set|add|remove|pack|undo|redo] [since=<时间戳>] [until=<时间戳>] [--json]
 python -m core.cli Mod undo [计数] --write [--dry-run] [--json]
 python -m core.cli Mod redo [计数] --write [--dry-run] [--json]
 ```
@@ -238,7 +242,7 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
   元素成为每个国籍一个数组，裸的 `<ranks>` 数字成为带引号的键，国籍名保持来源的确切拼写（随附的 WW3 文件里写作
   `Taiwan, China(In Production)` 与 `Japan(In Production)`，括号前无空格）。
 * `emit` 在原版形态的文件上是 `render` 的精确逆运算：对随附 WW3 的 `mod.txt` 执行
-  `Mod settings op=emit --write`，10170 字节原样重现。元素顺序、制表符缩进与空行都采用原版文件的形态，因此本来就
+  `Mod settings op=emit --write`，按字节原样重现。元素顺序、制表符缩进与空行都采用原版文件的形态，因此本来就
   该形态的文件逐字节往返。写法不同的文件不被 `render` 保留布局，会以该形态回来。
 * 两个方向都是各自源文件的纯函数，并且都会报告无法承载的内容，而不是静默丢弃。
 * 目标已存在时会被跳过，除非给出 `overwrite=1`。`op=render` 的目标是可手工编辑的 `ModSetting.toml`，`overwrite=1`
@@ -264,7 +268,7 @@ python -m core.cli Mod pack --write [--dry-run] [to=<目录>] [strict=1] [overwr
 * 成员表之下会列出被排除与被报告的内容：每个未进包的文件一行 `skipped: <路径>（原因）`——包括被同名
   TOML 文档覆盖的 `.txt`——以及每条警告一行 `warning: <文本>`。汇总行里的计数不是全部答案。
 * `strict=1` 把两者都变成拒绝：工程存在加载错误或解析不到的引用时不写出任何内容，避免两种问题被无意带进包里。
-  引用图只在工程内建立，不查原版语料（见 §9）。
+  引用图只在工程内建立，不查原版语料（见 §8）。
 * 成员使用固定时间戳，因此同一工程两次打包得到相同字节。
 * `pack` 不改变任何文档、不加锁，但真正写出压缩包时会向工程日志追加一条 `pack` 记录，说明打了什么包。
   该记录不指向任何文档，也不在可撤销或可重做的栈上，因此不会被回滚（见 docs/project-layout.md §8）。
@@ -473,6 +477,25 @@ command = "check"
 `command` 必须是上面列出的命令之一；`selector` 是该步作用的文档或元素；`with` 是一串
 `key=value` 选项。规则相同：哪一步失败就停在哪一步。
 
+### 4.18 `doctor` —— 本机是否具备第一次编辑的条件
+
+```powershell
+python -m core.cli Mod doctor
+```
+
+只读。报告本机的 `Setting.toml` 与它带的每个键、`firefight` 目录里是否有 `Firefight.exe`、
+工程里是否有 `ModInformation.toml` 与 `ModSetting.toml`、缓存目录能否创建，以及解释器版本。
+全部通过时退出码 0，有一项失败时为 1；载荷里的 `checks` 与页面上的行一致。
+
+### 4.19 `find` 跨两个作用域
+
+```powershell
+python -m core.cli Mod find tag=<名称> all=1
+```
+
+`all=1` 一次搜索工程与原版游戏数据。载荷里的 `scopes` 给出每个作用域的命中数，`matches` 仍是一份列表，每条写明
+来自哪个作用域；解析不了的作用域记进 `skipped` 并附原因。`limit=` 与位置计数仍然限制行数，`count` 始终是命中的总数。
+
 ## 5. 退出码
 
 | 码 | 含义 |
@@ -498,36 +521,15 @@ command = "check"
 把本工程没有的引用拿到第二个根下解析——导入的工程就是拿原版安装目录当第二个根，写法可以是作用域名、
 `scope:path` 或目录——在那里解析到的引用不算悬空；载荷报告有多少条这样被解答
 （`dangling_answered_elsewhere`）以及是哪个根（`against`）。`against=stock` 指编辑器设置里记着的原版安装
-目录，导入而来的工程用的就是它。WW3 实测（以原版根为 `against=`）：911 条悬空
-变成 29 条，其中 882 条被另一个根解答；911 条里有 235 条要找的资源文件不在工程里。悬空引用的类别
+目录，导入而来的工程用的就是它。WW3 实测（以原版根为 `against=`）：大部分悬空引用被另一个根解答，
+剩下的一小部分仍然悬空，原有悬空引用中有一部分要找的资源文件不在工程里。悬空引用的类别
 不止一种时，摘要会按类别给出计数，载荷里的 `dangling_kinds` 是同一份数据。
 
 被声明的单位清单的条目也是引用（§4.6），因此一条点名了并不存在的单位的装备表条目，会作为类别 `roster`
 的普通悬空引用出现，其 `document_path` 是它所在的行号。没有这一条时，指向不存在单位的清单条目只有给出
-`rosters=1` 才看得见。WW3 实测：12 张清单共 276 条条目，全部可解析，故计数仍为 911。
+`rosters=1` 才看得见。WW3 实测：清单条目全部可解析，故计数不因此增加。
 
-## 7. 真实数据实测（2026-10-10）
-
-原版游戏 13.2.0.0 对比已发布的 WW3 模组工程（`.Mod/`，在本仓库之外解包）：
-
-| 命令 | 原版 | WW3 |
-|---|---|---|
-| `stats` | 1840 文件、48 个列表文件、0 错误、0.6 秒 | 765 文件、13 个列表文件、0 错误、0.2 秒 |
-| `check` | 加载 1792、跳过 48、0 错误、612 警告、**2 悬空** | 加载 752、跳过 13、0 错误、559 警告、**911 悬空** |
-| `refs` | 23978 条引用、0 错误、4.3 秒 | 5793 条引用、0 错误、0.4 秒 |
-
-对原版 `Vehicles` 选择范围执行 `export` 写出 599 个文件、2371815 字节、0 错误。引用规则与覆盖情况见
-[refs.md](refs.zh-CN.md)。
-
-2026-10-11 在写入器学会保留源排版之后重测：`python tools/export_fidelity.py --data "<Firefight>/Data"` 导出
-全部 1840 个原版文件，结果为 **1840 个逐字节相同、100.0%**（此前其中 1792 个回来时兄弟节点顺序不同，12 个换行
-不同）。
-
-原版数据里的两条悬空引用来自随游戏发布的文件（`Hungarian-TK3.txt` 与 `Hungarian-TKS.txt` 指向
-`WEAPON_PISTOL_WZ_35_VIS`）。WW3 的 911 条大多指向原版数据：把模组工程与原版安装作为两个作用域一起检查时，
-912 条中有 882 条可以解析。**该回退已实测但尚未实现**——命令行逐个作用域独立解析，跨作用域解析要等工作区注册表。
-
-## 8. 复现演示
+## 7. 复现演示
 
 ```
 python -m unittest discover -s tests -t .                       # 运行测试套件
@@ -542,10 +544,10 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 ```
 
 两个语料上 `check` 都退出 1，这是有意的报告而非崩溃。`deps` 是作用域级的：一次只回答一个作用域。在已安装的游戏上
-`convert` 计划 1792 个文件、跳过 48 个清单文件；不带 `--dry-run` 时就把它们写出来。`web` 会一直阻塞到 Ctrl-C，并
+`convert` 计划原版文档、跳过清单文件；不带 `--dry-run` 时就把它们写出来。`web` 会一直阻塞到 Ctrl-C，并
 打印它绑定到的地址。
 
-## 9. 本部分的限制
+## 8. 本部分的限制
 
 * 一次写入是「一个字段、一个数组项、一个文档（`add`、`remove`）或一整个选择范围（`convert`、`settings`、`index`、`pack`）」。
   `batch`（§4.15）能在一次调用里对多个文档施加多处改动，但补丁以文本书写，且每份文档仍按整份写入。

@@ -30,7 +30,7 @@ ambiguous, its parent tag.
 | `image` | `uniform_ranks` | any | file under `Images/` by name or stem |
 | `image` | `image` | any | file under `Images/` by name or stem |
 | `uniform` | `uniform` | any | directory `Images/Uniforms/uniform_<value>/` |
-| `engine_sound` | `sound` | any | alias table, see §4 |
+| `engine_sound` | `sound` | any | alias table, see §3 |
 | `roster` | (a line of a unit roster) | — | a document under the unit folders of `Data/`, by stem |
 
 One kind does not come from a leaf tag. A unit roster — an equipment list the project
@@ -73,31 +73,7 @@ differs.
   folder list is passed in, so `core/cli/commands.py` stays the one place that names the
   categories.
 
-## 3. Measured coverage
-
-Local run over the stock `Data/` tree of Firefight 13.2.0.0 (the same 1792 files the data core
-models; `equipment_*.txt` and `Surnames/` excluded):
-
-| kind | references | distinct targets | unresolved |
-| --- | --- | --- | --- |
-| `weapon` | 19456 | 420 | 2 |
-| `sound` | 954 | 16 | 0 |
-| `image` | 2492 | 1772 | 0 |
-| `uniform` | 1017 | 86 | 0 |
-| `engine_sound` | 59 | 1 | 0 |
-| total | 23978 | 2295 | 2 |
-
-The two unresolved references are a genuine defect in the stock data, not a rule gap:
-`WEAPON_PISTOL_WZ_35_VIS` is named by `Data/Vehicles/Hungarian-TK3.txt` and
-`Data/Vehicles/Hungarian-TKS.txt` in `squad/vehicle/hull/man/ammo/for`, and no file in
-`Data/Weapons/` matches `*WZ_35*`.
-
-Reverse counts are a sanity check rather than a verdict: 297 of 716 weapon documents are
-never named by a `type` or `for` slot, because weapons are also reached from equipment lists.
-2155 of 2172 `.ogg` files are not named by these tags either, since other systems play
-sounds. Neither number means the asset is unused.
-
-## 4. Aircraft `<sound>` is a token
+## 3. Aircraft `<sound>` is a token
 
 `Data/Aircraft/*.txt` contains a single distinct value, `<sound>SOUND_PROPELLER</sound>`, and
 `Sounds/SOUND_PROPELLER.ogg` does not exist; the file is
@@ -105,7 +81,7 @@ sounds. Neither number means the asset is unused.
 and `ENGINE_SOUND_ALIASES` holds the one observed mapping. Tokens outside the table stay
 unresolved instead of being guessed.
 
-## 5. API
+## 4. API
 
 ```python
 RefRule(kind, field, parent=None, skip_document_root=False)
@@ -126,10 +102,12 @@ unresolved(graph, index, kind=None) -> tuple[Reference, ...]
 summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
 ```
 
-## 6. Not in this slice
+## 5. Not in this slice
 
-- No cross-scope lookup (a mod project reference pointing at stock data), no workspace
-  registry: both arrive with the CLI scopes.
+- The graph resolves inside one root. `check against=` answers what a project does not hold
+  from a second root — a directory, another scope, or `stock` — in `core/cli/commands.py`,
+  outside this module (docs/cli.md §6); `refs` and `deps` stay single-root, and there is no
+  workspace registry.
 - No severity model and no report rendering: `unresolved` returns references; deciding
   whether a dangling reference is an error, a warning or a deliberate override belongs with
   the checker.

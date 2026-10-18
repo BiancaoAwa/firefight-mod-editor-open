@@ -170,6 +170,31 @@ class CliTestCase(unittest.TestCase):
     def stock(self) -> str:
         return f"root={STOCK}"
 
+    def test_find_all_searches_both_scopes_in_one_run(self) -> None:
+        """``all=1`` reads the project and the installed data, with a count per scope."""
+        os.environ["FIREFIGHT_DATA"] = str(STOCK)
+        try:
+            code, payload, _ = run_json("Mod", "find", "tag=name", "all=1", f"root={PROJECT}")
+        finally:
+            os.environ.pop("FIREFIGHT_DATA", None)
+        self.assertEqual(code, 0)
+        self.assertEqual(set(payload["scopes"]), {"Mod", "Firefight"})
+        self.assertEqual(payload["count"], sum(payload["scopes"].values()))
+        self.assertEqual({match["scope"] for match in payload["matches"]}, {"Mod", "Firefight"})
+
+    def test_doctor_reports_every_setting_without_writing(self) -> None:
+        """The report names the checks and fails only when one of them does."""
+        code, payload, _ = run_json("Mod", "doctor", f"root={PROJECT}")
+        names = [check["name"] for check in payload["checks"]]
+        self.assertIn("Setting.toml", names)
+        self.assertIn("project ModInformation.toml", names)
+        self.assertIn("python", names)
+        failed = {check["name"] for check in payload["checks"] if not check["ok"]}
+        self.assertEqual(code, 1 if failed else 0)
+        # The fixture project carries ModInformation.toml only, so the second project
+        # check is the one that fails; a green run elsewhere is not required here.
+        self.assertEqual(failed, {"project ModSetting.toml"})
+
     def test_usage_without_arguments(self) -> None:
         code, out, _ = run()
         self.assertEqual(code, 0)
@@ -240,6 +265,11 @@ class CliTestCase(unittest.TestCase):
         self.assertIn("[squad.vehicle.hull.man.ammo]", payload["toml"])
         self.assertIn('for = "WEAPON_PISTOL_P38"', payload["toml"])
         self.assertEqual(payload["warnings"], [])
+
+    def test_show_subtree_as_toml_renders_the_selected_table(self) -> None:
+        code, payload, _ = run_json("Firefight", "show", "Data/Weapons/WEAPON_PISTOL_P38.txt/ammo", "as=toml", self.stock())
+        self.assertEqual(code, 0)
+        self.assertIn("[ammo.type]", payload["toml"])
 
     def test_show_subtree_lists_leaves(self) -> None:
         code, payload, _ = run_json("Firefight", "show", "Data/Weapons/WEAPON_PISTOL_P38.txt/ammo", self.stock())

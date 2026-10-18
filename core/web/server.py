@@ -1,8 +1,7 @@
 """Local web UI: one page per command, rendered on the server from the CLI payloads.
 
-GET only, and one inline script that only lays the workbench out; a page may run a writing
-command, and the command's own gate (`--write`, project confinement, the stock-scope rule)
-is what decides (docs/web.md).
+GET only, no script at all; a page may run a writing command, and the command's own gate
+(`--write`, project confinement, the stock-scope rule) is what decides (docs/web.md).
 """
 
 import difflib
@@ -22,11 +21,48 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from core import edit, enums as enums_core, index as index_core, journal, schema as schema_core, textio
-from core.errors import FfError
+from core import edit, enums as enums_core, index as index_core, journal, registry, schema as schema_core, textio
+from core.errors import FfError, rule_for
+
+
+def as_usage(error: BaseException) -> "UsageError":
+    """A bare ValueError from parsing a query is a usage error for the page."""
+    return error if isinstance(error, UsageError) else UsageError(str(error))
 from core.journal import EDITOR_DIR
 from core.web import mcp_listener, tables
 from core.web.i18n import DEFAULT as LANGUAGE_DEFAULT, command_text, current, html_lang, tr, use
+from core.web.forms import Operation, operation_options, operations
+
+def category_title(category: str) -> str:
+    """The heading one command category gets, in the language in force."""
+    if category == "inspect":
+        return tr("读取")
+    if category == "check":
+        return tr("检查")
+    if category == "edit":
+        return tr("写入")
+    if category == "project":
+        return tr("工程")
+    if category == "build":
+        return tr("打包")
+    if category == "serve":
+        return tr("服务")
+    return tr("写入")
+
+def operation_field(spec: tuple, value: str = "") -> str:
+    """One control of an operation form."""
+    name, label, kind, default = spec
+    if kind == "text":
+        return text_field(name, label, value or default, 40)
+    if kind == "check":
+        return checkbox(name, label, value == "1")
+    if kind.startswith("select:"):
+        options = [
+            ("" if item == "" else item, tr("默认") if item == "" else item)
+            for item in kind[len("select:"):].split("|")
+        ]
+        return select_field(name, label, options, value or default)
+    raise ValueError(f"unknown field kind {kind!r}")
 
 from core.cli.commands import (
     ALIASES,
@@ -43,7 +79,14 @@ from core.cli.commands import (
 )
 from core.cli import specs
 from core.cli.main import parse_argv
-from core.cli.scope import UsageError, Scope, resolve_all, resolve_scope, split_spec
+from core.cli.scope import (
+    CONFIG_KEYS,
+    UsageError,
+    Scope,
+    resolve_all,
+    resolve_scope,
+    split_spec,
+)
 # the two resolvers that recognise a project and an editor folder; using them keeps the
 # rules in one place (docs/project-layout.md section 10.1)
 from core.cli.scope import CONFIG_NAME, PROJECT_FILE, config_value, load_config
@@ -59,33 +102,20 @@ STYLE = """
         --mono: Consolas, "Courier New", monospace; --size: 14px;
         --bg: #efefef; --paper: #ffffff; --ink: #000000; --muted: #444444; --faint: #666666;
         --face: #e6e6e6; --bar: #f4f4f4; --line: #a8a8a8; --edge: #c8c8c8; --grid: #999999;
-        --link: #0000cc; --link-visited: #660099; --input: #f7f7f7; --hover: #c0c0c0;
-        --gutter: #dcdcdc; --head: #dddddd; --dim: #8a8a8a; --mark: #a05a00;
+        --link: #0000cc; --link-visited: #660099; --input: #f7f7f7;
+        --head: #dddddd; --dim: #8a8a8a; --mark: #a05a00;
         --warn-bg: #fff8d0; --warn-edge: #c8b45a; --bad-bg: #ffd9d9; --bad-edge: #c86a6a;
         --ok-bg: #dff5df; --ok-edge: #6ac86a; color-scheme: light; }
-:root[data-theme="dark"] { --bg: #202020; --paper: #2a2a2a; --ink: #e8e8e8; --muted: #c0c0c0;
-        --faint: #a8a8a8; --face: #333333; --bar: #2d2d2d; --line: #4a4a4a; --edge: #4a4a4a;
-        --grid: #555555; --link: #8ab4ff; --link-visited: #c9a0ff; --input: #303030;
-        --hover: #4a4a4a; --gutter: #3a3a3a; --head: #3d3d3d; --dim: #7a7a7a; --mark: #e0a050;
-        --warn-bg: #4a4426; --warn-edge: #8a7a3a; --bad-bg: #4a2a2a; --bad-edge: #a05a5a;
-        --ok-bg: #26442a; --ok-edge: #4a8a5a; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font);
        font-size: var(--size); margin: 0; height: 100vh; overflow: hidden; display: grid;
-       grid-template-columns: var(--tree) 5px minmax(0, 1fr) 5px var(--props);
-       grid-template-rows: auto auto minmax(0, 1fr) 5px var(--output) auto;
-       grid-template-areas: "menu menu menu menu menu"
-                            "tool tool tool tool tool"
-                            "tree g1 doc g2 props"
-                            "g3 g3 g3 g3 g3"
-                            "out out out out out"
-                            "stat stat stat stat stat"; }
-body.folded-tree { --tree: 0px; }
-body.folded-props { --props: 0px; }
-body.folded-output { --output: 0px; }
-body.folded-tree .pane-tree, body.folded-tree [data-gutter="tree"],
-body.folded-props .pane-props, body.folded-props [data-gutter="props"],
-body.folded-output .pane-output, body.folded-output [data-gutter="output"] { display: none; }
+       grid-template-columns: var(--tree) minmax(0, 1fr) var(--props);
+       grid-template-rows: auto auto minmax(0, 1fr) var(--output) auto;
+       grid-template-areas: "menu menu menu"
+                            "tool tool tool"
+                            "tree doc props"
+                            "out out out"
+                            "stat stat stat"; }
 h1 { font-size: 18px; margin: 0 0 3px 0; }
 h2 { font-size: 16px; margin: 16px 0 7px 0; border-bottom: 1px solid var(--grid); padding-bottom: 3px; }
 h3 { font-size: 15px; margin: 14px 0 5px 0; }
@@ -147,11 +177,6 @@ select { font-family: inherit; font-size: var(--size); }
           padding: 3px 12px; text-decoration: none; color: var(--ink); white-space: nowrap; }
 .tabs a[aria-current="true"] { background: var(--paper); font-weight: bold; }
 .doc-body { overflow: auto; padding: 10px 12px; background: var(--paper); flex: 1; min-height: 0; }
-.gutter { background: var(--gutter); }
-.gutter:hover { background: var(--hover); }
-[data-gutter="tree"] { grid-area: g1; cursor: col-resize; }
-[data-gutter="props"] { grid-area: g2; cursor: col-resize; }
-[data-gutter="output"] { grid-area: g3; cursor: row-resize; }
 .statusbar { grid-area: stat; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
              background: var(--face); border-top: 1px solid var(--line); padding: 2px 8px;
              font-size: 13px; }
@@ -179,189 +204,6 @@ label.wide textarea { display: block; width: 100%; margin-top: 4px; font-family:
 """.strip()
 
 
-SCRIPT = """
-(function () {
-  "use strict";
-  var root = document.documentElement;
-  var KEY = "ff.workbench";
-  var WIDE = { tree: 290, props: 350, output: 180 };
-  var state = { tree: WIDE.tree, props: WIDE.props, output: WIDE.output,
-                theme: "light" };
-  try {
-    var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
-    for (var key in state) {
-      if (typeof saved[key] === "number" && saved[key] >= 0 && saved[key] < 900) state[key] = saved[key];
-    }
-    if (saved.theme === "dark") state.theme = "dark";
-  } catch (error) { /* a locked-down browser simply keeps the defaults */ }
-
-  function apply() {
-    root.style.setProperty("--tree", state.tree + "px");
-    root.style.setProperty("--props", state.props + "px");
-    root.style.setProperty("--output", state.output + "px");
-    var body = document.body;
-    body.classList.toggle("folded-tree", state.tree < 8);
-    body.classList.toggle("folded-props", state.props < 8);
-    body.classList.toggle("folded-output", state.output < 8);
-    root.setAttribute("data-theme", state.theme);
-    var toggles = document.querySelectorAll("[data-toggle]");
-    for (var t = 0; t < toggles.length; t++) {
-      toggles[t].setAttribute("aria-pressed", String(state.theme === "dark"));
-    }
-    var buttons = document.querySelectorAll("[data-fold]");
-    for (var i = 0; i < buttons.length; i++) {
-      var name = buttons[i].getAttribute("data-fold");
-      buttons[i].setAttribute("aria-pressed", String(state[name] < 8));
-    }
-  }
-
-  function remember() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (error) { /* nothing to keep */ }
-  }
-
-  var drag = null;
-  document.addEventListener("pointerdown", function (event) {
-    var handle = event.target.closest ? event.target.closest("[data-gutter]") : null;
-    if (!handle) return;
-    var name = handle.getAttribute("data-gutter");
-    drag = { name: name, x: event.clientX, y: event.clientY, start: state[name] };
-    handle.setPointerCapture(event.pointerId);
-    event.preventDefault();
-  });
-  document.addEventListener("pointermove", function (event) {
-    if (!drag) return;
-    var size;
-    if (drag.name === "tree") size = drag.start + (event.clientX - drag.x);
-    else if (drag.name === "props") size = drag.start - (event.clientX - drag.x);
-    else size = drag.start - (event.clientY - drag.y);
-    state[drag.name] = Math.max(0, Math.min(880, Math.round(size)));
-    apply();
-  });
-  document.addEventListener("pointerup", function () {
-    if (!drag) return;
-    drag = null;
-    if (state.tree < 40) state.tree = 0;
-    if (state.props < 40) state.props = 0;
-    if (state.output < 30) state.output = 0;
-    apply();
-    remember();
-  });
-
-  function filterTree(text) {
-    var wanted = (text || "").toLowerCase();
-    var files = document.querySelectorAll(".tree-file");
-    var shown = 0;
-    for (var i = 0; i < files.length; i++) {
-      var path = (files[i].getAttribute("data-path") || "").toLowerCase();
-      var hit = !wanted || path.indexOf(wanted) >= 0;
-      files[i].style.display = hit ? "" : "none";
-      files[i].setAttribute("data-hit", hit ? "1" : "0");
-      if (hit) shown++;
-    }
-    var dirs = document.querySelectorAll("details.tree-dir");
-    for (var j = dirs.length - 1; j >= 0; j--) {
-      if (!wanted) {
-        dirs[j].hidden = false;
-        continue;
-      }
-      dirs[j].open = true;
-      dirs[j].hidden = !dirs[j].querySelector('.tree-file[data-hit="1"]');
-    }
-    var count = document.getElementById("tree-search-count");
-    if (count) {
-      var label = count.getAttribute("data-label") || "{}";
-      count.textContent = wanted ? label.replace("{}", String(shown)) : "";
-    }
-  }
-
-  var commandIndex = null;
-
-  function hintCommand(text) {
-    var target = document.getElementById("cmd-hint");
-    if (!target) return;
-    if (commandIndex === null) {
-      try { commandIndex = JSON.parse(target.getAttribute("data-index") || "{}"); } catch (error) { commandIndex = {}; }
-    }
-    var first = (text || "").trim().split(/\\s+/)[0] || "";
-    if (!first) { target.textContent = ""; return; }
-    var summary = commandIndex[first] || "";
-    var unknown = target.getAttribute("data-unknown") || "";
-    target.textContent = summary ? (first + " \u2014 " + summary) : (first + ": " + unknown);
-  }
-
-  document.addEventListener("input", function (event) {
-    var box = event.target;
-    if (!box || !box.getAttribute) return;
-    if (box.getAttribute("data-filter") === "tree") filterTree(box.value);
-    if (box.getAttribute("data-hint") === "cmd") hintCommand(box.value);
-  });
-
-  var WORKBENCH = /^\\/(index|list|show|get|edit|equipment|tables|twin|find|refs|deps|check|stats|log|mcp|cmd|help|asset)$/;
-  var TITLE_SUFFIX = document.title.indexOf(" \\u00b7 ") >= 0
-    ? document.title.split(" \\u00b7 ").slice(1).join(" \\u00b7 ")
-    : document.title;
-
-  document.addEventListener("click", function (event) {
-    var button = event.target.closest ? event.target.closest("[data-fold]") : null;
-    if (button) {
-      var name = button.getAttribute("data-fold");
-      state[name] = state[name] < 8 ? WIDE[name] : 0;
-      apply();
-      remember();
-      event.preventDefault();
-      return;
-    }
-    var toggle = event.target.closest ? event.target.closest("[data-toggle]") : null;
-    if (toggle) {
-      var which = toggle.getAttribute("data-toggle");
-      if (which === "theme") state.theme = state.theme === "dark" ? "light" : "dark";
-      apply();
-      remember();
-      event.preventDefault();
-      return;
-    }
-    var anchor = event.target.closest ? event.target.closest("a[href]") : null;
-    if (!anchor || !window.fetch) return;
-    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (anchor.target && anchor.target !== "_self") return;
-    var href = anchor.getAttribute("href");
-    if (!href || href.charAt(0) !== "/" || href.indexOf("raw=1") >= 0) return;
-    if (!WORKBENCH.test(href.split("?")[0])) return;
-    event.preventDefault();
-    navigate(href);
-  });
-
-  // One link to another workbench page replaces the centre pane and leaves the file tree,
-  // the properties and the output where they are: a scope of nine thousand files would
-  // otherwise be sent again on every click.
-  function navigate(href) {
-    var path = href.split("?")[0];
-    fetch(href + (href.indexOf("?") < 0 ? "?" : "&") + "pane=doc", { credentials: "same-origin" })
-      .then(function (response) {
-        if (!response.ok) throw new Error(String(response.status));
-        return response.text();
-      })
-      .then(function (html) {
-        var panes = document.querySelectorAll(".doc-body");
-        if (panes.length !== 1) throw new Error("one document pane expected");
-        panes[0].innerHTML = html;
-        var tabs = document.querySelectorAll(".tabs a");
-        for (var i = 0; i < tabs.length; i++) {
-          var here = (tabs[i].getAttribute("href") || "").split("?")[0];
-          tabs[i].setAttribute("aria-current", String(here === path));
-        }
-        var head = panes[0].querySelector("h1");
-        if (head) document.title = head.textContent.trim() + " \\u00b7 " + TITLE_SUFFIX;
-        history.pushState({ pane: true }, "", href);
-        window.scrollTo(0, 0);
-      })
-      .catch(function () { window.location.href = href; });
-  }
-
-  window.addEventListener("popstate", function () { window.location.reload(); });
-  apply();
-})();
-""".strip()
 
 def footer() -> str:
     """The line at the right of the status bar, in the language of this request."""
@@ -399,15 +241,13 @@ class Url:
         return f"/{path}" + (f"?{encoded}" if encoded else "")
 
 
-def shell_bytes(route: str) -> tuple[bytes, str]:
-    """The one stylesheet or script the shell asks for, with its content type.
+def shell_css() -> bytes:
+    """The one stylesheet every page asks for.
 
-    Both are the same for every page and carry no project data, so the URL
-    needs no token and the browser keeps one copy across the session.
+    It is the same for every page and carries no project data, so the URL needs no
+    token and the browser keeps one copy across the session.
     """
-    if route == "shell.css":
-        return STYLE.encode("utf-8"), "text/css; charset=utf-8"
-    return SCRIPT.encode("utf-8"), "text/javascript; charset=utf-8"
+    return STYLE.encode("utf-8")
 
 
 def origin_label(origin: str) -> str:
@@ -442,7 +282,7 @@ def page_head(title: str, subtitle: str = "") -> str:
 
 
 def document_region(title: str, subtitle: str, body: str) -> str:
-    """The centre pane on its own, the shape the tab loader drops into place."""
+    """The centre pane on its own, the shape a fragment request asks for."""
     return page_head(title, subtitle) + body
 
 
@@ -451,14 +291,6 @@ def panel(title: str, body: str, pane: str) -> str:
     return (
         f'<aside class="pane pane-{pane}" id="pane-{pane}">'
         f'<div class="pane-h">{esc(title)}</div><div class="pane-b">{body}</div></aside>'
-    )
-
-
-def gutter(pane: str, label: str, axis: str = "v") -> str:
-    """The drag handle between two panes; the script gives it its meaning."""
-    return (
-        f'<div class="gutter {axis}" data-gutter="{pane}" title="{att(label)}" '
-        'role="separator" aria-orientation="vertical"></div>'
     )
 
 
@@ -472,9 +304,7 @@ def layout(
     toolbar: str = "",
     panes: dict[str, str] | None = None,
     status: str = "",
-    script: bool = True,
     css_url: str = "",
-    js_url: str = "",
 ) -> str:
     """One complete page: menu bar, tool bar, panes, centre document, status bar.
 
@@ -489,12 +319,7 @@ def layout(
         + f'<div class="doc-body">{page_head(title, subtitle)}{body}</div>'
         + "</main>"
     )
-    middle = (
-        f"{tree}{gutter('tree', tr('拖动改变左栏宽度')) if tree else ''}"
-        f"{document}"
-        f"{gutter('props', tr('拖动改变右栏宽度')) if props else ''}{props}"
-        f"{gutter('output', tr('拖动改变底栏高度'), 'h') if output else ''}{output}"
-    )
+    middle = f"{tree}{document}{props}{output}"
     return (
         f'<!DOCTYPE html>\n<html lang="{html_lang()}">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
@@ -507,8 +332,6 @@ def layout(
         + middle
         + "\n"
         + (f'<div class="statusbar">{status}</div>\n' if status else "")
-        + (f'<script src="{att(js_url)}"></script>\n' if script and js_url
-           else (f"<script>\n{SCRIPT}\n</script>\n" if script else ""))
         + "</body>\n</html>\n"
     )
 
@@ -578,7 +401,7 @@ def setting_hints(cwd: Path) -> tuple[list[str], Path | None]:
     if config is None or path is None:
         return [], None
     missing: list[str] = []
-    for key, marker in (("firefight", "Data"), ("workspace", "Mod"), ("mod", PROJECT_FILE)):
+    for key, marker in CONFIG_KEYS:
         value = config_value(config, key)
         if not value:
             continue
@@ -883,7 +706,7 @@ def option_list_input(name: str, label: str, value: str, size: int, choices: str
     """A text input wired to a ``datalist`` of the names it accepts."""
     return (
         f'<label>{esc(label)} <input type="text" name="{att(name)}" value="{att(value)}" '
-        f'size="{size}" list="{att(choices)}" data-hint="{att(hint)}" autocomplete="off"></label>'
+        f'size="{size}" list="{att(choices)}" autocomplete="off"></label>'
     )
 
 
@@ -898,18 +721,6 @@ def command_summary(name: str) -> str:
     handler = COMMANDS.get(name)
     english = (handler.__doc__ or "").strip().splitlines()[0] if handler and handler.__doc__ else ""
     return command_text(name, english)
-
-
-def command_index_json() -> str:
-    """One line per command, read by the script to describe what the typed command does."""
-    index = {}
-    for name in command_names():
-        summary = command_summary(name)
-        index[name] = summary
-        for alias, canonical in ALIASES.items():
-            if canonical == name:
-                index[alias] = summary
-    return json.dumps(index, ensure_ascii=False)
 
 
 def text_area(name: str, label: str, value: str = "", rows: int | None = None) -> str:
@@ -949,192 +760,6 @@ def hidden(name: str, value: str) -> str:
     return f'<input type="hidden" name="{att(name)}" value="{att(value)}">'
 
 
-class Operation:
-    """One writing command as the UI offers it: what it does and what it asks for."""
-
-    __slots__ = ("command", "title", "selector", "note", "fields")
-
-    def __init__(self, command: str, title: str, selector: str, note: str, fields: tuple) -> None:
-        self.command = command
-        self.title = title
-        self.selector = selector
-        self.note = note
-        self.fields = fields
-
-
-def operations() -> tuple:
-    """Every writing command, with the form the UI shows for it.
-
-    Built per request so each label goes through the language in force. A field is
-    ``(option, label, kind, default)``; the kinds are ``text``, ``check`` and
-    ``select:<value>|<value>``, where an empty value is the default choice.
-    """
-    return (
-        Operation(
-            "set",
-            tr("改字段"),
-            tr("文档"),
-            tr("改一个字段的值；数组或表条目用「数组动作」追加或删除。"),
-            (
-                ("field", tr("字段路径"), "text", ""),
-                ("value", tr("新值"), "text", ""),
-                ("op", tr("数组动作"), "select:|append|delete", ""),
-                ("from", tr("新值取自文档字段"), "text", ""),
-            ),
-        ),
-        Operation(
-            "batch",
-            tr("批量修改"),
-            tr("补丁文件"),
-            tr("按补丁文件一次改多份文档；任一条被拒则整批不写。"),
-            (),
-        ),
-        Operation(
-            "add",
-            tr("新建文档"),
-            tr("新文档路径"),
-            tr("按 schema 建一份骨架；填「复制来源」则复制那份文档。"),
-            (("from", tr("复制来源"), "text", ""),),
-        ),
-        Operation(
-            "clone",
-            tr("复制文档"),
-            tr("源文档"),
-            tr("以新 token 复制一份文档；源可写成 作用域:路径 借原版数据。"),
-            (
-                ("as", tr("新 token"), "text", ""),
-                ("into", tr("目标作用域或目录"), "text", ""),
-            ),
-        ),
-        Operation("remove", tr("删除文档"), tr("文档"), tr("把一份文档从工程里删掉；撤销会把它放回。"), ()),
-        Operation("index", tr("建索引"), "", tr("重建 EditorCache/index.toml 与 refs.toml。"), ()),
-        Operation(
-            "convert",
-            tr("转换原版数据"),
-            "",
-            tr("把当前作用域的数据转成工程文档；assets=1 时连 Images/ 与 Sounds/ 一起复制。"),
-            (
-                ("to", tr("目标目录"), "text", ""),
-                ("type", tr("存储形态"), "select:|toml|txt", ""),
-                ("assets", tr("一并复制素材"), "check", ""),
-                ("overwrite", tr("覆盖已有文件"), "check", ""),
-            ),
-        ),
-        Operation(
-            "settings",
-            tr("工程设置"),
-            "",
-            tr("render 读 Mod/mod.txt 写 ModSetting.toml；emit 反向写回原版文件。"),
-            (
-                ("op", tr("方向"), "select:render|emit", "render"),
-                ("overwrite", tr("覆盖已有文件"), "check", ""),
-            ),
-        ),
-        Operation(
-            "roster",
-            tr("清单"),
-            tr("单位表"),
-            tr("列出工程声明的清单；给「清单动作」则增、改或删条目。"),
-            (
-                ("op", tr("清单动作"), "select:|add|set|remove", ""),
-                ("section", tr("组或注记"), "text", ""),
-                ("value", tr("条目"), "text", ""),
-                ("line", tr("行号"), "text", ""),
-                ("as", tr("新条目"), "text", ""),
-            ),
-        ),
-        Operation(
-            "export",
-            tr("导出文档"),
-            "",
-            tr("把工程里的文档按工程相对路径导出到目录；overwrite=0 跳过已存在的文件。"),
-            (
-                ("to", tr("目标目录"), "text", ""),
-                ("overwrite", tr("覆盖已有文件"), "check", ""),
-            ),
-        ),
-        Operation(
-            "pack",
-            tr("打包"),
-            "",
-            tr("打成可安装的 zip；strict=1 时加载错误与悬空引用会拒绝写入。"),
-            (
-                ("to", tr("目标目录"), "text", ""),
-                ("strict", tr("严格模式"), "check", ""),
-                ("overwrite", tr("覆盖已有归档"), "check", ""),
-            ),
-        ),
-        Operation("init", tr("新建工程"), "", tr("把当前目录建成一个模组工程。"), (("name", tr("工程名"), "text", ""),)),
-        Operation(
-            "build",
-            tr("构建"),
-            "",
-            tr("依次索引、检查、打包，任一步失败即停。"),
-            (("to", tr("打包到目录"), "text", ""),),
-        ),
-        Operation(
-            "adopt",
-            tr("收编"),
-            tr("来源目录或 zip"),
-            tr("由既有模组建成工程并建索引，源目录不改。"),
-            (("to", tr("目标目录"), "text", ""), ("overwrite", tr("覆盖已有工程"), "check", "")),
-        ),
-        Operation(
-            "unpack",
-            tr("还原原版"),
-            "",
-            tr("把工程写回原版 XML 与文本，工程带 mod.txt 时先刷新它。"),
-            (("to", tr("导出到目录"), "text", ""), ("overwrite", tr("覆盖已有文件"), "check", "")),
-        ),
-        Operation(
-            "run",
-            tr("按步运行"),
-            tr("步骤文件"),
-            tr("按文件列出的顺序逐条运行，任一步失败即停。"),
-            (),
-        ),
-        Operation(
-            "import",
-            tr("导入工程"),
-            tr("来源目录或 zip"),
-            tr("由既有模组建成工程；素材与 mod.txt 一并带入，目标已有工程时需覆盖。"),
-            (
-                ("to", tr("目标目录"), "text", ""),
-                ("overwrite", tr("覆盖已有工程"), "check", ""),
-            ),
-        ),
-        Operation("undo", tr("撤销"), tr("条数"), tr("把最近几次写入换回原来的字节；条数是文档参数，不是选项。"), ()),
-        Operation("redo", tr("重做"), tr("条数"), tr("重新应用最近撤销掉的写入；条数是文档参数，不是选项。"), ()),
-    )
-
-
-def operation_field(spec: tuple, value: str = "") -> str:
-    """One control of an operation form."""
-    name, label, kind, default = spec
-    if kind == "text":
-        return text_field(name, label, value or default, 40)
-    if kind == "check":
-        return checkbox(name, label, value == "1")
-    if kind.startswith("select:"):
-        options = [
-            ("" if item == "" else item, tr("默认") if item == "" else item)
-            for item in kind[len("select:"):].split("|")
-        ]
-        return select_field(name, label, options, value or default)
-    raise ValueError(f"unknown field kind {kind!r}")
-
-
-def operation_options(operation: Operation, query: dict) -> dict:
-    """The options a query asks for; a blank control means the option is not sent."""
-    options = {}
-    for name, _label, kind, _default in operation.fields:
-        raw = query.get(name, "")
-        if kind == "check":
-            if raw in ("1", "yes", "true"):
-                options[name] = "1"
-        elif raw.strip():
-            options[name] = raw.strip()
-    return options
 
 
 def shell_line(scope_name: str, command: str, selector: str, options: dict) -> str:
@@ -1263,8 +888,6 @@ def text_diff(before: str, after: str, limit: int) -> str:
 # The route of the request being answered, so the language switch can stay on the page.
 _ROUTE = contextvars.ContextVar("web_route", default="index")
 
-# pane=doc asks for the centre pane alone; the tab strip fetches it and drops it in place.
-_FRAGMENT = contextvars.ContextVar("web_fragment", default=False)
 
 # The document the request is about, so the property pane can follow the centre pane.
 _SELECTION = contextvars.ContextVar("web_selection", default="")
@@ -1632,6 +1255,10 @@ class App:
         return self.call(command, scope, selector, **options)
 
 
+# pane=doc asks for the centre pane alone; the tabs and the tree are left out.
+_FRAGMENT = contextvars.ContextVar("web_fragment", default=False)
+
+
 class Handler(BaseHTTPRequestHandler):
     """GET router; every route returns HTML, /json returns the raw payload."""
 
@@ -1655,12 +1282,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             use(query.get("lang") or self.app.language)
         except ValueError as error:
-            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写；下面的表单给出可用取值。")))
+            self.respond((rule := rule_for(as_usage(error))).http_status, self._error_page(tr(rule.title), str(error), tr("检查参数拼写；下面的表单给出可用取值。")))
             return
         if route == "favicon.ico":
             self.respond(204, "", "text/plain; charset=utf-8")
             return
-        if route in ("shell.css", "shell.js"):
+        if route == "shell.css":
             self.serve_shell(route, started)
             return
         if route not in self.routes:
@@ -1690,14 +1317,14 @@ class Handler(BaseHTTPRequestHandler):
             body = getattr(self, f"page_{route}")(query)
         except UsageError as error:
             _FRAGMENT.set(False)
-            status, body = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写；下面的表单给出可用取值。"))
+            status, body = (rule := rule_for(error)).http_status, self._error_page(tr(rule.title), str(error), tr("检查参数拼写；下面的表单给出可用取值。"))
         except FfError as error:
             _FRAGMENT.set(False)
-            status, body = 500, self._error_page(tr("读取失败"), str(error), tr("文件可能损坏或不可解码；用 CLI 的 check 命令定位。"))
+            status, body = (rule := rule_for(error)).http_status, self._error_page(tr(rule.title), str(error), tr("文件可能损坏或不可解码；用 CLI 的 check 命令定位。"))
         except Exception as error:  # keep the server alive and report what happened
             _FRAGMENT.set(False)
             traceback.print_exc(file=sys.stderr)
-            status, body = 500, self._error_page(tr("内部错误"), f"{type(error).__name__}: {error}", tr("这是界面的问题，请把上面那段命令回报。"))
+            status, body = (rule := rule_for(error)).http_status, self._error_page(tr(rule.title), f"{type(error).__name__}: {error}", tr("这是界面的问题，请把上面那段命令回报。"))
         if route == "json" and status == 200:
             self.respond(status, body, "text/plain; charset=utf-8")
         else:
@@ -1705,8 +1332,8 @@ class Handler(BaseHTTPRequestHandler):
         self.note_request(status, started)
 
     def serve_shell(self, route: str, started: float) -> None:
-        """Send the shell's stylesheet or script, or a 304 when it is unchanged."""
-        body, content_type = shell_bytes(route)
+        """Send the shell's stylesheet, or a 304 when it is unchanged."""
+        body, content_type = shell_css(), "text/css; charset=utf-8"
         etag = '"' + hashlib.sha256(body).hexdigest()[:16] + '"'
         if self.headers.get("If-None-Match") == etag:
             self.send_response(304)
@@ -1750,9 +1377,9 @@ class Handler(BaseHTTPRequestHandler):
         except AssetNotFound as error:
             status, data, content_type = 404, self._error_page(tr("没有这个文件"), str(error), tr("从左侧文件树选一个存在的文件。")).encode("utf-8"), "text/html; charset=utf-8"
         except UsageError as error:
-            status, data, content_type = 400, self._error_page(tr("用法错误"), str(error), tr("检查参数拼写。")).encode("utf-8"), "text/html; charset=utf-8"
+            status, data, content_type = (rule := rule_for(error)).http_status, self._error_page(tr(rule.title), str(error), tr("检查参数拼写。")).encode("utf-8"), "text/html; charset=utf-8"
         except (FfError, OSError) as error:
-            status, data, content_type = 500, self._error_page(tr("读取失败"), str(error), tr("文件可能损坏或不可读。")).encode("utf-8"), "text/html; charset=utf-8"
+            status, data, content_type = (rule := rule_for(error if isinstance(error, FfError) else FfError(str(error)))).http_status, self._error_page(tr(rule.title), str(error), tr("文件可能损坏或不可读。")).encode("utf-8"), "text/html; charset=utf-8"
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
@@ -1858,7 +1485,6 @@ class Handler(BaseHTTPRequestHandler):
             nav_bar(url),
             tr("作用域 {}", self.app.default_scope),
             css_url="/shell.css",
-            js_url="/shell.js",
         )
 
     # --- shared builders ----------------------------------------------------
@@ -1890,7 +1516,6 @@ class Handler(BaseHTTPRequestHandler):
             },
             status=self.status_bar(scope_name),
             css_url="/shell.css",
-            js_url="/shell.js",
         )
 
     def section_tabs(self, url: Url) -> str:
@@ -1904,20 +1529,12 @@ class Handler(BaseHTTPRequestHandler):
         return "".join(parts)
 
     def tool_bar(self, url: Url) -> str:
-        """Buttons that fold a pane, plus the sections the tabs do not carry."""
-        folds = "".join(
-            f'<button class="tbtn" type="button" data-fold="{pane}" aria-pressed="false">{esc(label)}</button>'
-            for pane, label in (("tree", tr("左栏")), ("props", tr("右栏")), ("output", tr("输出")) )
-        )
+        """The sections the tabs do not carry."""
         links = " · ".join(
             link(url(route), label)
             for route, label in (("find", tr("查找")), ("deps", tr("引用查询")), ("check", tr("体检")), ("stats", tr("统计")))
         )
-        toggles = (
-            f'<button class="tbtn" type="button" data-toggle="theme" aria-pressed="false">'
-            f'{esc(tr("主题"))}</button>'
-        )
-        return folds + toggles + f'<span class="sub">{links}</span>'
+        return f'<span class="sub">{links}</span>'
 
     def pane_tree(self, scope_name: str) -> str:
         """Every file of the project as folders, with the txt twins marked."""
@@ -1929,11 +1546,10 @@ class Handler(BaseHTTPRequestHandler):
         search = _SEARCH.get().strip()
         field = (
             f'<input type="text" name="q" value="{att(search)}" size="12" '
-            f'placeholder="{att(tr("搜索文件"))}" data-filter="tree">'
+            f'placeholder="{att(tr("搜索文件"))}">'
         )
         head = (
             form(url(_ROUTE.get()), [field], tr("搜索"), css="tree-search")
-            + f'<div class="sub" id="tree-search-count" data-label="{att(tr("命中 {} 个文件"))}"></div>'
             + f'<div class="tree-dir">{link(url("index"), esc(scope.project.name))}</div>'
         )
         # The rendered tree carries the language it was drawn in, so the key does too.
@@ -3276,18 +2892,38 @@ class Handler(BaseHTTPRequestHandler):
         return self.shell(operation.title, body, scope.name)
 
     def writing_forms_table(self, url: Url) -> str:
-        """Every writing command as one table; a row opens its check-and-write form."""
+        """Every writing command, one table per category; a row opens its check-and-write form."""
         body = h2(tr("写入操作"))
         body += note(tr("每条写入命令一张表。先按「检查」：下一步给出等价命令行和只检查不写入的真实结果，确认后再写入。"))
-        rows = [
-            [
-                link(url("cmd", command=item.command), item.command),
-                esc(item.title),
-                esc(item.selector or tr("不需要文档")),
+        grouped: dict[str, list] = {}
+        for item in operations():
+            command = registry.get(item.command)
+            grouped.setdefault(command.category if command else "edit", []).append(item)
+        for category in registry.CATEGORIES:
+            items = grouped.pop(category, [])
+            if not items:
+                continue
+            rows = [
+                [
+                    link(url("cmd", command=item.command), item.command),
+                    esc(item.title),
+                    esc(item.selector or tr("不需要文档")),
+                ]
+                for item in items
             ]
-            for item in operations()
-        ]
-        body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
+            body += h3(category_title(category))
+            body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
+        for leftover, items in grouped.items():
+            rows = [
+                [
+                    link(url("cmd", command=item.command), item.command),
+                    esc(item.title),
+                    esc(item.selector or tr("不需要文档")),
+                ]
+                for item in items
+            ]
+            body += h3(category_title(leftover))
+            body += table([tr("命令"), tr("名称"), tr("文档参数")], rows)
         body += note_html(tr("表单、命令行、MCP 是同一个工具的三种入口，写入规则见{}。", link(url("help"), tr("帮助页"))))
         return body
 
@@ -3332,9 +2968,28 @@ class Handler(BaseHTTPRequestHandler):
         return pre(f"{self.mcp_command(False)}\n{self.mcp_command(True)}\n\n{block}")
 
     def mcp_tools_table(self) -> str:
-        """Every registered tool: the exposed name, the command, read or write, its arguments."""
-        rows = []
+        """Every registered tool, one table per command category."""
+        grouped: dict[str, list] = {}
         for spec in specs.TOOLS:
+            command = registry.get(spec.command)
+            grouped.setdefault(command.category if command else "edit", []).append(spec)
+        headers = [tr("工具"), tr("命令"), tr("读或写"), tr("参数")]
+        body = ""
+        for category in registry.CATEGORIES:
+            items = grouped.pop(category, [])
+            if not items:
+                continue
+            body += h3(category_title(category))
+            body += table(headers, self.mcp_tool_rows(items))
+        for leftover, items in grouped.items():
+            body += h3(category_title(leftover))
+            body += table(headers, self.mcp_tool_rows(items))
+        return body or table(headers, [], tr("没有工具"))
+
+    def mcp_tool_rows(self, chosen: list) -> list:
+        """The rows of one tool category."""
+        rows = []
+        for spec in chosen:
             parameters = ", ".join(
                 f"{parameter.name}=*" if parameter.required else parameter.name for parameter in spec.parameters
             )
@@ -3346,7 +3001,7 @@ class Handler(BaseHTTPRequestHandler):
                     esc(parameters) if parameters else "—",
                 ]
             )
-        return table([tr("工具"), tr("命令"), tr("读或写"), tr("参数")], rows, tr("没有工具"))
+        return rows
 
     def mcp_trial(self, scope_name: str, query: dict[str, str]) -> str:
         """One ``tools/call`` answered by a server started in this request, printed as it came."""
@@ -3512,10 +3167,10 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.app.mcp.stop()
         except ValueError as error:
-            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("端口要是一个整数。")))
+            self.respond((rule := rule_for(as_usage(error))).http_status, self._error_page(tr(rule.title), str(error), tr("端口要是一个整数。")))
             return
         except UsageError as error:
-            self.respond(400, self._error_page(tr("用法错误"), str(error), tr("回到 MCP 页重新选择。")))
+            self.respond((rule := rule_for(error)).http_status, self._error_page(tr(rule.title), str(error), tr("回到 MCP 页重新选择。")))
             return
         self.send_response(302)
         self.send_header("Location", back)
@@ -3591,8 +3246,7 @@ class Handler(BaseHTTPRequestHandler):
             ],
         )
         body += (
-            f'<div class="sub" id="cmd-hint" data-unknown="{att(tr("未知命令，输入 help 看全部"))}" '
-            f'data-index="{att(command_index_json())}"></div>'
+            f''
         )
         examples = ["list weapon", "stats", "check", "deps value=WEAPON_PISTOL_P38", 'show "Data/Infantry/American-Rifle Squad.txt" as=toml']
         body += note_html(tr("示例：") + " · ".join(link(url("cmd", line=item), item) for item in examples))
@@ -3682,9 +3336,8 @@ class Handler(BaseHTTPRequestHandler):
     def page_quit(self, query: dict[str, str]) -> str:
         """Stop the server from the browser; /quit asks first, /quit?do=1 does it.
 
-        A GET is the only verb this interface has (the script fetches and never
-        posts), so the exit is a two-step page: a link can be followed by a
-        prefetcher or by accident, a second deliberate click cannot.
+        A GET is the only verb this interface has, so the exit is a two-step page: a link can
+        be followed by a prefetcher or by accident, a second deliberate click cannot.
         """
         scope = self.app.scope(query.get("scope", ""))
         url = self.app.url(scope.name)
@@ -3896,7 +3549,7 @@ def serve(options: dict[str, str], cwd, scope_name: str, host: str = HOST) -> st
     print(tr("  根目录   {}", app.scope(scope_name).root), flush=True)
     print(tr("  地址     {}", address), flush=True)
     print(tr("  实例记录 {}", instance_path(root)), flush=True)
-    print(tr("  页面     服务端渲染，一个内联脚本只负责工作台布局"), flush=True)
+    print(tr("  页面     服务端渲染的纯 HTML，没有脚本"), flush=True)
     print(tr("  停止     Ctrl-C，或页面上的「退出」"), flush=True)
     open_browser(options, address)
     try:

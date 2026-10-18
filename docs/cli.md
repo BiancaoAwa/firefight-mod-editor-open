@@ -7,7 +7,7 @@ Status: **read-only except three writers**. `set` changes one field of one proje
 a directory the caller names; every other command only prints a result. The writers keep the
 source around what they touch: `set` guarantees it per field (§4.1), `undo` and `redo` write
 recorded bytes rather than a re-serialisation (§4.2), and `export` per file (order, blank lines,
-indentation, comments and newline style — see §9 and toml-mapping §4). `web` serves the same
+indentation, comments and newline style — see §8 and toml-mapping §4). `web` serves the same
 results as pages on `127.0.0.1` and runs the same commands, writing ones included
 (docs/web.md). No packaging: that stage does not exist
 yet.
@@ -67,6 +67,7 @@ Paths use `/` and are relative to the scope root; `\` is accepted. Documents are
 | `schema` | | the declared fields of one root element, or one enum table; read-only (§4.13) |
 | `verify` | | read every selected document back and report what does not survive; read-only (§4.11) |
 | `build` | `to=` | index, check and pack in one run; stops at the first step that fails (§4.17) |
+| `doctor` | | report the local settings, the game directory, the project files and the cache; read-only (§4.18) |
 | `audit` | | verify every document, then check with both gates on; read-only (§4.17) |
 | `adopt` | `<tree or zip>` `to=` | import a tree or zip as a project, then index it (§4.17) |
 | `unpack` | `to=` | write the project back out as the original XML and text (§4.17) |
@@ -107,12 +108,15 @@ project has load errors or dangling references, §4.8), `assets=1` (`convert` al
 scope's `Images/` and `Sounds/` trees, §4.3; `check` names the file a missing image or sound
 would have to be, §6), `rosters=1` (`check` also compares the rosters against the documents,
 §4.14), `against=<root>` (`check` answers references this project does not hold from a second
-root — a scope name, `scope:path`, or a directory, §6), `ignore_case=1`, `overwrite=1` (`1` replaces a file, or a whole project, that is already there,
+root — a scope name, `scope:path`, or a directory, §6), `all=1` (`find` searches the project and the installed data in one run and counts each scope,
+§4.19), `ignore_case=1`, `overwrite=1` (`1` replaces a file, or a whole project, that is already there,
 `0` leaves it; `export` and `pack` replace by default, `convert` and `settings` skip by
-default; `import` needs one of the two when the destination is already a project, §4.16), `--json`. `init`, `import`, `set`, `batch`, `add`, `clone`, `remove`, `index`, `settings`,
-`convert`, `pack`, `roster`, `undo` and `redo` also take the bare flags `--write` (write the
-change) and `--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take
-an optional count as well (§4.2).
+default; `import` needs one of the two when the destination is already a project, §4.16), `--json`. Every
+command the table below marks as writing — `init`, `import`, `set`, `batch`, `add`, `clone`,
+`remove`, `index`, `settings`, `convert`, `export`, `pack`, `build`, `adopt`, `unpack`, `run`,
+`roster`, `undo` and `redo` — also takes the bare flags `--write` (write the change) and
+`--dry-run` (report it without writing anything, §4.1, §4.3); `undo` and `redo` take an optional
+count as well (§4.2).
 Unknown options, unknown scopes and missing paths are usage errors. `key=value` options may
 appear in any order; `--json` may appear anywhere.
 
@@ -165,9 +169,13 @@ python -m core.cli Mod set <document> field=<array>.<n> op=delete --write [--dry
 
 ### 4.2 The event log, undo and redo
 
+`pending=1` lists the changes an `undo` would reach, newest first, with the document, entity,
+field and the byte count each restore would write; nothing is written and the positional count
+caps the rows.
+
 ```
-python -m core.cli Mod log [count] [document=<text>] [field=<text>] [actor=cli|mcp]
-                       [result=set|add|remove|undo|redo] [since=<stamp>] [until=<stamp>] [--json]
+python -m core.cli Mod log [count] [document=<text>] [field=<text>] [actor=cli|mcp|web]
+                       [result=set|add|remove|pack|undo|redo] [since=<stamp>] [until=<stamp>] [--json]
 python -m core.cli Mod undo [count] --write [--dry-run] [--json]
 python -m core.cli Mod redo [count] --write [--dry-run] [--json]
 ```
@@ -238,7 +246,7 @@ python -m core.cli Firefight convert to=<project> --write [--dry-run] [assets=1]
 ### 4.4 The web UI and the running-instance record
 
 ```
-python -m core.cli Mod web [port=<n>] [token=<text>] [pagesize=<n>] [browser=1]
+python -m core.cli Mod web [port=<n>] [token=<text>] [pagesize=<n>] [lang=zh|en] [browser=1]
 ```
 
 * An explicit `port=` always starts a server on that port. Without one, a recorded instance
@@ -323,7 +331,7 @@ python -m core.cli Mod settings --write [--dry-run] [op=render|emit] [overwrite=
   `Taiwan, China(In Production)` and `Japan(In Production)`, without a space before the
   bracket).
 * `emit` is the exact inverse on a stock-shaped file: `Mod settings op=emit --write` over the
-  shipped WW3 `mod.txt` reproduces all 10170 bytes unchanged. The element order, the tab
+  shipped WW3 `mod.txt` reproduces every byte unchanged. The element order, the tab
   indentation and the blank lines are the shape the stock files use, so a file already in that
   shape round-trips byte for byte. `render` does not keep the layout of a file written
   differently, so such a file comes back in this shape.
@@ -362,7 +370,7 @@ python -m core.cli Mod pack --write [--dry-run] [to=<directory>] [strict=1] [ove
 * `strict=1` turns both into refusals: the pack writes nothing while the project has a load
   error or a reference that does not resolve, so a package cannot ship either by accident.
   The reference graph is built over the project alone; the stock corpus is not consulted
-  (see §9).
+  (see §8).
 * Members are written with a fixed timestamp, so packing an unchanged project twice produces
   the same bytes.
 * `pack` changes no document and takes no lock, but a pack that writes appends one `pack`
@@ -630,6 +638,29 @@ command = "check"
 works on; `with` is a list of `key=value` options. The same rule applies: the first failing
 step stops the run.
 
+### 4.18 `doctor` — is this machine ready for the first edit
+
+```powershell
+python -m core.cli Mod doctor
+```
+
+Read-only. Reports the local `Setting.toml` and every key it carries, whether the `firefight`
+directory holds `Firefight.exe`, whether the project has `ModInformation.toml` and
+`ModSetting.toml`, whether the cache directory can be created, and the interpreter version.
+The exit code is 0 when every check passed and 1 when one failed; the payload carries the
+same rows as `checks`.
+
+### 4.19 `find` across both scopes
+
+```powershell
+python -m core.cli Mod find tag=<name> all=1
+```
+
+`all=1` searches the project and the installed game data in one run. The payload carries the
+count of each scope (`scopes`) and one list of matches, each naming its scope; a scope that
+cannot be resolved is reported in `skipped` with the reason. `limit=` and the bare count still
+cap the rows, while `count` keeps the number of matches found.
+
 ## 5. Exit codes
 
 | Code | Meaning |
@@ -662,44 +693,18 @@ project, given as a scope name, `scope:path`, or a directory — so a reference 
 there is not dangling; the payload reports how many were answered that way
 (`dangling_answered_elsewhere`) and which root answered (`against`). `against=stock` names the
 installation the editor setting points at, which is what an imported project wants. Measured on
-WW3 with the stock root as `against=`: 911 dangling references become 29, with 882 answered by
-the other root, and 235 of the 911 want an asset file that is not in the project. When more than
-one kind is dangling, the summary also names the counts by kind and the payload carries them
-under `dangling_kinds`.
+WW3 with the stock root as `against=`: most dangling references are answered by the other root,
+a small remainder stays dangling, and some of the original ones want an asset file that is not
+in the project. When more than one kind is dangling, the summary also names the counts by kind
+and the payload carries them under `dangling_kinds`.
 
 The entries of a declared unit roster are references (§4.6), so a unit an `equipment_*` list
 names but no document answers appears as an ordinary dangling reference of kind `roster`, with
 the line it sits on as its `document_path`. Without that, a roster entry pointing at a unit
 that does not exist would be invisible to `check` unless `rosters=1` was given. Measured on
-WW3: 276 roster entries over 12 rosters, none of them unresolved, so the count stays at 911.
+WW3: no roster entry was unresolved, so the count does not move.
 
-## 7. Measured on real data (2026-10-10)
-
-Stock game 13.2.0.0 vs the released WW3 mod project (`.Mod/`, extracted outside this
-repository):
-
-| Command | Stock | WW3 |
-|---|---|---|
-| `stats` | 1840 files, 48 list files, 0 errors, 0.6 s | 765 files, 13 list files, 0 errors, 0.2 s |
-| `check` | loaded 1792, skipped 48, 0 errors, 612 warnings, **2 dangling** | loaded 752, skipped 13, 0 errors, 559 warnings, **911 dangling** |
-| `refs` | 23978 references, 0 errors, 4.3 s | 5793 references, 0 errors, 0.4 s |
-
-`export` of the stock `Vehicles` selection writes 599 files and 2371815 bytes with 0
-errors. Reference rules and coverage are in [refs.md](refs.md).
-
-Measured again on 2026-10-11, after the writer learned to keep the source layout:
-`python tools/export_fidelity.py --data "<Firefight>/Data"` exports all 1840 stock files
-and reports **1840 identical, 100.0%** (before, 1792 of them came back with reordered
-siblings and 12 with different newlines).
-
-The two stock dangling references are in the shipped data (`WEAPON_PISTOL_WZ_35_VIS` from
-`Hungarian-TK3.txt` and `Hungarian-TKS.txt`). The 911 in WW3 are mostly references into
-stock data: when a mod project is checked with the stock installation as a second scope,
-882 of the 912 resolve. **That fallback is measured but not implemented** — the CLI
-resolves each scope on its own, and cross-scope resolution arrives with the workspace
-registry.
-
-## 8. Reproducing the demo
+## 7. Reproducing the demo
 
 ```
 python -m unittest discover -s tests -t .                       # run the suite
@@ -714,11 +719,11 @@ python -m core.cli Firefight web    "root=<Firefight>" port=8765
 ```
 
 `check` exits 1 on both corpora, which is the intended report and not a crash. `deps` is
-scope-wide: it answers for one scope at a time. `convert` on the installed game plans 1792
-files and skips 48 list files; without `--dry-run` it writes them. `web` blocks until Ctrl-C
+scope-wide: it answers for one scope at a time. `convert` on the installed game plans the
+stock documents and skips the list files; without `--dry-run` it writes them. `web` blocks until Ctrl-C
 and prints the address it bound.
 
-## 9. Limits of this slice
+## 8. Limits of this slice
 
 * A write is one field, one array entry, one document (`add`, `remove`) or one whole selection
   (`convert`, `settings`, `index`, `pack`). `batch` (§4.15) applies several changes to several
@@ -756,6 +761,8 @@ and prints the address it bound.
   does that, §4.3), does not write `ModSetting.toml` (`settings op=render`, §4.7), and does not
   read a template from anywhere else.
 * Whether the engine accepts a file we re-emit is verified by an in-game load check, not here.
+* `check` on a mod project reports a reference into the stock data as dangling: the CLI
+  resolves one scope at a time, so cross-scope resolution is not implemented.
 * `Maps/`, `Surnames/` and `equipment_*` are out of scope.
 * Modules are not loaded through `mod.txt` yet; a mod is a directory with `Data/`.
 

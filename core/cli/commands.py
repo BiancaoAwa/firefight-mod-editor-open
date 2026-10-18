@@ -8,6 +8,7 @@ builds the cross-reference tables under ``EditorCache/``, and ``export`` writes 
 
 import difflib
 import platform
+import sys
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,7 @@ from core.toml import TomlArrayEntry, TomlEntry, TomlTable, TomlValue
 from core.xml import XmlElement
 
 from core.cli.scope import DATA_FOLDER, MOD_FOLDER, PROJECT_FILE, SETTING_FILE, Scope, UsageError, entity_files, resolve_scope
+from core import registry
 
 
 SUFFIX_TOML = ".toml"
@@ -783,11 +785,9 @@ def _show_subtree(ctx: Context, document, relative: str, view: str) -> Result:
     """Show the elements a document path selects."""
     key = "/".join((document.root.tag, *ctx.doc_path))
     if view == "toml":
-        entries = select_table(document.table, ctx.doc_path)
+        entries = select_table(document.table, (document.root.tag, *ctx.doc_path))
         if not entries:
             raise UsageError(f"{document_path(ctx.scope, relative)}/{'/'.join(ctx.doc_path)}: no such key")
-        from core import tomlwrite
-
         wrapper = TomlTable(entries=[(ctx.doc_path[-1], entries[0])])
         text = toml.render(wrapper)
         return Result({"path": relative, "key": key, "toml": text}, text.rstrip("\n"))
@@ -927,33 +927,34 @@ def _get_all(ctx: Context, document, relative: str) -> Result:
     )
 
 
-def cmd_find(ctx: Context) -> Result:
-    """Search tags, document paths and values across a scope.
-
-    The whole scope is searched whatever ``limit=`` says, so ``count`` is the
-    number of matches and not merely the number of rows printed (docs/cli.md
-    section 4).
-    """
-    tag = ctx.options.get("tag")
-    value = ctx.options.get("value")
-    prefix = ctx.options.get("path")
-    ignore_case = ctx.options.get("ignore_case", "0") not in ("0", "false", "no")
-    limit = row_limit(ctx)
-    if tag is None and value is None and prefix is None:
-        raise UsageError("nothing to search for; pass tag=<name>, value=<text> or path=<a/b>")
+def _find_in_scope(
+    ctx: Context,
+    scope: Scope,
+    tag: str | None,
+    value: str | None,
+    prefix: str | None,
+    ignore_case: bool,
+    limit: int | None,
+    matches: list[dict],
+) -> int:
+    """Search one scope and append what it holds; returns how many matches it found."""
+    selector = ctx.selector
+    if selector in ("", "all") or selector in CATEGORIES or "type" in ctx.options:
+        files = entity_files(scope)
+    else:
+        files = entity_files(scope, selector)
+    files = filter_category(files, ctx, scope)
+    declared = declared_lists(scope)
     needle = value.casefold() if (value and ignore_case) else value
-    files = filter_category(targets(ctx), ctx, ctx.scope)
-    declared = declared_lists(ctx.scope)
-    matches: list[dict] = []
     total = 0
     for path in files:
-        relative = relative_of(ctx.scope, path)
+        relative = relative_of(scope, path)
         if is_list_file(relative, declared, path):
             continue
         try:
             document = load_document(path, relative)
         except FfError as error:
-            matches.append({"path": relative, "error": str(error)})
+            matches.append({"scope": scope.name, "path": relative, "error": str(error)})
             total += 1
             continue
         for element_path, element in walk(document.root):
@@ -970,6 +971,7 @@ def cmd_find(ctx: Context) -> Result:
             if limit is None or len(matches) < limit:
                 matches.append(
                     {
+                        "scope": scope.name,
                         "path": relative,
                         "line": element.line,
                         "tag": element.tag,
@@ -977,20 +979,129 @@ def cmd_find(ctx: Context) -> Result:
                         "value": element.value,
                     }
                 )
+    return total
+
+
+def cmd_find(ctx: Context) -> Result:
+    """Search tags, document paths and values across a scope.
+
+    The whole scope is searched whatever ``limit=`` says, so ``count`` is the
+    number of matches and not merely the number of rows printed (docs/cli.md
+    section 4). ``all=1`` searches the project and the installed game data in one
+    run and reports how many matches each scope holds.
+    """
+    tag = ctx.options.get("tag")
+    value = ctx.options.get("value")
+    prefix = ctx.options.get("path")
+    ignore_case = ctx.options.get("ignore_case", "0") not in ("0", "false", "no")
+    limit = row_limit(ctx)
+    if tag is None and value is None and prefix is None:
+        raise UsageError("nothing to search for; pass tag=<name>, value=<text> or path=<a/b>")
+    everything = ctx.options.get("all", "0") not in ("0", "false", "no")
+    scopes = [ctx.scope]
+    skipped: list[dict] = []
+    if everything:
+        for name in ("Mod", "Firefight"):
+            if name == ctx.scope.name:
+                continue
+            try:
+                scopes.append(resolve_scope(name, ctx.options, ctx.cwd))
+            except UsageError as error:
+                skipped.append({"scope": name, "error": str(error)})
+        scopes.sort(key=lambda scope: ("Mod", "Firefight").index(scope.name) if scope.name in ("Mod", "Firefight") else 2)
+    matches: list[dict] = []
+    total = 0
+    per_scope: dict[str, int] = {}
+    for scope in scopes:
+        count = _find_in_scope(ctx, scope, tag, value, prefix, ignore_case, limit, matches)
+        per_scope[scope.name] = count
+        total += count
+    headers = ["path", "line", "tag", "value"]
     rows = [[item["path"], item.get("line", ""), item.get("tag", ""), item.get("value", "")] for item in matches]
+    if everything:
+        headers = ["scope"] + headers
+        rows = [[item.get("scope", ""), *row] for item, row in zip(matches, rows)]
     summary = f"{tally(len(matches), total)} match(es)"
-    text = table_of(["path", "line", "tag", "value"], rows, summary)
-    query = {"tag": tag, "value": value, "path": prefix, "ignore_case": ignore_case}
+    if everything:
+        summary += " · " + ", ".join(f"{name}: {count}" for name, count in per_scope.items())
+    text = table_of(headers, rows, summary)
+    query = {"tag": tag, "value": value, "path": prefix, "ignore_case": ignore_case, "all": everything}
     return Result(
         {
             "query": query,
             "count": total,
             "shown": len(matches),
             "truncated": len(matches) < total,
+            "scopes": per_scope,
+            "skipped": skipped,
             "matches": matches,
         },
         text,
     )
+
+
+def cmd_doctor(ctx: Context) -> Result:
+    """Report the settings this machine needs before the first edit.
+
+    Read-only: the local ``Setting.toml`` and every key it carries, the game directory,
+    the project files and the cache directory are each checked and named. Exit code 1
+    means at least one check failed (docs/cli.md section 4.17).
+    """
+    from core.cli.scope import CONFIG_KEYS, config_value, load_config
+
+    rows: list[list[str]] = []
+    payload: dict = {"cwd": str(ctx.cwd), "checks": [], "ok": True}
+
+    def record(name: str, ok: bool, detail: str) -> None:
+        rows.append([name, "ok" if ok else "failed", detail])
+        payload["checks"].append({"name": name, "ok": ok, "detail": detail})
+        if not ok:
+            payload["ok"] = False
+
+    try:
+        config, config_path = load_config(ctx.cwd)
+    except (FfError, OSError) as error:
+        config, config_path = None, None
+        record("Setting.toml", False, str(error))
+    else:
+        if config_path is None:
+            record("Setting.toml", True, "not found; the scopes come from options and the environment")
+        else:
+            record("Setting.toml", True, str(config_path))
+
+    for key, marker in CONFIG_KEYS:
+        value = config_value(config, key)
+        if not value:
+            record(f"setting {key}", True, "not set")
+            continue
+        target = Path(value)
+        if not target.is_absolute() and config_path is not None:
+            target = config_path.parent / target
+        record(f"setting {key}", (target / marker).exists(), f"{value} (needs {marker})")
+
+    stock = ctx.options.get("firefight") or config_value(config, "firefight")
+    if not stock:
+        record("game directory", True, "unknown; pass firefight= or set it in Setting.toml")
+    else:
+        stock_path = Path(stock)
+        record("game directory", (stock_path / "Firefight.exe").is_file(), str(stock_path))
+
+    record("project ModInformation.toml", (ctx.scope.root / PROJECT_FILE).is_file(), str(ctx.scope.root / PROJECT_FILE))
+    record("project ModSetting.toml", (ctx.scope.root / SETTING_FILE).is_file(), str(ctx.scope.root / SETTING_FILE))
+
+    cache = ctx.scope.root / journal.EDITOR_DIR
+    try:
+        cache.mkdir(parents=True, exist_ok=True)
+    except OSError as error:
+        record("cache directory", False, f"{cache}: {error}")
+    else:
+        record("cache directory", True, str(cache))
+
+    record("python", sys.version_info >= (3, 10), sys.version.split()[0])
+
+    failures = sum(1 for check in payload["checks"] if not check["ok"])
+    summary = f"{len(payload['checks'])} check(s), {failures} failed, scope {ctx.scope.describe()}"
+    return Result(payload, table_of(["check", "result", "detail"], rows, summary), code=0 if payload["ok"] else 1)
 
 
 def cmd_stats(ctx: Context) -> Result:
@@ -2059,7 +2170,8 @@ def cmd_log(ctx: Context) -> Result:
 
     ``document=``, ``field=``, ``actor=``, ``result=``, ``since=`` and ``until=``
     narrow which records are selected; ``limit=`` caps how many of the newest
-    selected records are printed (docs/cli.md section 4.2).  ``since=`` and
+    selected records are printed (docs/cli.md section 4.2). ``pending=1`` lists the
+    changes an ``undo`` would reach, newest first.  ``since=`` and
     ``until=`` compare against the timestamp as written, so they share the
     offset of the machine that wrote the log.
     """
@@ -2070,6 +2182,32 @@ def cmd_log(ctx: Context) -> Result:
     count = _count(ctx, default=0, name="log")
     if count:
         limit = count if limit is None else min(limit, count)
+    pending = ctx.options.get("pending", "0") not in ("0", "false", "no")
+    if pending:
+        from core import history
+
+        applied, _ = journal.stacks(journal.read_events(project_root))
+        wanted = len(applied) if limit is None else min(limit, len(applied))
+        restores = history.plan_undo(project_root, wanted) if wanted else []
+        rows = [[item.document, item.entity, item.field, str(item.bytes_before)] for item in restores]
+        summary = f"{len(restores)} change(s) can be undone, newest first"
+        text = table_of(["document", "entity", "field", "bytes"], rows, summary)
+        return Result(
+            {
+                "pending": [
+                    {
+                        "document": item.document,
+                        "entity": item.entity,
+                        "field": item.field,
+                        "bytes_before": item.bytes_before,
+                        "absent": item.absent,
+                    }
+                    for item in restores
+                ],
+                "count": len(restores),
+            },
+            text,
+        )
     filters = {
         "document": ctx.options.get("document"),
         "field": ctx.options.get("field"),
@@ -3540,51 +3678,6 @@ def cmd_web(ctx: Context) -> Result:
     return Result(payload, "")
 
 
-COMMANDS = {
-    "list": cmd_list,
-    "show": cmd_show,
-    "get": cmd_get,
-    "find": cmd_find,
-    "stats": cmd_stats,
-    "refs": cmd_refs,
-    "deps": cmd_deps,
-    "check": cmd_check,
-    "schema": cmd_schema,
-    "roster": cmd_roster,
-    "index": cmd_index,
-    "init": cmd_init,
-    "import": cmd_import,
-    "add": cmd_add,
-    "batch": cmd_batch,
-    "clone": cmd_clone,
-    "remove": cmd_remove,
-    "set": cmd_set,
-    "convert": cmd_convert,
-    "settings": cmd_settings,
-    "log": cmd_log,
-    "undo": cmd_undo,
-    "redo": cmd_redo,
-    "export": cmd_export,
-    "pack": cmd_pack,
-    "diff": cmd_diff,
-    "verify": cmd_verify,
-    "build": cmd_build,
-    "audit": cmd_audit,
-    "adopt": cmd_adopt,
-    "unpack": cmd_unpack,
-    "run": cmd_run,
-    "version": cmd_version,
-    "web": cmd_web,
-}
+COMMANDS = registry.handlers()
 
-ALIASES = {
-    "ls": "list",
-    "cat": "show",
-    "grep": "find",
-    "graph": "refs",
-    "lint": "check",
-    "emit": "export",
-    "serve": "web",
-    "new": "add",
-    "rm": "remove",
-}
+ALIASES = registry.aliases()

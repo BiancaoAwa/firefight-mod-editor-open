@@ -54,9 +54,10 @@ A project is a **folder named after the mod** and can be exported to, or importe
     │   └── 20261009T031500.jsonl
     ├── refs.toml               cross-reference cache
     ├── index.toml              entity index and search cache
+    ├── check.json              counts of the last whole-scope check, so the page need not repeat it
     ├── baseline/               every version a write replaced, under its sha256 (see §8)
     ├── lock                    held for the duration of one write
-    └── notes.toml              human-readable notes extracted from stock `//` comments (optional)
+    └── notes.toml              reserved for notes extracted from stock `//` comments; not written yet
 ```
 
 The project directory is its own data root: `Data/` sits directly inside it. On export the
@@ -87,7 +88,7 @@ license = "CC BY-SA 4.0"
 
 ## 4. `ModSetting.toml` (= the stock `mod.txt`)
 
-The structure of `mod.txt` is measured on the installed 13.2.0.0 sample: 10170 bytes, 428 lines, 12 nations. `settings` translates between that file and this one (docs/cli.md §4.7): `op=render` reads the stock file and writes the TOML form, so `<nationality>` blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements one array per nation, the bare `<ranks>` numbers quoted keys, and the `<units>` / `<filename>` elements pass through unchanged. A mapping example:
+The structure of `mod.txt` is measured on the installed sample: a text file of nationality blocks, equipment arrays and unit lists. `settings` translates between that file and this one (docs/cli.md §4.7): `op=render` reads the stock file and writes the TOML form, so `<nationality>` blocks become `[[mod_setting.nationality]]` entries, the repeated `<equipment>` elements one array per nation, the bare `<ranks>` numbers quoted keys, and the `<units>` / `<filename>` elements pass through unchanged. A mapping example:
 
 ```toml
 [mod_setting]
@@ -247,7 +248,7 @@ is parsed as a `key=value` option; `set`, `undo` and `redo` need `--write` and r
   * Rollback and time travel work across segments by reading them in filename order, which equals chronological order.
   * Segment files have no size limit; the 5-minute rule is the **only** split condition (not process start/stop, not calendar day).
 * **A record** is one JSON object per line, in this order: `id` (`<segment stem>:<line number>`),
-  `segment`, `timestamp` (local ISO 8601 with offset), `actor` (`cli` or `mcp`), `result` (`set`,
+  `segment`, `timestamp` (local ISO 8601 with offset), `actor` (`cli`, `mcp` or `web`), `result` (`set`,
   `add`, `remove`, `pack`, `undo` or `redo`), `target` (the `id` an undo or redo reverts, else
   `null`), `document` (project-relative POSIX path), `entity`, `field`, `before`, `after`,
   `digest_before`, `digest_after`, `bytes_before`, `bytes_after` (all sha256, hex) and `dry_run`
@@ -290,7 +291,7 @@ the editor ships as loose code or as a packed executable.
 ├── docs/          specification: what the editor does and how it is built, English plus *.zh-CN.md mirror (this file lives here)
 ├── tests/         the suite (no game install, no network)
 ├── tools/         auxiliary tools: m1_roundtrip.py, export_fidelity.py,
-│                  FirefightModPackager/, and launcher/ (the implementation behind
+│                  extract_docs_md.py, FirefightModPackager/, and launcher/ (the implementation behind
 │                  StartWebUI.cmd / StartWebUI(Basic).cmd / Start(McpOnly).cmd)
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
@@ -311,18 +312,19 @@ The CLI entry is the module `core.cli`, started from the repository root; there 
 ├── StartWebUI(Basic)    launcher without a window, serving in the foreground
 ├── Start(McpOnly)       stdio MCP server for AI callers
 ├── StopAll              stops the running editor
-├── ErrorFinder          reports what `check` finds, in readable form
-├── ReadMe.md  ReadMe(Cn).md  ChangeLog.md  ChangeLog(Cn).md  Lisense
+├── README.md  README.zh-CN.md  LICENSE  .gitattributes  .gitignore
+├── _ff-tool-path.cmd    finds the interpreter the launchers use
 ├── core/                the code (core/cli/__main__.py is the CLI entry)
 ├── docs/                documentation: English files and their *.zh-CN.md mirrors
-├── EditorAssets/        the editor's own resources
+├── skills/              the editor's own skill file (skills/firefight-editor/SKILL.md)
 ├── launcher/            the implementation behind the entry points above
 ├── Firefight/           stock game data copy (optional; reference, read-only)
 ├── Logs/                launcher logs
+├── EditorCache/         state of the editor itself: the running-instance record `web.json`
 ├── Mod/                 the projects area: one directory per mod project
 │   └── <name>/          ModInformation.toml, ModSetting.toml, mod.txt,
 │                        README.md, LICENSE, Data/, Images/, Sounds/,
-│                        EditorCache/{refs.toml, index.toml, log/, baseline/, notes.toml}
+│                        EditorCache/{refs.toml, index.toml, check.json, log/, baseline/}
 └── Setting.toml         machine-local settings: which mod, which stock directory
 ```
 

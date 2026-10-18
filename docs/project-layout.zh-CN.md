@@ -51,15 +51,15 @@ AI 层经 [mcp.md](mcp.zh-CN.md) 规定的 MCP 服务取得同样的能力。
 │   │   └── Game/{Control Panel,Flags,Map,Toolbar}
 │   └── Sounds/...
 └── EditorCache/                    编辑器工作数据与缓存（**属于工程，绝不进入安装包**，项目方已确认）
-    ├── setting.toml            编辑器设置
     ├── log/                    事件日志分段目录（见 §8）
     │   ├── 20261009T012000.jsonl
     │   └── 20261009T031500.jsonl
     ├── refs.toml               交叉引用缓存
     ├── index.toml              实体索引与搜索缓存
+    ├── check.json              上一次整作用域体检的计数，页面不必重跑
     ├── baseline/               每次写入所替换的每个版本，按 sha256 存放（见 §8）
     ├── lock                    一次写入期间持有
-    └── notes.toml              从原版 `//` 注释中提取的可读说明（可选）
+    └── notes.toml              预留给从原版 `//` 注释提取的可读说明；目前不写出
 ```
 
 **已确认规则**
@@ -87,7 +87,7 @@ license = "CC BY-SA 4.0"
 
 ## 4. `ModSetting.toml`（= 原版 `mod.txt`）
 
-实测 `mod.txt` 结构：10170 字节 / 428 行 / 12 个国家。`settings` 在两者之间双向转换（docs/cli.zh-CN.md §4.7）：`op=render` 读原版文件写 TOML 形态，`op=emit` 反向写回。映射示例见 [英文版](project-layout.md) 同节（`[mod_setting]` 基本字段、`[mod_setting.years]`、`[mod_setting.credits]`、
+实测 `mod.txt` 结构：按国家分块的文本文件，含装备数组与单位清单。`settings` 在两者之间双向转换（docs/cli.zh-CN.md §4.7）：`op=render` 读原版文件写 TOML 形态，`op=emit` 反向写回。映射示例见 [英文版](project-layout.md) 同节（`[mod_setting]` 基本字段、`[mod_setting.years]`、`[mod_setting.credits]`、
 `[mod_setting.text_colours]`、`[[mod_setting.nationality]]` 及其 `.flags` / `.ranks` / `.default_images`
 子表）。
 
@@ -188,7 +188,7 @@ python -m core.cli Mod export --out dist/ --format mod-zip
   * 回滚与时间旅行按文件名字顺序读分段，而该顺序即时间顺序。
   * 分段文件没有大小上限；5 分钟规则是**唯一**的切分条件（不是进程启动/停止，也不是自然日）。
 * **一条记录**是每行一个 JSON 对象，字段顺序为：`id`（`<分段名>:<行号>`）、`segment`、`timestamp`（带偏移的本地
-  ISO 8601）、`actor`（`cli` 或 `mcp`）、`result`（`set`、`add`、`remove`、`pack`、`undo` 或 `redo`）、
+  ISO 8601）、`actor`（`cli`、`mcp` 或 `web`）、`result`（`set`、`add`、`remove`、`pack`、`undo` 或 `redo`）、
   `target`（undo/redo 所回退记录的
   `id`，否则 `null`）、`document`（相对于工程的 POSIX 路径）、`entity`、`field`、`before`、`after`、
   `digest_before`、`digest_after`、`bytes_before`、`bytes_after`（均为 sha256 十六进制）与 `dry_run`（恒为
@@ -224,7 +224,7 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 │                  settings.py（mod.txt 与 ModSetting.toml 的双向转换器）
 ├── docs/          规范：编辑器做什么、如何构建；英文文件 + `*.zh-CN.md` 中文对照（本文件所在）
 ├── tests/         测试套件（无需安装游戏、无需联网）
-├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、
+├── tools/         辅助工具：m1_roundtrip.py、export_fidelity.py、extract_docs_md.py、
 │                  FirefightModPackager/，以及 launcher/（StartWebUI.cmd / StartWebUI(Basic).cmd / Start(McpOnly).cmd 背后的实现）
 └── README.md  README.zh-CN.md  LICENSE  .gitignore  .gitattributes
 ```
@@ -245,18 +245,19 @@ python -m core.cli Mod export --out dist/ --format mod-zip
 ├── StartWebUI(Basic)   启动器，无窗口，在控制台里服务
 ├── Start(McpOnly)      供 AI 调用的 stdio MCP 服务
 ├── StopAll             结束正在运行的编辑器
-├── ErrorFinder         把 `check` 的结果整理成可读形式
-├── ReadMe.md  ReadMe(Cn).md  ChangeLog.md  ChangeLog(Cn).md  Lisense
+├── README.md  README.zh-CN.md  LICENSE  .gitattributes  .gitignore
+├── _ff-tool-path.cmd   找出启动器要用的解释器
 ├── core/               代码（core/cli/__main__.py 是命令行入口）
 ├── docs/               文档：英文文件 + 对应的 `*.zh-CN.md` 中文对照
-├── EditorAssets/       编辑器自身的资源
+├── skills/             编辑器自身的技能文件（skills/firefight-editor/SKILL.md）
 ├── launcher/           上面各入口背后的实现
 ├── Firefight/          原版游戏数据副本（可选；参考用，只读）
 ├── Logs/               启动器日志
+├── EditorCache/        编辑器自身的状态：运行实例记录 `web.json`
 ├── Mod/                模组工程区：一个子目录一个工程
 │   └── <名称>/         ModInformation.toml、ModSetting.toml、mod.txt、
 │                       README.md、LICENSE、Data/、Images/、Sounds/、
-│                       EditorCache/{refs.toml, index.toml, log/, baseline/, notes.toml}
+│                       EditorCache/{refs.toml, index.toml, check.json, log/, baseline/}
 └── Setting.toml        本机设置：用哪个模组、哪个原版目录
 ```
 

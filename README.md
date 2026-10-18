@@ -18,13 +18,12 @@ which offers the commands as tools, resources and prompts ([mcp.md](docs/mcp.md)
 that runs the same commands, writing ones included, in Chinese or English ([web.md](docs/web.md)):
 `/edit` edits a whole document as text — TOML, XML and plain text through the same box, with the
 encoding, the BOM and the newlines shown and the difference printed before the write; `/list`
-holds the entities together with the equipment table and the manifest files; `/log` shows the
+holds the entities together with the declared unit tables; `/log` shows the
 event log with the undo and redo forms; `/cmd` is a command line plus the writing commands as
 forms, with the MCP tool table and the reference text as its other two modes. `init` creates a
 project in an empty directory ([cli.md](docs/cli.md) §4.9), and `import` makes one out of a mod
 that already exists, a directory or a zip ([cli.md](docs/cli.md) §4.16). `export` reproduces a stock file
-byte for byte, layout included — 1840 of 1840 files on the installed game
-(`tools/export_fidelity.py`). [flow.md](docs/flow.md) shows how the pieces fit together. `batch`
+byte for byte, layout included, as `tools/export_fidelity.py` shows over the installed data. [flow.md](docs/flow.md) shows how the pieces fit together. `batch`
 applies a patch file of several edits to many documents in one run ([cli.md](docs/cli.md)
 §4.15); interactive multi-document editing is still missing.
 
@@ -85,7 +84,7 @@ launchers find the interpreter in this order — `FF_PYTHON`, then
 
 | Entry point | What it starts |
 |---|---|
-| `StartWebUI.cmd` | the web UI in a window, with the launcher watching it; takes `-Scope`, `-Port`, `-Project`, `-NoBrowser` |
+| `StartWebUI.cmd` | the web UI in a window, with the launcher watching it; takes `-Scope`, `-Port`, `-Project`, `-NoBrowser`, `-Browser`, `-Foreground` |
 | `StartWebUI(Basic).cmd` | the same server in the foreground, no window and no watchdog |
 | `Start(McpOnly).cmd` | the stdio MCP server, for an AI client to spawn |
 | `StopAll.cmd` | stops the editor the launcher started |
@@ -115,8 +114,7 @@ python -m unittest discover -s tests -t .      # no network, no game install
 ```
 
 The suites that touch a real corpus are run by hand against the stock installation and the
-released WW3 project; the measured numbers are in [cli.md](docs/cli.md) §7. Two harnesses need
-the game directory:
+released WW3 project. Two harnesses need the game directory:
 
 ```
 python tools/m1_roundtrip.py  --data "<game>/Data"          # XML -> TOML -> XML, semantic
@@ -127,14 +125,13 @@ python tools/export_fidelity.py --data "<game>/Data"        # export vs source, 
 
 | Document | Contents |
 |---|---|
-| [cli.md](docs/cli.md) | command line: scopes, selectors, commands, options, exit codes, measured results |
+| [cli.md](docs/cli.md) | command line: scopes, selectors, commands, options, exit codes |
 | [web.md](docs/web.md) | the local web UI: routes, options, design rules, limits |
 | [project-layout.md](docs/project-layout.md) | project layout, CLI specification, permissions, event log, dependency policy |
 | [mcp.md](docs/mcp.md) | the AI MCP surface: protocol revisions, tools, resources, permissions, error mapping |
-| [refs.md](docs/refs.md) | reference rules and coverage |
+| [refs.md](docs/refs.md) | reference rules, resolution and the API |
 | [toml-mapping.md](docs/toml-mapping.md) | how stock XML maps onto the TOML editing model |
-| [m1-design.md](docs/m1-design.md) | data core design |
-| [CHANGELOG.md](CHANGELOG.md) | what each version added, changed, and left as a known limitation |
+| [CHANGELOG.md](CHANGELOG.md) | what each version added, changed and fixed |
 
 ## Building a mod
 

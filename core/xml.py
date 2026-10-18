@@ -1,6 +1,6 @@
 """XML document model plus the tolerant reader for the stock dialect.
 
-Elements keep the surrounding disk text, so an unedited entity exports byte for byte (docs/m1-design.md section 3.3).
+Elements keep the surrounding disk text, so an unedited entity exports byte for byte (docs/toml-mapping.md).
 """
 
 from dataclasses import dataclass, field
@@ -77,7 +77,7 @@ def find_comment(line: str) -> int | None:
 
     ``//`` only starts a comment at the start of a line or after whitespace or
     ``>``; every occurrence in the corpus satisfies this, so no value is
-    truncated (docs/m1-design.md section 3.3 rule 3).
+    truncated (docs/toml-mapping.md).
     """
     start = 0
     while True:

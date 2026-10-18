@@ -195,6 +195,22 @@ class WebTestCase(unittest.TestCase):
         if self.app.mcp.running():
             self.app.mcp.stop()
 
+    def test_the_command_page_groups_the_writing_forms_by_category(self) -> None:
+        """The writing forms carry the category of their command, in registry order."""
+        status, body = self.fetch("/cmd")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn("<h3>写入</h3>", body)
+        self.assertIn("<h3>打包</h3>", body)
+        self.assertLess(body.index("<h3>写入</h3>"), body.index("<h3>打包</h3>"))
+        self.assertIn("写入操作", body)
+
+    def test_the_mcp_page_groups_the_tools_by_category(self) -> None:
+        """The tool table reads by category instead of one flat list."""
+        status, body = self.fetch("/mcp")
+        self.assertEqual(status, 200, body[:400])
+        for heading in ("<h3>读取</h3>", "<h3>检查</h3>", "<h3>写入</h3>"):
+            self.assertIn(heading, body)
+
     # --- helpers ------------------------------------------------------------
 
     def fetch(self, route: str = "", **params) -> tuple[int, str]:
@@ -402,10 +418,9 @@ class WebTestCase(unittest.TestCase):
     def test_show_escapes_data_markup(self) -> None:
         _, body = self.fetch("/show", path="Data/equipment_evil.txt", **{"as": "toml"})
         self.assertIn("&lt;script&gt;", body)
-        self.assertEqual(body.count("<script"), 1, "data markup became a second script")
+        self.assertNotIn("<script", body, "data markup became a script")
         _, weapon = self.fetch("/show", path="Data/Weapons/WEAPON_EVIL.txt", **{"as": "toml"})
-        self.assertEqual(weapon.count("<script"), 1)
-
+        self.assertNotIn("<script", weapon)
     def test_show_rejects_a_bad_view(self) -> None:
         status, body = self.fetch("/show", path="Data/Weapons/WEAPON_PISTOL_P38.txt", **{"as": "yaml"})
         self.assertEqual(status, 400)
@@ -999,31 +1014,14 @@ class WebTestCase(unittest.TestCase):
             server.server_close()
             thread.join(timeout=5)
 
-    def test_pages_load_one_stylesheet_and_one_script(self) -> None:
-        """The shell is two files, the same two for every page, so the browser keeps one copy."""
+    def test_pages_load_one_stylesheet_and_no_script(self) -> None:
+        """The shell is one style sheet, the same for every page; no page carries a script."""
         for route in ("/", "/list", "/find", "/deps", "/check", "/stats", "/edit", "/log", "/cmd", "/help", "/quit"):
             _, body = self.fetch(route)
-            self.assertEqual(body.count("<script"), 1, f"{route} does not carry exactly one script")
-            self.assertIn('<script src="/shell.js"', body, f"{route} does not load the shell script")
-            self.assertNotIn("<script>", body, f"{route} still carries the script inline")
+            self.assertNotIn("<script", body, f"{route} still carries a script")
             self.assertEqual(body.count("<link"), 1, f"{route} does not carry exactly one stylesheet link")
             self.assertIn('<link rel="stylesheet" href="/shell.css"', body, f"{route} does not load the shell style sheet")
             self.assertNotIn("<style>", body, f"{route} still carries the style sheet inline")
-
-    def test_the_shell_is_served_once_with_a_cache_header(self) -> None:
-        """A static file: no token, an ETag and a one-hour cache, and a 304 when it repeats."""
-        status, css, headers = self.fetch_asset("/shell.css")
-        self.assertEqual(status, 200, css[:200])
-        self.assertIn("text/css", headers["Content-Type"])
-        self.assertEqual(headers["Cache-Control"], "public, max-age=3600")
-        etag = headers["ETag"]
-        status, _, headers = self.fetch_asset("/shell.css", etag=etag)
-        self.assertEqual(status, 304)
-        status, js, headers = self.fetch_asset("/shell.js")
-        self.assertEqual(status, 200)
-        self.assertIn("javascript", headers["Content-Type"])
-        self.assertIn("ff.workbench", js.decode("utf-8"))
-
     def test_a_page_can_ask_for_the_document_pane_alone(self) -> None:
         """The tab strip fetches this fragment and drops it into the pane it already has."""
         _, full = self.fetch("/list")
@@ -1093,24 +1091,13 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("--size: 14px", css)
         self.assertIn("font-size: var(--size)", css)
 
-    def test_the_stylesheet_carries_a_dark_theme(self) -> None:
-        """The theme is a set of variables on the root, so one attribute switches it."""
-        _, sheet, _headers = self.fetch_asset("/shell.css")
-        css = sheet.decode("utf-8")
-        self.assertIn(':root[data-theme="dark"]', css)
-        self.assertIn("--bg: #202020", css)
-        self.assertNotIn("mono-font", css)
 
-    def test_the_tool_bar_carries_the_theme_toggle(self) -> None:
-        """One button, and the script stores what it switches in the browser."""
+    def test_the_tool_bar_carries_the_other_faces(self) -> None:
+        """Every face is a plain link, so it works without a script."""
         _, body = self.fetch("/index")
-        self.assertIn('data-toggle="theme"', body)
-        self.assertNotIn('data-toggle="font"', body)
-        _, script, _headers = self.fetch_asset("/shell.js")
-        js = script.decode("utf-8")
-        self.assertIn("state.theme", js)
-        self.assertNotIn("state.font", js)
-
+        self.assertIn('href="/find?scope=Firefight"', body)
+        self.assertIn('href="/mcp?scope=Firefight"', body)
+        self.assertNotIn("data-toggle", body)
     def test_the_scope_origin_is_read_as_a_sentence(self) -> None:
         """The pane says where the scope came from; `Scope.origin` keeps its log wording."""
         _, body = self.fetch("/index")
@@ -1118,12 +1105,10 @@ class WebTestCase(unittest.TestCase):
         self.assertNotIn("option root=", body)
 
     def test_the_tree_carries_a_search_box(self) -> None:
-        """One field in the tree pane, and every file carries the path the script filters on."""
+        """One field in the tree pane, answered on the server."""
         _, body = self.fetch("/", scope="Firefight")
-        self.assertIn('data-filter="tree"', body)
         self.assertIn('name="q"', body)
         self.assertIn('<div class="tree-file" data-path="Data/Weapons/WEAPON_PISTOL_P38.txt">', body)
-
     def test_the_tree_shows_only_what_the_search_matched(self) -> None:
         """The query is answered on the server as well, so the page works without the script."""
         _, body = self.fetch("/", scope="Firefight", q="equipment_american")
@@ -1215,20 +1200,13 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("List entities with category, storage format and size.", en_body)
 
     def test_the_command_line_page_suggests_commands_it_can_run(self) -> None:
-        """The line input is wired to a datalist and to the summary table the script reads."""
+        """The line input is wired to a datalist built from the registry."""
         _, body = self.fetch("/cmd", scope="Firefight")
         self.assertIn('id="cmd-commands"', body)
         self.assertIn('list="cmd-commands"', body)
-        self.assertIn('data-hint="cmd"', body)
-        self.assertIn('data-index="{', body)
-        self.assertIn('&quot;verify&quot;', body)
-        self.assertIn('&quot;ls&quot;', body)
+        self.assertIn('value="verify"', body)
+        self.assertIn('value="list"', body)
         self.assertIn('id="cmd-keys"', body)
-        _, script, _headers = self.fetch_asset("/shell.js")
-        js = script.decode("utf-8")
-        self.assertIn("hintCommand", js)
-        self.assertIn('data-hint") === "cmd"', js)
-
     def test_the_help_page_indexes_every_command_the_cli_offers(self) -> None:
         """One registry, one page: a command added to the CLI shows up in the help index."""
         _, body = self.fetch("/help", scope="Firefight")
@@ -1271,17 +1249,6 @@ class WebTestCase(unittest.TestCase):
             self.assertEqual(missing, [])
         finally:
             shutil.rmtree(editor, ignore_errors=True)
-
-    def test_the_tree_search_counts_what_it_keeps(self) -> None:
-        """The filter runs in the page: it marks the kept rows, hides emptied folders, counts them."""
-        _, body = self.fetch("/", scope="Firefight", q="weapon")
-        self.assertIn('id="tree-search-count"', body)
-        self.assertIn("命中 {} 个文件", body)
-        _, script, _headers = self.fetch_asset("/shell.js")
-        js = script.decode("utf-8")
-        self.assertIn('data-hit="1"', js)
-        self.assertIn("tree-search-count", js)
-        self.assertIn("dirs[j].hidden", js)
 
     def test_a_search_that_matches_nothing_says_so(self) -> None:
         _, body = self.fetch("/", scope="Firefight", q="nothing-like-this")
@@ -1420,6 +1387,11 @@ class WebTestCase(unittest.TestCase):
                     continue
                 if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
                     found.add(node.args[0].value)
+        # the error table carries the titles the pages show for a failed request
+        from core.errors import FALLBACK, RULES
+
+        found.update(rule.title for _, rule in RULES)
+        found.add(FALLBACK.title)
         return found
 
     def test_every_template_has_an_english_entry(self) -> None:
@@ -2431,15 +2403,6 @@ class WebTestCase(unittest.TestCase):
         status, body = self.fetch("")
         self.assertEqual(status, 200, body[:400])
         self.assertIn(f"http://127.0.0.1:{self.server.server_port}/", body)
-
-    def test_the_script_fetches_workbench_links_into_the_centre_pane(self) -> None:
-        """One tree of nine thousand files is sent once, not on every click."""
-        status, body = self.fetch("/shell.js")
-        self.assertEqual(status, 200, body[:400])
-        self.assertIn("function navigate(", body)
-        self.assertIn("WORKBENCH.test", body)
-        self.assertIn("pane=doc", body)
-        self.assertNotIn("/json", body)
 
     def test_the_game_installation_keeps_its_counts_outside_the_installation(self) -> None:
         """Nothing of the editor is written into the game folder."""

@@ -15,6 +15,15 @@ ENV_DATA = "FIREFIGHT_DATA"
 ENV_MODS = "FIREFIGHT_MODS"
 PROJECT_FILE = "ModInformation.toml"
 SETTING_FILE = "ModSetting.toml"
+
+# The keys Setting.toml may carry, with the entry each one must point at. The pages
+# report a key that no longer resolves and the command line reads the same names, so
+# the list lives here rather than in either face.
+CONFIG_KEYS: tuple[tuple[str, str], ...] = (
+    ("firefight", "Data"),
+    ("workspace", "Mod"),
+    ("mod", PROJECT_FILE),
+)
 MOD_FOLDER = "Mod"
 DATA_FOLDER = "Data"
 # The files a project keeps next to its data root; the data root is the project directory.

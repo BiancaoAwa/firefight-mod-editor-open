@@ -49,6 +49,10 @@ EXPECTED_READ_TOOLS = {
         "ignoreCase": False, "limit": False, "root": False, "workspace": False,
     },
     "ff_stats": {"scope": False, "selector": False, "root": False, "workspace": False},
+    "ff_log": {
+        "scope": False, "document": False, "actor": False, "limit": False,
+        "root": False, "workspace": False,
+    },
     "ff_refs": {"scope": False, "selector": True, "kind": False, "root": False, "workspace": False},
     "ff_deps": {"scope": False, "value": True, "kind": False, "root": False, "workspace": False},
     "ff_check": {
@@ -169,6 +173,7 @@ PLUGIN_LAG = {
     "ff_verify",
     "ff_batch",
     "ff_clone",
+    "ff_log",
     "ff_roster",
     "ff_import",
 }

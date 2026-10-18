@@ -4,6 +4,20 @@
 
 ### Added
 
+* `find` takes `all=1` and searches the project and the installed data in one run, counting
+  each scope and naming the scope of every match (docs/cli.md section 4.19).
+* `log` takes `pending=1` and lists the changes an `undo` would reach, newest first.
+* The command table is one registry (`core/registry.py`): name, handler, category,
+  aliases, whether it writes, whether it has a web form, whether MCP exposes it. The
+  dispatcher, `help`, the MCP tool table and the pages read it, and a module under
+  `core.commands_ext` adds a command without touching the core.
+* `doctor` reports the local `Setting.toml` keys, the game directory, the project files,
+  the cache directory and the interpreter, and exits 1 when a check fails (docs/cli.md
+  section 4.18).
+* The MCP surface gains `ff_log`: a client can read the log segments and the newest
+  records of a project.
+* `/cmd` and the MCP page group their tables by command category (read, check, write,
+  project, build, serve).
 * The canonical XML form now follows the shipped corpus: `convert.toml_to_xml` takes
   `newline` and `indent` (CRLF and tabs by default), writes no declaration line, writes an
   empty element as `<tag></tag>`, and never writes a self-closing tag, a start-tag attribute
@@ -32,12 +46,12 @@
   instead of naming an address that cannot be dialled. Closing the listener drops the
   mapping it opened. A router that answers neither protocol leaves the local and private
   addresses working, and the page says so.
-* The editor command line: 34 commands over two scopes, `Firefight` for the
+* The editor command line: 35 commands over two scopes, `Firefight` for the
   game's own data and any named directory for a mod project. `init`, `import`,
   `list`, `show`, `get`, `find`, `stats`, `refs`, `deps`, `check`, `verify`,
   `diff`, `set`, `batch`, `add`, `remove`, `index`, `convert`, `settings`,
-  `export`, `pack`, `roster`, `clone`, `schema`, `log`, `undo`, `redo`,
-  `version`, `web`. Each accepts `--json`.
+  `export`, `pack`, `roster`, `clone`, `schema`, `build`, `audit`, `adopt`,
+  `unpack`, `run`, `log`, `undo`, `redo`, `version`, `web`. Each accepts `--json`.
 * `import` makes a project out of a mod that already exists, given as a
   directory or a zip. The mod root is found the way the packager looks for it —
   under `Mod/`, at the top of the source, or one directory of its own above
@@ -109,7 +123,7 @@
 * The page that edits the declared plain-text tables is `/equipment`, not `/tables`.
 * The optional MCP listener can bind any interface rather than only loopback or the LAN, and
   the panel shows the address it really bound. The token stays mandatory.
-* An MCP server for two protocol families, exposing 31 tools of which 12 are
+* An MCP server for two protocol families, exposing 32 tools of which 12 are
   read-only; the writing tools are registered only under `--write`. Every
   command carries a tool, including the later `batch`, `clone`, `roster`,
   `schema`, `diff`, `verify` and `import` (docs/mcp.md).
@@ -137,6 +151,12 @@
 
 ### Changed
 
+* Exit code, HTTP status, page title and usage hint come from one table in
+  `core/errors.py`; the command line and the pages ask the same table.
+* The writing forms moved out of `core/web/server.py` into `core/web/forms.py`, which
+  declares one form per writing command and follows the registry order.
+* The keys `Setting.toml` may carry are one table in `core/cli/scope.py`, read by the
+  command line and reported by the pages.
 * The workbench holds the drawn tree per scope and language for `TREE_SECONDS`
   (30 s) and drops it on any write, and walks the files in one `os.scandir`
   pass instead of a `Path` walk with a `stat` per entry: on a game installation
@@ -148,6 +168,15 @@
 * The menu bar shows the address the server answers on, and `StartWebUI.cmd`
   keeps its console open for 15 s to print it, because the server itself runs
   hidden.
+* `docs/web.md` no longer claims that a capped find, refs or deps page says how many rows
+  it left out and links to the JSON: the page says the cap was reached, and the entity list
+  pages instead of capping.
+* `docs/project-layout.md` describes the editor folder a release actually has:
+  `skills/` instead of `EditorAssets/`, `README.md`, `README.zh-CN.md` and
+  `LICENSE` instead of the old entry-point names, `_ff-tool-path.cmd`, a
+  top-level `EditorCache/` holding `web.json`, and a project `EditorCache/`
+  holding `check.json`; `EditorCache/notes.toml` is marked as not written yet,
+  and the command list in this file names all 35 commands.
 * When the scope is a game installation the counts file goes to
   `%TEMP%/firefight-mod-editor/` instead of `EditorCache/` inside the root, so
   the editor never writes into the installation it reads.
@@ -172,13 +201,11 @@
 * `/cmd`, `/mcp` and `/help` are the three modes of one page with one bar between them — the
   command line with its writing forms, the MCP tool table, the reference text; the rules shared by
   the form, the command line and MCP are written once, on `/help`.
-* The workbench shell is two files rather than two blocks copied into every page: `/shell.css` and
-  `/shell.js` are served once, with a one-hour cache header and an `ETag`, so walking through the
-  pages fetches them a single time and a page that cannot load them still reads.
+* The workbench shell is one style sheet rather than a block copied into every page: `/shell.css`
+  is served once with a one-hour cache header and an `ETag`, and no page carries a script at all,
+  so the pages work in a browser that blocks scripts (docs/web.md).
 * The workbench face is the monospace system stack (`Consolas` first) at a 14px base size, so the
   editor reads at the density of a desktop tool; there is no second face and no control for one.
-  A dark theme, a set of CSS variables on the root element, is offered by one button in the tool
-  bar, so one attribute repaints the page, and the choice joins the panel widths in `localStorage`.
   The menu bar and the tool bar are shorter, and the scope origin in the property pane reads as a
   sentence instead of the log wording.
 * The tree lists every file of the project — the readme and the settings beside the documents,
@@ -198,9 +225,8 @@
   until `rosters=1` is given. A surname list contributes nothing (docs/refs.md section 1).
 * Every page is now a workbench: a menu bar, a tool bar, a project tree, the document in the
   middle, a property pane, an output pane carrying the tail of the event log, and a status bar.
-  The panes resize by dragging and fold from the tool bar; that state and the language are the
-  only things kept in the browser. A page carries one inline script, the shell itself, and
-  renders complete without it (docs/web.md section 0).
+  The shell is server-rendered HTML with one style sheet and no script at all; the language is
+  the only thing a link carries (docs/web.md section 0).
 * The tree pane lists the project's documents by folder, from the same payload `list` returns,
   and the property pane shows the fields of the document the request names, from the same
   payload `get` returns.
@@ -267,6 +293,22 @@
 * The `pack` refusal for a `mod.txt` that disagrees with `ModSetting.toml` names
   both sizes and both ways out, including the non-destructive one
   (`settings op=render`).
+
+### Removed
+
+* The M1 design note `docs/m1-design.md`; the mapping rules it argued for stay in
+  `docs/toml-mapping.md`, which no longer points at it.
+* The process sections: the acceptance criteria chapter of `docs/toml-mapping.md`, the
+  tests and verification chapter of `docs/mcp.md`, the measured coverage chapter of
+  `docs/refs.md`, the measured results chapter of `docs/cli.md`, and the case-by-case test
+  enumeration of `docs/web.md`, which now names the commands that run the tests, and the
+  roadmap section of `docs/web.md`, whose three remaining gaps became limits bullets, and
+  the document-table lines of both READMEs that described those chapters. The repository
+  carries usage and architecture documents only.
+* `docs/firefight-docs/extract_docs_md.py` moved to `tools/extract_docs_md.py`.
+* `/shell.js`, and with it the theme button, the draggable pane edges, the fold buttons and the
+  in-page tree filter: a page is complete server-rendered HTML, and what the style sheet lays out
+  is what the page shows.
 
 ### Fixed
 
