@@ -98,6 +98,27 @@ Consequence for editing: a value change keeps the whole file's layout; a structu
 | Blank lines | Authored grouping, captured per element as part of its `prefix` (§4.1) and reproduced as-is |
 | `<nationality><units>` / `<filename>` in `mod.txt` | **Passed through unchanged**, semantics not interpreted (classified by the project owner as a feature of the stock editor; tracked as a TODO in [project-layout.md](project-layout.md) §4) |
 
+### 5.1 Canonical form (a document with no source layout)
+
+`core.convert.toml_to_xml(table, newline="\r\n", indent="\t")` writes the shape the stock corpus
+uses, so a document written from TOML alone reads like a shipped one:
+
+* no `<?xml …?>` declaration line — 0 of 1840 stock documents carry one;
+* one element per line, tab indentation at the nesting depth, no blank lines;
+* an empty element is written `<tag></tag>` — 0 stock documents use `<tag/>`;
+* text is written as stored, so a bare `&` stays bare; `<`, `>` and `?` are not escaped;
+* no start tag carries attributes — 0 stock documents use any.
+
+Reading is more tolerant than writing: a start tag with attributes is read by its name and its
+attributes are held as written (`XmlElement.raw_tag`) so an export reproduces them byte for byte,
+a `<![CDATA[…]]>` block keeps its marker and contributes its inner text to the value, and both
+give a warning that the TOML view does not carry them. Neither shape exists in the stock corpus,
+so neither is ever written.
+
+The two parameters exist for callers that need another shape — tests use them to prove the
+defaults are the stock ones:
+
+
 ## 6. Scope of the in-house TOML implementation (`core/toml`)
 
 Following the "specialised for this editor" requirement, only the subset this editor actually needs is implemented, in exchange for **controllable round-trip fidelity** and **zero dependencies**:

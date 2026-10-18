@@ -3,6 +3,7 @@
 import unittest
 from core import xml
 from core.errors import XmlStructureError
+from core.convert import tree_to_xml
 from core.xml import XmlElement
 
 
@@ -58,6 +59,40 @@ class CommentTest(unittest.TestCase):
         doc = xml.parse("<squad>// one\n<name>a</name>\n</squad>", "unit")
         self.assertEqual(doc.comments, 1)
         self.assertTrue(any("comment" in warning for warning in doc.warnings))
+
+
+class AttributeTest(unittest.TestCase):
+    def test_a_tag_with_attributes_keeps_them_when_written_back(self) -> None:
+        doc = xml.parse('<squad><man id="7" rank="cpl">x</man></squad>', "unit")
+        man = doc.root.children[0]
+        self.assertEqual(man.tag, "man")
+        self.assertEqual(man.value, "x")
+        self.assertEqual(tree_to_xml(doc.root, doc.header, doc.footer, doc.newline, doc.indent),
+                         '<squad><man id="7" rank="cpl">x</man></squad>')
+
+    def test_a_self_closing_tag_keeps_its_attributes(self) -> None:
+        text = '<squad>\r\n\t<man id="7"/>\r\n</squad>'
+        doc = xml.parse(text, "unit")
+        self.assertEqual(tree_to_xml(doc.root, doc.header, doc.footer, doc.newline, doc.indent), text)
+
+    def test_attributes_are_reported_as_outside_the_toml_view(self) -> None:
+        doc = xml.parse('<squad><man id="7">x</man></squad>', "unit")
+        self.assertTrue(any("attributes are kept as written" in warning for warning in doc.warnings))
+
+
+class CdataTest(unittest.TestCase):
+    def test_cdata_text_becomes_the_value(self) -> None:
+        doc = xml.parse("<squad><name><![CDATA[a & b < c]]></name></squad>", "unit")
+        self.assertEqual(doc.root.children[0].value, "a & b < c")
+
+    def test_cdata_is_written_back_untouched(self) -> None:
+        text = "<squad>\r\n\t<name><![CDATA[x]]></name>\r\n</squad>"
+        doc = xml.parse(text, "unit")
+        self.assertEqual(tree_to_xml(doc.root, doc.header, doc.footer, doc.newline, doc.indent), text)
+
+    def test_unterminated_cdata_is_a_warning(self) -> None:
+        doc = xml.parse("<squad><name><![CDATA[open</name></squad>", "unit")
+        self.assertTrue(any("unterminated CDATA" in warning for warning in doc.warnings))
 
 
 class ToleranceTest(unittest.TestCase):

@@ -180,6 +180,7 @@ Key points
 * The default prefix is **`Mod/`** with README/LICENSE at the zip root. It can be changed in `ModInformation.toml`; **the import side must accept any prefix** (`.Mod/`, `<mod name>/` and a flat, prefixless layout must all be recognised), using the same test as the existing tool's `find_mod_root()`: the project root is the shallowest directory containing `mod.txt`.
 * The PC-side root name has been verified by the project owner on a running installation: relative to the directory holding the game executable (`Firefight/`), it is **`Mod/`**, matching `assets/Mod/` on Android, so the exported root name `Mod/` is supported on both sides.
 * The WW3 distribution uses `.Mod/` with its documents inside `.Mod/`; that is a **project folder naming habit**, not the standard install layout.
+* Every `Data/**.txt` member is rendered from its `.toml` document in the canonical form of [toml-mapping.md](toml-mapping.md) §5.1, never copied from a stale `.txt` twin; a project that holds only `.txt` files packs those bytes as they stand.
 
 ## 6. CLI specification
 

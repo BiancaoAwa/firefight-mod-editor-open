@@ -28,6 +28,7 @@ class XmlElement:
     suffix: str | None = None
     raw_value: str | None = None
     self_closing: bool = False
+    raw_tag: str = ""  # the start tag as written when it carried attributes
 
     def by_tag(self, tag: str) -> list["XmlElement"]:
         """Return the direct children with this tag, in source order."""
@@ -110,6 +111,7 @@ def parse(text: str, origin: str) -> XmlDocument:
     layout: list[str] = []  # raw characters since the previous tag
     content: list[str] = []  # the same characters, comment-free and LF-only
     comments = 0
+    attributes: set[str] = set()
     header = ""
     line = 1
     index = 0
@@ -127,6 +129,17 @@ def parse(text: str, origin: str) -> XmlDocument:
             index = nxt
             continue
         start = index
+        if text.startswith("<![CDATA[", start):
+            end = text.find("]]>", start + 9)
+            if end == -1:
+                warnings.append(f"line {line}: unterminated CDATA kept as text")
+                end = size - 3
+            block = text[start:end + 3]
+            line += block.count("\n")
+            layout.append(block)
+            content.append(text[start + 9:end])
+            index = end + 3
+            continue
         close = text.find(">", start + 1)
         if close == -1:
             warnings.append(f"line {line}: unterminated '<' kept as text")
@@ -155,12 +168,21 @@ def parse(text: str, origin: str) -> XmlDocument:
                 _keep_layout(closed, gap)
             continue
         self_closing = token.endswith("/")
-        name = token[:-1].strip() if self_closing else token
-        if NAME_RE.fullmatch(name) is None:
+        head = token[:-1] if self_closing else token
+        name = head.split()[0] if head.split() else ""
+        if NAME_RE.fullmatch(name) is None or not head.startswith(name):
             warnings.append(f"line {open_line}: skipped unreadable tag <{token}>")
             layout.append(gap + raw)
             continue
-        element = XmlElement(tag=name, line=open_line, prefix=gap, self_closing=self_closing)
+        element = XmlElement(
+            tag=name,
+            line=open_line,
+            prefix=gap,
+            self_closing=self_closing,
+            raw_tag=head if head != name else "",
+        )
+        if element.raw_tag:
+            attributes.add(name)
         if stack:
             stack[-1].children.append(element)
         elif root is None:
@@ -182,6 +204,8 @@ def parse(text: str, origin: str) -> XmlDocument:
         raise XmlStructureError(origin, 1, "no root element")
     if comments:
         warnings.append(f"{comments} comment line(s) removed")
+    for name in sorted(attributes):
+        warnings.append(f"<{name}>: attributes are kept as written and stay out of the TOML view")
     _warn_stray_text(root, warnings)
     return XmlDocument(
         origin=origin,

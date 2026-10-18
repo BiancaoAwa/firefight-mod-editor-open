@@ -142,6 +142,31 @@ class ExportTest(unittest.TestCase):
             toml_to_xml(empty)
 
 
+class StockDialectTest(unittest.TestCase):
+    """The canonical shape follows the shipped corpus (docs/toml-mapping.md section 5)."""
+
+    def setUp(self) -> None:
+        self.exported = toml_to_xml(xml_to_toml(xml_parse(SQUAD, "unit")))
+
+    def test_the_canonical_form_carries_no_declaration_line(self) -> None:
+        self.assertTrue(self.exported.startswith("<squad>"))
+        self.assertNotIn("<?xml", self.exported)
+
+    def test_the_canonical_form_uses_crlf_and_tab_indentation(self) -> None:
+        self.assertIn("\r\n\t<description>", self.exported)
+        self.assertEqual(self.exported.count("\n"), self.exported.count("\r\n"))
+
+    def test_the_layout_parameters_replace_the_stock_defaults(self) -> None:
+        exported = toml_to_xml(xml_to_toml(xml_parse(SQUAD, "unit")), newline="\n", indent="  ")
+        self.assertIn("\n  <description>", exported)
+        self.assertNotIn("\r", exported)
+
+    def test_a_number_is_written_the_way_the_source_spelled_it(self) -> None:
+        document = xml_parse("<squad><description><weight>020000</weight></description></squad>", "unit")
+        exported = toml_to_xml(xml_to_toml(document))
+        self.assertIn("<weight>020000</weight>", exported)
+
+
 class EdgeCaseTest(unittest.TestCase):
     def test_unknown_element_is_kept_and_warned(self) -> None:
         document = xml_parse("<squad><mystery>7</mystery></squad>", "unit")
