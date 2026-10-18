@@ -420,10 +420,17 @@ this way goes through `core.mcp.tools`, which sets `actor=mcp` on the same journ
 write uses, so a page writes nothing the command line could not write.
 
 The panel can also open a second socket (`core/web/mcp_listener.py`) for clients that speak MCP
-over HTTP rather than over stdio. The listener is off until the form opens it, binds exactly one
-host and port in this process — `127.0.0.1` for this machine alone, `0.0.0.0` for the local
-network — and carries a token of its own, generated when it is opened, which is what the page
-prints for the client to send as `X-Ff-Token`. Beside the address it lists the ones a client can
+over HTTP rather than over stdio. The listener is off until the form opens it. The form names one
+of three reach options: `在本地开放` binds `127.0.0.1`, `在内网开放` binds `0.0.0.0`, and
+`在公网开放` binds `0.0.0.0` and asks the router to forward that port to this machine, through
+NAT-PMP first and UPnP next (`core/web/nat.py`). The request runs while the page is being served,
+so the page says it is in flight and the next load reports the outcome: a failure gives the reason
+and states that the local and private addresses still answer, a success adds the public address to
+the copies and reports what the router mapped — source, gateway, external address and lifetime —
+then compares the router's external address with the one an outside service reads, so a machine
+behind two layers of NAT is described as such rather than promised an address that does not work.
+Closing the listener drops the mapping it opened. It carries a token of its own, generated when it
+is opened, which is what the page prints for the client to send as `X-Ff-Token`. Beside the address it lists the ones a client can
 dial — the private address of this machine or the local network, and the public one read from an
 outside service when the machine is online — and gives a box that copies just `ip:port` for each;
 a public address that cannot be read is reported as such, with a link that asks again. Opening it

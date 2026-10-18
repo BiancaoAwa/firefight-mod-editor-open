@@ -2083,7 +2083,7 @@ class WebTestCase(unittest.TestCase):
         self.assertIn("再查一次", page)
 
     def test_the_listener_offers_only_addresses_a_client_can_dial(self) -> None:
-        """A remote client cannot dial the loopback address, so it is not one of the offers."""
+        """The loopback is offered last: this machine reaches it, a remote client does not."""
         probe = mock.MagicMock()
         probe.getsockname.return_value = ("192.168.1.5", 51000)
         with mock.patch.object(mcp_listener.socket, "socket", return_value=probe), mock.patch.object(
@@ -2143,7 +2143,7 @@ class WebTestCase(unittest.TestCase):
         status, body = self.status_of(self.no_redirect(),
                                       f"{self.base}/mcpstart?host=everywhere&port={self.free_port()}")
         self.assertEqual(status, 400)
-        self.assertIn("local、lan 或一个 IP 地址", body)
+        self.assertIn("local、lan、public 或一个 IP 地址", body)
         self.assertEqual(self.app.mcp.state(), {})
 
     def test_the_listener_opens_on_the_loopback_it_was_given(self) -> None:
@@ -2159,6 +2159,68 @@ class WebTestCase(unittest.TestCase):
         finally:
             if self.app.mcp.running():
                 self.app.mcp.stop()
+
+    def test_the_panel_offers_the_three_reach_options(self) -> None:
+        status, page = self.fetch("/mcp")
+        self.assertEqual(status, 200, page[:400])
+        self.assertIn("开放范围", page)
+        for value, label in (("local", "在本地开放"), ("lan", "在内网开放"), ("public", "在公网开放")):
+            self.assertIn(f'type="radio" name="host" value="{value}"', page)
+            self.assertIn(label, page)
+
+    def test_a_public_open_reports_what_the_router_did(self) -> None:
+        port = self.free_port()
+        mapped = {
+            "mapped": True,
+            "source": "UPnP",
+            "external": "203.0.113.9",
+            "gateway": "192.168.0.1",
+            "port": port,
+            "lifetime": 7200,
+        }
+        with mock.patch.object(mcp_listener.nat, "public_open", return_value=mapped), mock.patch.object(
+            mcp_listener.McpService, "_probe_public", lambda service: None
+        ):
+            status, _ = self.status_of(self.no_redirect(), f"{self.base}/mcpstart?host=public&port={port}")
+            self.assertEqual(status, 302)
+            self.app.mcp._public = "203.0.113.9"
+            self.app.mcp._public_checked = True
+            try:
+                for _ in range(60):
+                    if not self.app.mcp.state().get("mapping", {}).get("pending"):
+                        break
+                    time.sleep(0.05)
+                status, page = self.fetch("/mcp")
+            finally:
+                self.app.mcp.stop()
+        self.assertEqual(status, 200, page[:400])
+        self.assertIn("映射来源", page)
+        self.assertIn("UPnP", page)
+        self.assertIn("192.168.0.1", page)
+        self.assertIn("203.0.113.9", page)
+        self.assertIn("公网可从", page)
+        self.assertNotIn("多层 NAT", page)
+
+    def test_a_public_open_that_failed_says_the_other_addresses_still_work(self) -> None:
+        port = self.free_port()
+        failed = {"mapped": False, "reason": "the router did not answer"}
+        with mock.patch.object(mcp_listener.nat, "public_open", return_value=failed), mock.patch.object(
+            mcp_listener.McpService, "_probe_public", lambda service: None
+        ):
+            status, _ = self.status_of(self.no_redirect(), f"{self.base}/mcpstart?host=public&port={port}")
+            self.assertEqual(status, 302)
+            try:
+                for _ in range(60):
+                    if not self.app.mcp.state().get("mapping", {}).get("pending"):
+                        break
+                    time.sleep(0.05)
+                status, page = self.fetch("/mcp")
+            finally:
+                self.app.mcp.stop()
+        self.assertEqual(status, 200, page[:400])
+        self.assertIn("端口映射没有做成", page)
+        self.assertIn("the router did not answer", page)
+        self.assertIn("本机与内网仍可访问", page)
 
     # --- the status bar and the bottom pane ---------------------------------
 

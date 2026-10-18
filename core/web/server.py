@@ -898,6 +898,17 @@ def checkbox(name: str, label: str, checked: bool, value: str = "1") -> str:
     return f'<label><input type="checkbox" name="{att(name)}" value="{att(value)}"{mark}> {esc(label)}</label>'
 
 
+def radios(name: str, label: str, options: list[tuple[str, str]], selected: str = "") -> str:
+    """A labelled set of radio buttons; the option whose value matches is the one chosen."""
+    parts = [f'<span class="label">{esc(label)}</span>']
+    for value, text in options:
+        mark = " checked" if value == selected else ""
+        parts.append(
+            f'<label class="radio"><input type="radio" name="{att(name)}" value="{att(value)}"{mark}> {esc(text)}</label>'
+        )
+    return " ".join(parts)
+
+
 def select_field(name: str, label: str, options: list[tuple[str, str]], selected: str = "") -> str:
     """A labelled drop-down; options are (value, label) pairs."""
     items = "".join(
@@ -3306,26 +3317,35 @@ class Handler(BaseHTTPRequestHandler):
                 public = self.app.mcp.refresh_public()
                 state["public"] = public
                 state["public_checked"] = True
+            mapping = state.get("mapping") or None
+            external = mapping.get("external") if mapping else None
+            mapped = bool(mapping and mapping.get("mapped") and external)
             body += h3(tr("对外地址"))
             pooled = [
                 (tr("本机") if "//127." in address or address.startswith("127.") else tr("内网"), mono(address))
                 for address in state.get("addresses") or []
             ]
-            if public:
+            if mapped:
+                pooled.insert(0, (tr("公网"), mono(f"http://{external}:{state['port']}/")))
+            elif public:
                 pooled.append((tr("公网"), mono(f"http://{public}:{state['port']}/")))
             body += kv(pooled)
             body += h3(tr("直接复制"))
             boxes = [copy_box(address.split("://", 1)[-1].rstrip("/")) for address in state.get("addresses") or []]
-            if public:
+            if mapped:
+                boxes.insert(0, copy_box(f"{external}:{state['port']}"))
+            elif public:
                 boxes.append(copy_box(f"{public}:{state['port']}"))
             body += note_html(" ".join(boxes))
+            if state.get("host") == "public":
+                body += self.mapping_report(mapping, external, public, state["port"])
             if not public:
                 if state.get("public_checked"):
                     body += note_html(tr("公网地址没有查到：本机连不上外网，或查询服务没有回应。") + " " + link(url("mcp", public="1"), tr("再查一次")))
                 else:
                     body += note(tr("公网地址正在后台查询，刷新本页看结果。"))
-            body += note(tr("内网地址在同一局域网的机器上可用；公网地址是路由器对外的地址，需要在路由器上把端口映射到本机，运营商大内网下可能连不上。令牌仍然是唯一的门。"))
             rows = [
+                (tr("开放范围"), self.open_mode_text(state.get("host"))),
                 (tr("地址"), mono(state["url"])),
                 (tr("绑定"), mono(f"{state['bind']}:{state['port']}")),
                 (tr("令牌"), mono(state["token"])),
@@ -3346,14 +3366,46 @@ class Handler(BaseHTTPRequestHandler):
         body += form(
             url("mcpstart"),
             [
-                text_field("host", tr("监听地址"), query.get("host", "local"), 24),
+                radios("host", tr("开放范围"), [
+                    ("local", tr("在本地开放")),
+                    ("lan", tr("在内网开放")),
+                    ("public", tr("在公网开放")),
+                ], query.get("host", "local")),
                 text_field("port", tr("端口"), query.get("port", str(mcp_listener.DEFAULT_PORT)), 8),
                 checkbox("write", tr("允许写入（默认只读）"), False),
             ],
             tr("打开监听"),
         )
-        body += note(tr("监听地址填 local（127.0.0.1，仅本机）、lan（0.0.0.0，所有接口），或这台机器上某个 IP。打开后页面列出内网地址，并到外部服务查询公网地址，都给出可直接复制的 ip:端口。"))
+        body += note(tr("在本地开放只有本机连得上；在内网开放让同一局域网的机器连得上；在公网开放再向路由器申请一条端口映射，先试 NAT-PMP，再试 UPnP，都不成时只开内网并显示原因。"))
         body += note(tr("默认只读：不带写入开关时，写入类工具与不带 --write 的命令行服务器一样不会被登记。"))
+        return body
+
+    def open_mode_text(self, host: str | None) -> str:
+        """The wording of one open mode, in the language of the request."""
+        if host == "public":
+            return tr("在公网开放")
+        if host == "lan":
+            return tr("在内网开放")
+        return tr("在本地开放")
+
+    def mapping_report(self, mapping: dict | None, external: str | None, public: str | None, port: int) -> str:
+        """What the router answered, and whether the public side can actually be reached."""
+        if not mapping or mapping.get("pending"):
+            return note(tr("正在向路由器申请端口映射，刷新本页看结果。"))
+        if not mapping.get("mapped"):
+            return note(tr("端口映射没有做成：{}。本机与内网仍可访问。", mapping.get("reason") or tr("路由器没有回应")))
+        rows = [
+            (tr("映射来源"), mono(str(mapping.get("source") or ""))),
+            (tr("路由器"), mono(str(mapping.get("gateway") or ""))),
+            (tr("外部地址"), mono(f"{external}:{port}")),
+        ]
+        if mapping.get("lifetime"):
+            rows.append((tr("有效期"), mono(f"{mapping['lifetime']} " + tr("秒"))))
+        body = kv(rows)
+        if public and external and public != external:
+            body += note(tr("路由器报告的外网地址是 {}，本机出口地址是 {}：这台机器在多层 NAT 后面，映射只到上一层，公网多半连不上。", external, public))
+        elif public:
+            body += note(tr("路由器报告的外网地址与本机出口地址一致；若是这样，公网可从 {}:{} 进入，除非路由器另有防火墙。", public, port))
         return body
 
     def mcp_control(self, route: str, query: dict[str, str]) -> None:

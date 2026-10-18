@@ -40,6 +40,7 @@ flowchart TD
         W1["core/web/server.py<br/>路由、各页面、写入路径"]
         W2["core/web/tables.py<br/>/equipment 背后的纯文本表编辑器"]
         W3["core/web/mcp_listener.py<br/>MCP over HTTP，其令牌与绑定地址"]
+W5["core/web/nat.py<br/>公网开放背后的 NAT-PMP 与 UPnP 端口映射"]
         W4["core/web/i18n.py<br/>页面模板与中文对照表"]
     end
 
@@ -76,6 +77,7 @@ flowchart TD
     D3 --> W1
     W1 --> W2
     W1 --> W3
+W3 --> W5
     W1 --> W4
     C1 --> F1
 ```
@@ -114,6 +116,7 @@ flowchart TD
 | `core/web/` | 页面、运行实例记录、语言表 |
 | `core/web/server.py` | 路由、各页面，以及表单背后的写入路径 |
 | `core/web/mcp_listener.py` | 可选的 MCP over HTTP 套接字、其令牌与绑定地址 |
+| `core/web/nat.py` | 向路由器申请端口的 NAT-PMP 与 UPnP 请求 |
 | `core/web/tables.py` | `/equipment` 页面用的纯文本表编辑器 |
 | `core/web/i18n.py` | 英文模板与中文对照表 |
 | `docs/` | 说明文档与架构文档，中英各一份 |

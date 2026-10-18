@@ -41,6 +41,7 @@ flowchart TD
         W1["core/web/server.py<br/>the routes, the pages, the write path"]
         W2["core/web/tables.py<br/>the plain-text table editor behind /equipment"]
         W3["core/web/mcp_listener.py<br/>MCP over HTTP, its token and its bound address"]
+W5["core/web/nat.py<br/>the NAT-PMP and UPnP port mapping behind the public option"]
         W4["core/web/i18n.py<br/>the page templates and the Chinese table"]
     end
 
@@ -77,6 +78,7 @@ flowchart TD
     D3 --> W1
     W1 --> W2
     W1 --> W3
+W3 --> W5
     W1 --> W4
     C1 --> F1
 ```
@@ -116,6 +118,7 @@ stores the old and new blobs under `EditorCache/baseline/`, and appends one reco
 | `core/web/` | the pages, the instance record, the language table |
 | `core/web/server.py` | the routes, the pages and the write path behind a form |
 | `core/web/mcp_listener.py` | the optional MCP-over-HTTP socket, its token and its bound address |
+| `core/web/nat.py` | the NAT-PMP and UPnP requests that open a port on the router |
 | `core/web/tables.py` | the plain-text table editor the `/equipment` page runs |
 | `core/web/i18n.py` | the English templates and the Chinese table |
 | `docs/` | usage and architecture documents, each in English and Chinese |
