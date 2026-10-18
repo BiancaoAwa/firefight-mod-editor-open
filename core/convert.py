@@ -26,8 +26,21 @@ def xml_to_toml(doc: XmlDocument, schema: Schema | None = None) -> TomlTable:
     return root
 
 
-def toml_to_xml(table: TomlTable, schema: Schema | None = None, origin: str = "<export>", warnings: list[str] | None = None) -> str:
-    """Render a TOML document back to stock-standard XML (tabs, CRLF)."""
+def toml_to_xml(
+    table: TomlTable,
+    schema: Schema | None = None,
+    origin: str = "<export>",
+    warnings: list[str] | None = None,
+    newline: str = "\r\n",
+    indent: str = INDENT,
+) -> str:
+    """Render a TOML document back to stock-standard XML (tabs, CRLF).
+
+    The shape follows the shipped corpus (docs/toml-mapping.md section 5): no declaration
+    line, tab indentation, one element per line, an empty element written as
+    ``<tag></tag>`` rather than ``<tag/>``, and leaf text written as it stands, so a bare
+    ``&`` stays a bare ``&`` the way 16 shipped files carry it.
+    """
     if len(table.entries) != 1 or not isinstance(table.entries[0][1], TomlTable):
         raise SchemaError((), f"{origin}: expected exactly one top-level table")
     tag, body = table.entries[0]
@@ -39,8 +52,8 @@ def toml_to_xml(table: TomlTable, schema: Schema | None = None, origin: str = "<
     sink = warnings if warnings is not None else []
     element = _table_element(tag, body, node, (tag,), sink)
     lines: list[str] = []
-    _render(element, 0, lines)
-    return "\r\n".join(lines) + "\r\n"
+    _render(element, 0, lines, indent)
+    return newline.join(lines) + newline
 
 
 def _child_node(node: Node | None, name: str) -> Node | None:
@@ -146,14 +159,14 @@ def _leaf_text(value: TomlValue) -> str:
     return value.raw
 
 
-def _render(element: XmlElement, depth: int, lines: list[str]) -> None:
-    prefix = INDENT * depth
+def _render(element: XmlElement, depth: int, lines: list[str], indent: str = INDENT) -> None:
+    prefix = indent * depth
     if not element.children:
         lines.append(f"{prefix}<{element.tag}>{element.value}</{element.tag}>")
         return
     lines.append(f"{prefix}<{element.tag}>")
     for child in element.children:
-        _render(child, depth + 1, lines)
+        _render(child, depth + 1, lines, indent)
     lines.append(f"{prefix}</{element.tag}>")
 
 
@@ -180,13 +193,14 @@ def tree_to_xml(
 
 def _render_tree(element: XmlElement, depth: int, parts: list[str], newline: str, indent: str) -> None:
     parts.append(element.prefix if element.prefix is not None else (newline + indent * depth if depth else ""))
+    opening = element.raw_tag or element.tag
     if element.self_closing and not element.children:
-        parts.append(f"<{element.tag}/>")
+        parts.append(f"<{opening}/>")
         return
     if not element.children:
-        parts.append(f"<{element.tag}>{element.text()}</{element.tag}>")
+        parts.append(f"<{opening}>{element.text()}</{element.tag}>")
         return
-    parts.append(f"<{element.tag}>")
+    parts.append(f"<{opening}>")
     for child in element.children:
         _render_tree(child, depth + 1, parts, newline, indent)
     parts.append(element.suffix if element.suffix is not None else newline + indent * depth)

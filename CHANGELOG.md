@@ -4,6 +4,12 @@
 
 ### Added
 
+* The canonical XML form now follows the shipped corpus: `convert.toml_to_xml` takes
+  `newline` and `indent` (CRLF and tabs by default), writes no declaration line, writes an
+  empty element as `<tag></tag>`, and never writes a self-closing tag, a start-tag attribute
+  or an escaped `&`. A start tag carrying attributes and a `<![CDATA[...]]>` block are now
+  read instead of skipped; both keep their bytes on export and warn that the TOML view does
+  not carry them (docs/toml-mapping.md section 5.1).
 * The `/help` page carries a command index: every command the CLI knows, with
   one line of purpose taken from that command's own docstring, so a command
   added to the CLI shows up without a second list to edit.
