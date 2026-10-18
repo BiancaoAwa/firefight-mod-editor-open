@@ -29,7 +29,7 @@
 | `image` | `uniform_ranks` | 任意 | `Images/` 下按文件名或主干名匹配 |
 | `image` | `image` | 任意 | `Images/` 下按文件名或主干名匹配 |
 | `uniform` | `uniform` | 任意 | 目录 `Images/Uniforms/uniform_<值>/` |
-| `engine_sound` | `sound` | 任意 | 别名表，见 §4 |
+| `engine_sound` | `sound` | 任意 | 别名表，见 §3 |
 | `roster` | （单位清单的一行） | — | `Data/` 各单位文件夹下按主干名匹配的文档 |
 
 有一类引用不来自叶子标签。单位清单——工程在 `mod.txt` 或 `ModSetting.toml` 里声明的装备表——每行一条，
@@ -63,35 +63,13 @@
   武器文件夹刻意不在其中：武器由使用它的文档引入，任何清单条目都不可能指它。文件夹列表由调用方传入，
   使 `core/cli/commands.py` 保持为唯一声明类别的地方。
 
-## 3. 实测覆盖
-
-对 Firefight 13.2.0.0 的原版 `Data/` 树本地运行（与数据内核建模的同一批 1792 个文件；不含 `equipment_*.txt` 与
-`Surnames/`）：
-
-| 类别 | 引用数 | 不同目标数 | 未解析 |
-| --- | --- | --- | --- |
-| `weapon` | 19456 | 420 | 2 |
-| `sound` | 954 | 16 | 0 |
-| `image` | 2492 | 1772 | 0 |
-| `uniform` | 1017 | 86 | 0 |
-| `engine_sound` | 59 | 1 | 0 |
-| 合计 | 23978 | 2295 | 2 |
-
-那两条未解析引用是原版数据自身的缺陷，不是规则缺失：`Data/Vehicles/Hungarian-TK3.txt` 与
-`Data/Vehicles/Hungarian-TKS.txt` 在 `squad/vehicle/hull/man/ammo/for` 里写了 `WEAPON_PISTOL_WZ_35_VIS`，
-而 `Data/Weapons/` 下没有任何文件匹配 `*WZ_35*`。
-
-反向计数只是合理性检查，不是结论：716 个武器文档中有 297 个从未被 `type` 或 `for` 槽位引用，因为武器也会从装备
-列表到达；2172 个 `.ogg` 文件中有 2155 个不被这些标签引用，因为其他系统也会播放声音。这两个数字都不代表资源
-未被使用。
-
-## 4. 飞行器的 `<sound>` 是令牌
+## 3. 飞行器的 `<sound>` 是令牌
 
 `Data/Aircraft/*.txt` 里只有一个不同的值 `<sound>SOUND_PROPELLER</sound>`，而
 `Sounds/SOUND_PROPELLER.ogg` 并不存在，实际文件是 `Sounds/Engines/plane_propeller.ogg`。因此该标签是符号令牌
 而不是文件主干名，`ENGINE_SOUND_ALIASES` 保存了目前观察到的这一条映射。表外的令牌保持未解析，不做猜测。
 
-## 5. API
+## 4. API
 
 ```python
 RefRule(kind, field, parent=None, skip_document_root=False)
@@ -112,9 +90,9 @@ unresolved(graph, index, kind=None) -> tuple[Reference, ...]
 summary(graph, index) -> dict[kind, {"references", "targets", "unresolved"}]
 ```
 
-## 6. 本部分未做
+## 5. 本部分未做
 
-* 没有跨作用域查找（模组工程引用原版数据），没有工作区注册表：两者随命令行作用域一起到来。
+* 引用图在一个根内解析。`check against=` 把工程没有持有的引用拿到第二个根下回答——目录、另一个作用域或 `stock`——这段在 `core/cli/commands.py` 里，不在本模块（docs/cli.zh-CN.md §6）；`refs` 与 `deps` 仍是单根，也没有工作区注册表。
 * 没有严重级别模型，也没有报告渲染：`unresolved` 只返回引用；判断一条悬空引用是错误、警告还是有意覆盖由检查器
   负责。
 * 比较是精确的，仅在 §2 所述之处折叠大小写；不支持通配或模式目标。

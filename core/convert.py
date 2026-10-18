@@ -72,7 +72,7 @@ def _grouped_children(element: XmlElement, node: Node | None = None) -> list[str
     """Return tags in source order: first appearance wins, same tag stays grouped.
 
     The schema no longer decides sibling order, because that reordered 1792 of
-    1840 shipped files on export (docs/toml-mapping.md section 5).  Same-named
+    1840 shipped files on export (docs/toml-mapping.md section 4).  Same-named
     siblings stay together, as the TOML mapping requires.
     """
     names: list[str] = []

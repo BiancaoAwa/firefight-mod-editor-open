@@ -212,6 +212,27 @@ class UndoTest(unittest.TestCase):
         self.assertEqual((payload["total"], payload["shown"]), (2, 1))
         self.assertEqual(payload["events"][0]["document"], "Data/Infantry/DEMO_SQUAD.toml")
 
+    def test_log_pending_lists_what_undo_would_reach(self) -> None:
+        """`pending=1` names the applied changes newest first and writes nothing."""
+        self.set_field("Data/Weapons/WEAPON_DEMO.txt", "name", "First")
+        self.set_field("Data/Infantry/DEMO_SQUAD.toml", "description.quality", "QUALITY_ELITE")
+        revision = {path: path.read_bytes() for path in PROJECT.rglob("*") if path.is_file()}
+        code, payload, err = run_json("Mod", "log", "pending=1", cwd=PROJECT)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["count"], 2)
+        self.assertEqual(
+            [item["document"] for item in payload["pending"]],
+            ["Data/Infantry/DEMO_SQUAD.toml", "Data/Weapons/WEAPON_DEMO.txt"],
+        )
+        self.assertFalse(
+            [path for path in PROJECT.rglob("*") if path.is_file() and path.read_bytes() != revision.get(path)],
+            "pending changed a file",
+        )
+        code, payload, err = run_json("Mod", "log", "pending=1", "1", cwd=PROJECT)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["pending"][0]["document"], "Data/Infantry/DEMO_SQUAD.toml")
+
     def test_log_reads_a_project_without_a_log(self) -> None:
         code, out, err = run("Mod", "log", cwd=PROJECT)
         self.assertEqual((code, err), (0, ""))

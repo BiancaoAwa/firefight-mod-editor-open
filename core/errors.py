@@ -1,7 +1,24 @@
 """Exception types that carry file and position context.
 
-Only unrecoverable conditions raise; recoverable ones become warnings (docs/m1-design.md section 3.9).
+Only unrecoverable conditions raise; recoverable ones become warnings (docs/toml-mapping.md).
+
+How an error is presented is a table, not a decision spread over the faces: the
+exit code the command line returns and the status and title the pages show come
+from ``RULES`` below. A new error type needs its class and, when it is presented
+differently, one rule; neither the command line nor the pages need editing.
 """
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ErrorRule:
+    """How one kind of error looks outside the code that raised it."""
+
+    exit_code: int
+    http_status: int
+    title: str
+    usage_hint: bool = False
 
 
 class FfError(Exception):
@@ -59,3 +76,30 @@ class ExportEncodingError(FfError):
         self.file = file
         self.value = value
         super().__init__(f"{file}: value is not encodable as cp1252: {value!r}")
+
+
+RULES: tuple[tuple[object, ErrorRule], ...] = (
+    # UsageError is defined next to the scope resolver; it is resolved lazily
+    # in rule_for so this module keeps no import of core.cli.
+    ("UsageError", ErrorRule(exit_code=2, http_status=400, title="用法错误", usage_hint=True)),
+    (FfError, ErrorRule(exit_code=1, http_status=500, title="读取失败")),
+)
+
+FALLBACK = ErrorRule(exit_code=1, http_status=500, title="内部错误")
+
+
+def rule_for(error: BaseException) -> ErrorRule:
+    """The rule that governs how this exception is presented."""
+    for kind, rule in RULES:
+        resolved = _resolve(kind) if isinstance(kind, str) else kind
+        if resolved is not None and isinstance(error, resolved):
+            return rule
+    return FALLBACK
+
+
+def _resolve(name: str) -> type[BaseException] | None:
+    if name != "UsageError":
+        return None
+    from core.cli.scope import UsageError
+
+    return UsageError

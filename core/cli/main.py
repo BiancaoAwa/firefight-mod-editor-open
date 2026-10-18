@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.errors import FfError
+from core.errors import FfError, rule_for
 
 from core.cli.commands import VERSION, Context, Result, command_names, run_command
 from core.cli.scope import UsageError, init_scope, resolve_all, resolve_scope, split_spec
@@ -20,43 +20,7 @@ Scopes
   Firefight        stock game data, or root=<dir>
   <name>           another mod folder under the workspace Mod/
 
-Commands
-  list   (ls)      entities with category, format and size
-  show   (cat)     one entity as stored, or as=raw|toml|xml
-  get              field values from a document path or field=<a.b.c>
-  find   (grep)    search tag=<name>, value=<text> or path=<a/b>
-  stats            counts by category, root element and format
-  refs   (graph)   outgoing references of the selection
-  deps             incoming references of value=<token>
-  check  (lint)    load every entity, report errors, warnings and dangling references
-  schema           list the declared fields of one root element, or enum=<name>
-  roster           read the rosters the project declares, edit one entry, or check both
-                   directions between the entries and the documents (docs/cli.md section 4.14)
-  index            build the cross-reference tables under EditorCache/ (needs --write)
-  init             create a project: ModInformation.toml and an empty Data/ (needs --write)
-  import           create a project from a mod that already exists, directory or zip (needs --write)
-  add              create one entity document (needs --write)
-  clone            copy one entity document under a new token (needs --write)
-  remove  (rm)     delete one entity document (needs --write)
-  settings         translate between the stock mod.txt and ModSetting.toml (needs --write)
-  set              change one field of one document (needs --write)
-  batch            apply the edits of a patch file to many documents (needs --write)
-  convert          turn the selection into project working files under to= (needs --write)
-  log              log segments and the newest records inside them
-  undo             put back what the last writes replaced (needs --write)
-  redo             re-apply what the last undo reverted (needs --write)
-  export (emit)    render stock XML under to=<directory>
-  pack             build the installable mod-zip (needs --write)
-  diff             compare two documents, or two trees lined up by entity path
-  verify           read every selected document back and report what does not survive
-  build            index, check and pack in one run (needs to= and --write)
-  audit            verify every document, then check with both gates on
-  adopt            import a tree or a zip as a project, then index it
-  unpack           write the project back out as the original XML and text
-  run              run the steps a TOML file lists, in order
-  version          editor, interpreter and resolvable scopes
-  web    (serve)   serve the web UI on 127.0.0.1 (blocks until Ctrl-C)
-
+__COMMANDS__
 Options
   root=<dir>       scope root override
   workspace=<dir>  directory holding Mod/ (default: current directory)
@@ -106,14 +70,47 @@ Options
   pagesize=<n>     web UI rows per page (default 200)
   lang=zh|en       web UI language (default zh); a page can override it with ?lang=
   browser=1        web UI: open the default browser on start
-  --write          set, batch, add, remove, convert, index, init, import, settings, pack,
-                   undo and redo: write the change
-  --dry-run        set, batch, add, remove, convert, export, index, init, import, settings,
-                   pack, undo and redo: report it
+  --write          __WRITERS__: write the change
+  --dry-run        __WRITERS__: report it
   --json           print the machine payload instead of the text table
 """
 
 BARE_FLAGS = {"--write": "write", "--dry-run": "dry-run"}
+
+
+def _command_block() -> str:
+    """The command list, grouped by the category the registry records."""
+    from core import registry
+
+    lines = []
+    grouped = registry.by_category()
+    for category in registry.CATEGORIES:
+        members = grouped[category]
+        if not members:
+            continue
+        label = registry.CATEGORY_LABELS[category]
+        mark = " *" if any(member.writes for member in members) else ""
+        lines.append(f"  {label}{mark}")
+        for member in members:
+            names = member.name + (f"   ({', '.join(member.aliases)})" if member.aliases else "")
+            lines.append(f"    {names:<22}{member.summary}")
+    lines.append("")
+    lines.append("  * needs --write")
+    return "Commands\n" + "\n".join(lines) + "\n"
+
+
+USAGE = USAGE.replace("__COMMANDS__", _command_block()).replace("\n\n\n", "\n\n")
+
+
+def _writer_names() -> str:
+    """The commands that take --write, from the registry."""
+    from core import registry
+
+    names = [member.name for member in registry.commands() if member.writes]
+    return ", ".join(names[:-1]) + " and " + names[-1] if names else "no command"
+
+
+USAGE = USAGE.replace("__WRITERS__", _writer_names())
 
 
 @dataclass
@@ -183,13 +180,12 @@ def main(argv: list[str] | None = None) -> int:
         result = run_command(command, context)
         _emit(_render(result, invocation.json))
         return result.code
-    except UsageError as error:
+    except (UsageError, FfError) as error:
+        rule = rule_for(error)
         _emit(str(error), stream=sys.stderr)
-        _emit("run 'python -m core.cli help' for usage", stream=sys.stderr)
-        return 2
-    except FfError as error:
-        _emit(str(error), stream=sys.stderr)
-        return 1
+        if rule.usage_hint:
+            _emit("run 'python -m core.cli help' for usage", stream=sys.stderr)
+        return rule.exit_code
     except KeyboardInterrupt:
         return 130
 

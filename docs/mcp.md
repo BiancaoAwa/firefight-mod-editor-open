@@ -5,8 +5,7 @@
 This document specifies the MCP server that ships inside the editor repository. It describes the delivery
 surfaces and how they overlap (§1), the transport and protocol revisions the server answers (§2), the tool
 surface and its single source of truth (§3), resources and prompts (§4), permissions (§5), error mapping
-(§6), entry point and client wiring (§7), how the server is tested (§8), and what it deliberately does not
-do (§9). The server lands in implementation pull requests of its own.
+(§6), entry point and client wiring (§7), and what it deliberately does not do (§8).
 
 ## 1. Delivery surfaces and their boundaries
 
@@ -44,7 +43,7 @@ request:
 Implemented subset: `tools`, `resources` and `prompts`. Not implemented, and reported as
 method-not-found rather than silently ignored: Streamable HTTP and SSE transports, OAuth or any other
 authentication, `sampling`, `roots` and `logging` (deprecated upstream), tasks, and
-`subscriptions/listen`. The accepted revision of any real client is a measured fact, recorded in §8.
+`subscriptions/listen`.
 
 ## 3. Tool surface and the single source of truth
 
@@ -60,6 +59,7 @@ the table below lists the names this server answers to.
 | `mcp_ff_get` | `scope`, `selector`, `field`, `root`, `workspace` | no | always |
 | `mcp_ff_find` | `scope`, `selector`, `tag`, `value`, `path`, `ignoreCase`, `limit`, `root`, `workspace` | no | always |
 | `mcp_ff_stats` | `scope`, `selector`, `root`, `workspace` | no | always |
+| `mcp_ff_log` | `scope`, `document`, `actor`, `limit`, `root`, `workspace` | no | always |
 | `mcp_ff_refs` | `scope`, `selector`, `kind`, `root`, `workspace` | no | always |
 | `mcp_ff_deps` | `scope`, `value`, `kind`, `root`, `workspace` | no | always |
 | `mcp_ff_check` | `scope`, `selector`, `assets`, `rosters`, `against`, `limit`, `root`, `workspace` | no | always |
@@ -114,9 +114,10 @@ names, parameter names and required-ness equal the plugin table, and that read-o
 exposes no write tool. The plugin is updated in one batch once the editing features settle, so
 its table lags behind this one on purpose: the test names the tools it is still missing, and
 every name it does carry must match. Cross-repository consistency is enforced by that test plus
-this document; no shared build is introduced. Feeding the CLI help and the web UI from the same
-table is later work: the command line lists commands, not tools, and the web UI builds a form
-per command.
+this document; no shared build is introduced. The command registry, `core/registry.py`, feeds the
+CLI help and the web writing forms; the MCP tool table stays a separate specification, because a
+tool names its parameters while a command names its options, and the plugin mirrors the tool table
+rather than the registry.
 
 ## 4. Resources and prompts
 
@@ -158,17 +159,16 @@ working directory cannot resolve — the stock installation, typically — must 
 | Unknown method or unknown tool name | `-32601` method not found |
 | Missing or invalid parameter, resource not found | `-32602` invalid params (2026-07-28 moved resource-not-found here from `-32002`) |
 | Unexpected server fault | `-32603` internal error |
+| A line that is not JSON at all | `-32700` parse error |
 | Write refused by the permission gate or by the scope rule | `-32000` |
-| `EditorCache/lock` held by another writer | `-32001` |
-| Document changed on disk after staging | `-32003` |
-| Value not representable in the document encoding | `-32004` |
-| Value rejected by the schema | `-32005` |
 
 `-32000`–`-32019` are reserved for implementation-defined codes; `-32020`–`-32099` are specification
-codes and are not reused. The four codes for write refusals — `-32001` lock held, `-32003` document
-changed after staging, `-32004` value not representable, `-32005` value rejected by the schema — are
-implemented together with the writing tools, which are the only calls that raise them; `-32000` is
-implemented already, because the scope rule applies to `mcp_ff_export` too.
+codes and are not reused. Only `-32000` is raised today: the scope rule applies to `mcp_ff_export`
+too, while a write the permission gate or the journal refuses arrives as a tool-level failure,
+because the command runs in process and reports the CLI exit code. The four codes for write
+refusals — `-32001` lock held, `-32003` document changed after staging, `-32004` value not
+representable, `-32005` value rejected by the schema — are reserved but not raised yet; a future
+change that answers them instead of the tool-level failure keeps the numbers free.
 Errors raised by a command itself (a dangling reference, a syntax error) are
 tool-level failures: the result carries `isError: true` and the payload keeps the CLI shape, including the
 exit code (`0` success, `1` command failure, `2` usage refusal). The protocol channel and the tool channel
@@ -190,33 +190,7 @@ problem".
 * Generic clients take the same three values in their own configuration block: command, working directory
   and arguments. No network listener, port or token is involved.
 
-## 8. Tests and verification
-
-1. **Transcript tests.** The suite starts the server as a subprocess, writes a scripted request sequence to
-   its stdin and asserts the stdout lines: the classic handshake with `notifications/initialized` in between,
-   the stateless `server/discover` family, `tools/list`, one read-only tool call, one refused write, one
-   malformed line and one unsupported protocol version.
-2. **Snapshot test.** `tools/list` names, parameter names and required-ness equal
-   `dsh-firefight-mod-tools` `lib/specs.js`; the tool-name set is asserted exactly in the editor repository
-   too, so a rename in either repository fails the test. The cross-repository half is skipped when that
-   checkout is not reachable (point `FIREFIGHT_PLUGIN_SPECS` at its `lib/specs.js`).
-3. **Read-only mode.** No write tool appears in `tools/list`, and a direct write call is refused as an
-   unknown tool.
-4. **Fail-closed.** A refused write leaves the file, the lock directory and the event log untouched. The
-   case is verified for `mcp_ff_export` today, which leaves the stock scope and its destination untouched. The
-   lock and the event log are exercised through the CLI suite, where `tests/test_set.py`,
-   `tests/test_undo.py`, `tests/test_documents.py` and `tests/test_entries.py` drive the same guards the
-   write tools reach; no MCP case asserts them directly yet.
-5. **Live client check.** One manual session against a real MCP client, recording which protocol revision
-   was accepted and the exact startup configuration. The result is appended to this section once that
-   session runs; until then the accepted revision is unverified.
-
-Verified in the editor repository: 18 MCP cases (`tests/test_mcp.py`) covering the two protocol families,
-the exact tool surface, `--write` registration, the stock-scope refusal, the tool-level failure shape
-with the CLI exit code, resources, prompts, the command line and the plugin snapshot (the cross-repository
-half runs against `ffplugin/lib/specs.js` when that checkout is reachable).
-
-## 9. Non-goals
+## 8. Non-goals
 
 * No HTTP listener, SSE transport, port or token; no remote access.
 * No authentication or authorisation layer beyond the `--write` gate.

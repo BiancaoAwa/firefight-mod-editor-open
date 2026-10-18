@@ -283,6 +283,23 @@ TOOLS: tuple[ToolSpec, ...] = (
         ),
     ),
     ToolSpec(
+        name="ff_log",
+        command="log",
+        description=(
+            "List the log segments of one project and the newest records inside them, with the "
+            "fields, actor and result of each write. Use it to see what changed and which records "
+            "an undo would reach."
+        ),
+        parameters=(
+            SCOPE,
+            Parameter("document", "string", "Only the records of this document path.", target="document"),
+            Parameter("actor", "string", "Only the records written by this actor, for example web or cli.", target="actor"),
+            LIMIT,
+            ROOT,
+            WORKSPACE,
+        ),
+    ),
+    ToolSpec(
         name="ff_refs",
         command="refs",
         description="List the outgoing references of one entity or folder: which tokens it points at, with the document path of each reference.",
