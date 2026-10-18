@@ -12,6 +12,7 @@ import os
 import shlex
 import socket
 import sys
+import tempfile
 import threading
 import time
 import traceback
@@ -281,7 +282,7 @@ SCRIPT = """
     if (commandIndex === null) {
       try { commandIndex = JSON.parse(target.getAttribute("data-index") || "{}"); } catch (error) { commandIndex = {}; }
     }
-    var first = (text || "").trim().split(/\s+/)[0] || "";
+    var first = (text || "").trim().split(/\\s+/)[0] || "";
     if (!first) { target.textContent = ""; return; }
     var summary = commandIndex[first] || "";
     var unknown = target.getAttribute("data-unknown") || "";
@@ -294,6 +295,11 @@ SCRIPT = """
     if (box.getAttribute("data-filter") === "tree") filterTree(box.value);
     if (box.getAttribute("data-hint") === "cmd") hintCommand(box.value);
   });
+
+  var WORKBENCH = /^\\/(index|list|show|get|edit|equipment|tables|twin|find|refs|deps|check|stats|log|mcp|cmd|help|asset)$/;
+  var TITLE_SUFFIX = document.title.indexOf(" \\u00b7 ") >= 0
+    ? document.title.split(" \\u00b7 ").slice(1).join(" \\u00b7 ")
+    : document.title;
 
   document.addEventListener("click", function (event) {
     var button = event.target.closest ? event.target.closest("[data-fold]") : null;
@@ -314,10 +320,22 @@ SCRIPT = """
       event.preventDefault();
       return;
     }
-    var tab = event.target.closest ? event.target.closest(".tabs a") : null;
-    if (!tab || !window.fetch) return;
-    var href = tab.getAttribute("href");
+    var anchor = event.target.closest ? event.target.closest("a[href]") : null;
+    if (!anchor || !window.fetch) return;
+    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (anchor.target && anchor.target !== "_self") return;
+    var href = anchor.getAttribute("href");
+    if (!href || href.charAt(0) !== "/" || href.indexOf("raw=1") >= 0) return;
+    if (!WORKBENCH.test(href.split("?")[0])) return;
     event.preventDefault();
+    navigate(href);
+  });
+
+  // One link to another workbench page replaces the centre pane and leaves the file tree,
+  // the properties and the output where they are: a scope of nine thousand files would
+  // otherwise be sent again on every click.
+  function navigate(href) {
+    var path = href.split("?")[0];
     fetch(href + (href.indexOf("?") < 0 ? "?" : "&") + "pane=doc", { credentials: "same-origin" })
       .then(function (response) {
         if (!response.ok) throw new Error(String(response.status));
@@ -328,12 +346,17 @@ SCRIPT = """
         if (panes.length !== 1) throw new Error("one document pane expected");
         panes[0].innerHTML = html;
         var tabs = document.querySelectorAll(".tabs a");
-        for (var i = 0; i < tabs.length; i++) tabs[i].setAttribute("aria-current", String(tabs[i] === tab));
-        document.title = tab.textContent + " \\u00b7 " + document.title.split("\\u00b7")[0].trim();
+        for (var i = 0; i < tabs.length; i++) {
+          var here = (tabs[i].getAttribute("href") || "").split("?")[0];
+          tabs[i].setAttribute("aria-current", String(here === path));
+        }
+        var head = panes[0].querySelector("h1");
+        if (head) document.title = head.textContent.trim() + " \\u00b7 " + TITLE_SUFFIX;
         history.pushState({ pane: true }, "", href);
+        window.scrollTo(0, 0);
       })
       .catch(function () { window.location.href = href; });
-  });
+  }
 
   window.addEventListener("popstate", function () { window.location.reload(); });
   apply();
@@ -500,11 +523,12 @@ def section_links() -> dict[str, str]:
     }
 
 
-def nav_bar(url: Url) -> str:
-    """The menu bar: brand, the current scope, the language and the exit.
+def nav_bar(url: Url, address: str = "") -> str:
+    """The menu bar: brand, the current scope, the language, the exit and the address.
 
     The sections live on the tab strip alone; repeating them here would put the
-    same list on screen twice.
+    same list on screen twice.  The address is the one this server answers on, so the port
+    is on screen even when the launcher window has already closed.
     """
     tail = [tr("<span class=\"sub\">作用域 {}</span>", esc(url.scope or "-"))]
     other = "zh" if current() == "en" else "en"
@@ -512,6 +536,8 @@ def nav_bar(url: Url) -> str:
     tail.append(f'<span class="sub">| <a href="{att(url(_ROUTE.get(), lang=other))}">{name}</a></span>')
     tail.append(tr("<span class=\"sub\">| <a href=\"{}\">MCP 服务器</a></span>", att(url("mcp"))))
     tail.append(tr("<span class=\"sub\">| <a href=\"{}\">退出</a></span>", att(url("quit"))))
+    if address:
+        tail.append(f'<span class="sub">| <a href="{att(address)}">{esc(address.split("://", 1)[-1])}</a></span>')
     return (
         f'<span class="brand">{esc(tr("Firefight 模组编辑器"))}</span>'
         f'<span class="sub">{" ".join(tail)}</span>'
@@ -1389,17 +1415,36 @@ def prime_index(app: "App", scope_name: str) -> None:
 
 
 CHECK_NAME = "check.json"
+# The file that marks a folder as the game installation rather than a project.
+GAME_EXE = "Firefight.exe"
+
+# How long a walked file list and its rendered tree are reused. A page that only reads
+# keeps them; any write drops them at once (App.refresh_after_write).
+TREE_SECONDS = 30.0
 
 
-def check_cache_path(scope) -> Path:
-    """The file the status bar's counts are kept in, beside the reference tables."""
-    return journal.editor_dir(edit.project_root_of(scope.root)) / CHECK_NAME
+def check_cache_path(app, scope) -> Path:
+    """The file the status bar's counts are kept in.
+
+    Beside the reference tables for a project; the game installation is never written to, so
+    its counts go to a temporary directory keyed by the root instead of being recomputed on
+    every page.
+    """
+    root = edit.project_root_of(scope.root)
+    # The game installation is somebody else's folder: the executable names it, and nothing
+    # of this editor is written into it.
+    if not (root / GAME_EXE).is_file():
+        beside = journal.editor_dir(root) / CHECK_NAME
+        if os.access(beside.parent, os.W_OK) or (not beside.parent.exists() and os.access(root, os.W_OK)):
+            return beside
+    digest = hashlib.sha1(str(root.resolve()).encode("utf-8")).hexdigest()[:12]
+    return Path(tempfile.gettempdir()) / "firefight-mod-editor" / f"check-{digest}.json"
 
 
-def read_check_cache(scope) -> tuple[float, dict] | None:
+def read_check_cache(app, scope) -> tuple[float, dict] | None:
     """The stored counts and the age of the file in seconds, or None when unreadable."""
     try:
-        stored = json.loads(check_cache_path(scope).read_text(encoding="utf-8"))
+        stored = json.loads(check_cache_path(app, scope).read_text(encoding="utf-8"))
         counts = {
             "files": int(stored["files"]),
             "errors": int(stored["errors"]),
@@ -1412,10 +1457,10 @@ def read_check_cache(scope) -> tuple[float, dict] | None:
     return age, counts
 
 
-def write_check_cache(scope, counts: dict) -> None:
+def write_check_cache(app, scope, counts: dict) -> None:
     """Store the counts with the moment they were taken; a cache file never stops a page."""
     try:
-        path = check_cache_path(scope)
+        path = check_cache_path(app, scope)
         path.parent.mkdir(parents=True, exist_ok=True)
         journal.write_atomic(
             path,
@@ -1434,7 +1479,7 @@ def prime_checks(app: "App", scope_name: str) -> None:
     key = f"{scope.name}:{scope.root}"
     if key in app.checks:
         return
-    cached = read_check_cache(scope)
+    cached = read_check_cache(app, scope)
     if cached is None:
         return
     age, counts = cached
@@ -1456,7 +1501,7 @@ def refresh_checks(app: "App", scope_name: str) -> None:
         print(f"web: check refresh skipped: {error}", flush=True)
         return
     app.checks[f"{scope.name}:{scope.root}"] = (time.monotonic(), counts)
-    write_check_cache(scope, counts)
+    write_check_cache(app, scope, counts)
 
 
 def warm_checks(app: "App", scope_name: str) -> None:
@@ -1506,6 +1551,9 @@ class App:
         # The stock root is resolved once: the tree asks for it for every file of a scope.
         self.stock_root_known = False
         self.stock_root_value = None
+        # The walked file list and its rendered tree, per scope and search text, for
+        # TREE_SECONDS; a stock installation of nine thousand files is walked once this way.
+        self.trees: dict[tuple[str, str], tuple[float, str]] = {}
 
     # --- scope and command plumbing -----------------------------------------
 
@@ -1568,8 +1616,14 @@ class App:
             self.checks[key] = (0.0, held[1])
         with self.warm_lock:
             self.warmed.discard(scope_name)
+        self.forget_trees(scope_name)
         prime_index(self, scope_name)
         warm_checks(self, scope_name)
+
+    def forget_trees(self, scope_name: str = "") -> None:
+        """Drop the walked file lists and rendered trees, for one scope or all of them."""
+        for key in [key for key in self.trees if not scope_name or key[0] == scope_name]:
+            del self.trees[key]
 
     def call_from_query(self, command: str, scope, query: dict[str, str]):
         """Run a command from a page query: selector plus every other key=value."""
@@ -1809,6 +1863,13 @@ class Handler(BaseHTTPRequestHandler):
 
     # --- shared builders ----------------------------------------------------
 
+    def address(self) -> str:
+        """The URL this server answers on, with the port it actually bound."""
+        host, port = self.server.server_address[:2]
+        if host in ("0.0.0.0", "", "::"):
+            host = HOST
+        return f"http://{host}:{port}/"
+
     def shell(self, title: str, body: str, scope_name: str, subtitle: str = "") -> str:
         """A page inside the workbench: menu bar, tool bar, panes, status bar."""
         url = self.app.url(scope_name)
@@ -1818,7 +1879,7 @@ class Handler(BaseHTTPRequestHandler):
         return layout(
             title,
             body,
-            nav_bar(url),
+            nav_bar(url, self.address()),
             line,
             tabs=self.section_tabs(url),
             toolbar=self.tool_bar(url),
@@ -1875,6 +1936,11 @@ class Handler(BaseHTTPRequestHandler):
             + f'<div class="sub" id="tree-search-count" data-label="{att(tr("命中 {} 个文件"))}"></div>'
             + f'<div class="tree-dir">{link(url("index"), esc(scope.project.name))}</div>'
         )
+        # The rendered tree carries the language it was drawn in, so the key does too.
+        key = (f"{scope.name}|{scope.root}|{current()}", search)
+        held = self.app.trees.get(key)
+        if held is not None and time.monotonic() - held[0] < TREE_SECONDS:
+            return head + held[1]
         try:
             paths = self.project_files(scope)
         except (UsageError, FfError, OSError) as error:
@@ -1885,8 +1951,11 @@ class Handler(BaseHTTPRequestHandler):
             paths = [item for item in paths if wanted in item.lower()]
         if not paths:
             if search:
-                return head + note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
-            return head + note(tr("这个工程还没有文件。"))
+                tail = note(tr("没有匹配 {} 的文件。", search)) + self.tree_search_link(url, search)
+            else:
+                tail = note(tr("这个工程还没有文件。"))
+            self.app.trees[key] = (time.monotonic(), tail)
+            return head + tail
         try:
             declared = declared_lists(scope)
         except (UsageError, FfError):
@@ -1899,20 +1968,39 @@ class Handler(BaseHTTPRequestHandler):
         )
         if search:
             counted = note(tr("{} 个文件里有 {} 个匹配 {}。", total, len(paths), search))
-            return head + body + counted + self.tree_search_link(url, search)
-        return head + body + note(tr("{} 个文件", total))
+            tail = body + counted + self.tree_search_link(url, search)
+        else:
+            tail = body + note(tr("{} 个文件", total))
+        self.app.trees[key] = (time.monotonic(), tail)
+        return head + tail
 
     def project_files(self, scope) -> list[str]:
-        """Every file under the project root, minus the editor's own state."""
+        """Every file under the project root, minus the editor's own state.
+
+        ``os.scandir`` reads the directory entries once and reuses the type it carries; the
+        pathlib walk this replaced asked the file system about every entry separately, which
+        cost about four tenths of a second on the nine thousand files of a game install.
+        """
         root = scope.project
-        found = []
-        for path in root.rglob("*"):
-            if not path.is_file():
+        found: list[str] = []
+        stack: list[tuple[str, str]] = [(str(root), "")]
+        while stack:
+            folder, prefix = stack.pop()
+            try:
+                entries = list(os.scandir(folder))
+            except OSError:
                 continue
-            relative = path.relative_to(root).as_posix()
-            if relative.split("/", 1)[0] in TREE_HIDDEN:
-                continue
-            found.append(relative)
+            for entry in entries:
+                relative = f"{prefix}{entry.name}"
+                try:
+                    if entry.is_dir(follow_symlinks=False):
+                        if not prefix and entry.name in TREE_HIDDEN:
+                            continue
+                        stack.append((entry.path, relative + "/"))
+                    elif entry.is_file(follow_symlinks=False):
+                        found.append(relative)
+                except OSError:
+                    continue
         return sorted(found)
 
     def twin_pair(self, scope, relative: str) -> str | None:
@@ -2157,7 +2245,7 @@ class Handler(BaseHTTPRequestHandler):
             "at": time.strftime("%H:%M:%S"),
         }
         self.app.checks[key] = (now, counts)
-        write_check_cache(scope, counts)
+        write_check_cache(self.app, scope, counts)
         return counts
 
     def status_bar(self, scope_name: str) -> str:

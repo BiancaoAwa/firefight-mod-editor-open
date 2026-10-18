@@ -24,7 +24,7 @@ pane along the bottom and a status bar under it.
 
 | Region | What it holds | Where it is filled |
 |---|---|---|
-| Menu bar | the brand, the current scope, the language switch, the MCP server link and the exit link (the sections live on the tab strip only) | `nav_bar` |
+| Menu bar | the brand, the current scope, the language switch, the MCP server link, the address the server answers on and the exit link (the sections live on the tab strip only) | `nav_bar` |
 | Tool bar | one button per pane that folds it, plus the sections the tabs do not carry | `Handler.tool_bar` |
 | Tab strip | the open sections; the script swaps the centre pane without a page load | `Handler.section_tabs` |
 | Tree pane | every file of the project as folders, with a file count per folder and a search box over the paths; `Data` is the folder opened by default; a `.txt` that a `.toml` of the same name renders is dimmed | `Handler.pane_tree` |
@@ -45,6 +45,11 @@ cache header and an `ETag`, so walking through the pages fetches them once (§3)
 cannot load them still reads: the content is server-rendered HTML, and the script only moves the
 panes around.
 
+Following a link inside the workbench asks the server for the centre pane alone (`?pane=doc`)
+and swaps it in place, so the tree, the property pane, the output pane and the status bar stay as
+they were instead of being rendered again; the address bar follows with `pushState`. Any other
+link — a download, an external address, a key held down — is left to the browser.
+
 The tree and the property pane read the payloads the `list` and `get` commands return, so what
 they show is what those commands print. The property pane follows the document the request
 names in `path=` or `selector=`; a page that names none leaves it at the scope summary. The tree
@@ -55,6 +60,9 @@ typing in it filters the drawn files by their path without a round trip, and pre
 the server the same question, so `?q=` alone filters the page for a browser without scripting
 (`?q=` never reaches a command; it is a page parameter). The script also counts what it kept
 beside the box and hides a folder the search emptied; clearing the box brings the folder back.
+The drawn tree is held per scope and language for `TREE_SECONDS` (30 s), because walking the
+files and testing each one for a list shape is what a large scope spends its time on; any write
+that reaches the project drops the held trees, so the next page walks the files again.
 
 A `.txt` beside a `.toml` of the same name is the rendered copy of that document, so the tree
 dims it instead of hiding it. When the copy still matches the original byte for byte, the entry
@@ -74,7 +82,10 @@ command that caused it.
 
 The counts are also written to `EditorCache/check.json` beside the project: a later process
 starts from that file and recomputes in the background, and a write made from a page schedules
-the same recomputation, so the numbers move on without a page waiting for a scan.
+the same recomputation, so the numbers move on without a page waiting for a scan. When the scope
+is a game installation — a root that carries `Firefight.exe` — the file goes to
+`%TEMP%/firefight-mod-editor/check-<digest>.json` instead, keyed by the root, so the editor never
+writes into the installation it is only reading.
 
 A write reached through a page is recorded in the journal as `web` (`cli`, `mcp` and `web` are
 the three actors `log actor=` accepts), so the event log says which surface the change came
@@ -136,7 +147,8 @@ server **hidden in the background** — no console window is left behind — and
 a plain application window of its own (`msedge --app=<url>`: no tabs, no address bar — a
 window, not a browser session); `-Browser` forces an ordinary browser window and `-NoBrowser`
 opens nothing at all. The released `StartWebUI.cmd` in the editor folder takes that path by
-default — `-Foreground` serves in the console instead — and `-Scope <name>` chooses the scope
+default and keeps its console open for 15 s to print the address it bound, because the server
+itself runs hidden — `-Foreground` serves in the console instead — and `-Scope <name>` chooses the scope
 it serves, so a double click always gets its own window and the watchdog below.
 
 The caller returns as soon as the port answers; the server's output goes
@@ -500,7 +512,7 @@ is a refusal before the body is read.
 ## 5. Tests
 
 ```
-python -m unittest tests.test_web          # 187 tests, ~40 s
+python -m unittest tests.test_web          # 196 tests, ~47 s
 python -m unittest discover -s tests -t .  # run the suite
 ```
 
