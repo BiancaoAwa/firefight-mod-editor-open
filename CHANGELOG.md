@@ -131,6 +131,20 @@
 
 ### Changed
 
+* The workbench holds the drawn tree per scope and language for `TREE_SECONDS`
+  (30 s) and drops it on any write, and walks the files in one `os.scandir`
+  pass instead of a `Path` walk with a `stat` per entry: on a game installation
+  the front page went from 2.4 s to 0.3 s and `/show` from 2.3 s to 0.2 s.
+* A link inside the workbench asks the server for the centre pane alone
+  (`?pane=doc`) and swaps it in place, so the tree, the property pane, the
+  output pane and the status bar are not rendered again for every click; the
+  address bar follows with `pushState`.
+* The menu bar shows the address the server answers on, and `StartWebUI.cmd`
+  keeps its console open for 15 s to print it, because the server itself runs
+  hidden.
+* When the scope is a game installation the counts file goes to
+  `%TEMP%/firefight-mod-editor/` instead of `EditorCache/` inside the root, so
+  the editor never writes into the installation it reads.
 * `清单文件` is called `单位表` throughout the UI and the docs, and the section
   sits above the entity table.
 * The menu bar links `/mcp` next to the exit link, and the listener section puts

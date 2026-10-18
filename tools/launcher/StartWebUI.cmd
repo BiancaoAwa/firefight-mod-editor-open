@@ -66,6 +66,12 @@ if not "%CODE%"=="0" (
   echo.
   echo ff-tool exited with code %CODE%
   pause
+) else (
+  rem the server is in the background now, so this window is the only place the port shows.
+  echo.
+  echo the editor keeps running; the address above is the one it answers on.
+  echo this window closes by itself in 15 seconds.
+  timeout /t 15 >nul
 )
 endlocal
 exit /b %CODE%

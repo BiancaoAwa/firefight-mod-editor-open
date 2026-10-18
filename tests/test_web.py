@@ -2235,11 +2235,14 @@ class WebTestCase(unittest.TestCase):
     def test_the_status_bar_dates_the_counts_it_shows(self) -> None:
         # A check parses every document in the project, so the pane holds the result for a few
         # seconds; the time it was taken is printed, which keeps a held number visibly dated.
-        first = re.search(r"as of ([0-9]{2}:[0-9]{2}:[0-9]{2})", self.fetch("/", lang="en")[1])
-        self.assertIsNotNone(first, "the status bar does not date its counts")
-        second = re.search(r"as of ([0-9]{2}:[0-9]{2}:[0-9]{2})", self.fetch("/list", lang="en")[1])
-        self.assertIsNotNone(second, "the second page has no counts")
-        self.assertEqual(first.group(1), second.group(1), "the second page ran its own check")
+        # The hold is made long here: a cache left near its expiry would otherwise be recomputed
+        # between the two pages, and the test would compare two different checks.
+        with mock.patch.object(server, "CHECK_SECONDS", 3600.0):
+            first = re.search(r"as of ([0-9]{2}:[0-9]{2}:[0-9]{2})", self.fetch("/", lang="en")[1])
+            self.assertIsNotNone(first, "the status bar does not date its counts")
+            second = re.search(r"as of ([0-9]{2}:[0-9]{2}:[0-9]{2})", self.fetch("/list", lang="en")[1])
+            self.assertIsNotNone(second, "the second page has no counts")
+            self.assertEqual(first.group(1), second.group(1), "the second page ran its own check")
 
     def test_the_status_bar_counts_are_stored_beside_the_project(self) -> None:
         """The counts survive a restart: the next session reads them instead of checking again."""
@@ -2422,6 +2425,35 @@ class WebTestCase(unittest.TestCase):
                 self.assertNotIn(">Data/Weapons/WEAPON_000.toml</a>", second)
         finally:
             shutil.rmtree(project, ignore_errors=True)
+
+    def test_the_menu_bar_shows_the_port_the_server_answers_on(self) -> None:
+        """The launcher window closes; the address has to be on the page itself."""
+        status, body = self.fetch("")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn(f"http://127.0.0.1:{self.server.server_port}/", body)
+
+    def test_the_script_fetches_workbench_links_into_the_centre_pane(self) -> None:
+        """One tree of nine thousand files is sent once, not on every click."""
+        status, body = self.fetch("/shell.js")
+        self.assertEqual(status, 200, body[:400])
+        self.assertIn("function navigate(", body)
+        self.assertIn("WORKBENCH.test", body)
+        self.assertIn("pane=doc", body)
+        self.assertNotIn("/json", body)
+
+    def test_the_game_installation_keeps_its_counts_outside_the_installation(self) -> None:
+        """Nothing of the editor is written into the game folder."""
+        scope = self.app.scope("Firefight")
+        inside = server.check_cache_path(self.app, scope)
+        self.assertEqual(inside, STOCK / "EditorCache" / server.CHECK_NAME)
+        marker = STOCK / server.GAME_EXE
+        write_bytes(marker, b"MZ")
+        try:
+            outside = server.check_cache_path(self.app, scope)
+        finally:
+            marker.unlink()
+        self.assertNotEqual(outside, inside)
+        self.assertNotIn(str(STOCK), str(outside))
 
     def test_the_english_wording_never_keeps_chinese(self) -> None:
         for route in ("", "/list", "/find", "/stats", "/check", "/equipment", "/mcp", "/help", "/cmd", "/quit"):
